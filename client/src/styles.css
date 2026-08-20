@@ -85,14 +85,6 @@ img { max-width: 100%; display: block; }
 .app-veil.on { opacity: 1; visibility: visible; pointer-events: auto; }
 .loader { display: inline-grid; place-items: center; }
 .loader-lottie { display: block; }
-/* Drawn when assets/loading.json is not present */
-.loader-ring {
-  display: inline-block; border-radius: 50%;
-  border: 3px solid var(--color-border);
-  border-top-color: var(--color-topbar-accent);
-  animation: loader-spin 0.9s linear infinite;
-}
-@keyframes loader-spin { to { transform: rotate(360deg); } }
 /* Centred block for a page waiting on its own data */
 .loader-block { display: grid; place-items: center; padding: 4rem 0; }
 

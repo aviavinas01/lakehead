@@ -4,9 +4,8 @@ import { LottieLight } from "lottie-react";
  * The Lottie half of Loader, in its own chunk.
  *
  * Kept apart because the animation engine is ~50 kB gzipped — more than the
- * rest of the page put together at first paint. Loader shows the CSS ring
- * immediately and swaps this in when it arrives, so the loading mark never
- * has to wait on its own download.
+ * rest of the page put together at first paint, and no reason to hold up
+ * everything else while it downloads.
  *
  * The animation is read from client/src/assets/loading.json — export
  * "Lottie JSON" from LottieFiles and save it there. import.meta.glob is used
@@ -21,17 +20,22 @@ const files = import.meta.glob("../assets/loading.json", {
   import: "default",
 }) as Record<string, object>;
 
-export const animation = Object.values(files)[0];
+export const animation = Object.values(files)[0] as
+  | { w?: number; h?: number }
+  | undefined;
 
 export default function LottieLoader({ size }: { size: number }) {
-  if (!animation) throw new Error("no animation");
+  if (!animation) return null;
+  /* `size` is the width; the height follows the artboard's own proportions,
+     so the box hugs the artwork instead of letterboxing it. */
+  const { w = 1, h = 1 } = animation;
   return (
     <LottieLight
       src={animation}
       loop
       autoplay
       className="loader-lottie"
-      style={{ width: size, height: size }}
+      style={{ width: size, height: Math.round((size * h) / w) }}
     />
   );
 }

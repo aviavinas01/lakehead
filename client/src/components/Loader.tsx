@@ -1,32 +1,24 @@
 import { Suspense, lazy } from "react";
 
 /**
- * The site's loading mark: a CSS ring, replaced by the Lottie animation as
- * soon as its chunk has loaded (and left in place if there is no animation
- * file — see LottieLoader for where to save it).
+ * The site's loading mark — the Lottie animation in
+ * client/src/assets/loading.json, and nothing else. The engine arrives in
+ * its own chunk (see LottieLoader), so the space is simply empty for the
+ * moment it takes to load rather than being filled by a stand-in.
  */
 
 const LottieLoader = lazy(() => import("./LottieLoader"));
 
-/* Whether an animation file exists is known without pulling in the engine */
-const present = Object.keys(
-  import.meta.glob("../assets/loading.json")
-).length > 0;
-
-const Ring = ({ size }: { size: number }) => (
-  <span className="loader-ring" style={{ width: size, height: size }} />
-);
+/* Whether the file exists is known without pulling in the engine */
+const present = Object.keys(import.meta.glob("../assets/loading.json")).length > 0;
 
 export default function Loader({ size = 96 }: { size?: number }) {
+  if (!present) return null;
   return (
     <span className="loader" role="status" aria-label="Loading">
-      {present ? (
-        <Suspense fallback={<Ring size={size} />}>
-          <LottieLoader size={size} />
-        </Suspense>
-      ) : (
-        <Ring size={size} />
-      )}
+      <Suspense fallback={null}>
+        <LottieLoader size={size} />
+      </Suspense>
     </span>
   );
 }
