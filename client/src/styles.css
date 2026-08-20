@@ -423,43 +423,24 @@ img { max-width: 100%; display: block; }
   letter-spacing: -0.02em; line-height: 1.2; max-width: 480px; margin-bottom: 0;
 }
 .help-lead { color: var(--color-muted); font-size: 0.95rem; max-width: 440px; justify-self: end; }
-/* A shared vanishing point, so the three cards read as one space rather
-   than three independent boxes */
-.help-grid {
-  display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem;
-  perspective: 1400px; perspective-origin: 50% 45%;
-}
+.help-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; }
 .help-card { position: relative; }
-/* Each card swings in from its own side the first time the row is scrolled
-   to — .in-view is set on the grid by Home.tsx. The cards start further out,
-   pushed back in Z and turned slightly away, and come to rest square to the
-   viewer. Depth of field (blur → sharp) does most of the work: it reads as
-   the card arriving from somewhere rather than sliding on a flat plane. */
+/* Each card fades in from its own side the first time the row is scrolled to
+   — .in-view is set on the grid by Home.tsx. A slow, plain fade over a short
+   drift: no blur, no scale, no turn, so the photo is sharp the whole way and
+   the movement is only just noticeable. */
 .help-card {
-  opacity: 0; filter: blur(10px);
-  transition: opacity 1s cubic-bezier(0.22, 1, 0.36, 1),
-              transform 1.15s cubic-bezier(0.18, 0.9, 0.24, 1),
-              filter 0.9s ease-out;
+  opacity: 0;
+  transition: opacity 1.4s ease, transform 1.4s cubic-bezier(0.25, 0.6, 0.3, 1);
 }
-.help-card.from-left { transform: translate3d(-110px, 18px, -220px) rotateY(16deg); }
-.help-card.from-bottom { transform: translate3d(0, 130px, -220px) rotateX(14deg); }
-.help-card.from-right { transform: translate3d(110px, 18px, -220px) rotateY(-16deg); }
-.help-grid.in-view .help-card {
-  opacity: 1; filter: blur(0); transform: none;
-}
-/* Outer cards lead, the middle one lands last — the row assembles */
-.help-grid.in-view .from-left { transition-delay: 0s; }
-.help-grid.in-view .from-right { transition-delay: 0.1s; }
-.help-grid.in-view .from-bottom { transition-delay: 0.2s; }
-/* The white panel settles a beat after its card has arrived */
-.help-card .help-panel {
-  opacity: 0; transform: translateY(16px);
-  transition: opacity 0.6s ease-out 0.45s, transform 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.45s;
-}
-.help-grid.in-view .help-panel { opacity: 1; transform: none; }
-/* Each panel waits for its own card, keeping the pairs in step */
-.help-grid.in-view .from-right .help-panel { transition-delay: 0.55s; }
-.help-grid.in-view .from-bottom .help-panel { transition-delay: 0.65s; }
+.help-card.from-left { transform: translateX(-42px); }
+.help-card.from-bottom { transform: translateY(42px); }
+.help-card.from-right { transform: translateX(42px); }
+.help-grid.in-view .help-card { opacity: 1; transform: none; }
+/* Barely-there stagger — enough to soften the row, not enough to read as
+   three separate events */
+.help-grid.in-view .from-right { transition-delay: 0.12s; }
+.help-grid.in-view .from-bottom { transition-delay: 0.24s; }
 .help-card img, .help-placeholder {
   width: 100%; aspect-ratio: 1 / 1; object-fit: cover; display: block;
 }
@@ -1071,5 +1052,5 @@ img { max-width: 100%; display: block; }
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; animation: none !important; }
   /* No transition means the entrance never runs — show the cards outright */
-  .help-card, .help-panel { opacity: 1; transform: none; filter: none; }
+  .help-card { opacity: 1; transform: none; }
 }
