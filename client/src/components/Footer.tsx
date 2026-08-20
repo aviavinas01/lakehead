@@ -143,7 +143,7 @@ export default function Footer() {
   useEffect(() => {
     let cancelled = false;
     api
-      .get<{ rating: GoogleRating }>("/google-rating")
+      .get<{ rating: GoogleRating }>("/google-rating", { quiet: true })
       .then(({ data }) => {
         if (!cancelled) setGoogle(data.rating);
       })

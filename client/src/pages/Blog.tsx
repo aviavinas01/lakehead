@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api, { getErrorMessage } from "../api/client";
+import Loader from "../components/Loader";
 import type { Paginated, PostSummary } from "../types/api";
 
 export default function Blog() {
@@ -16,7 +17,7 @@ export default function Blog() {
   }, [page]);
 
   if (error) return <div className="container section">{error}</div>;
-  if (!data) return <div className="container section">Loading posts…</div>;
+  if (!data) return <div className="loader-block"><Loader size={72} /></div>;
 
   return (
     <section className="section container">

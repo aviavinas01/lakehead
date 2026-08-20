@@ -121,13 +121,14 @@ export default function VideoTestimonials() {
     let cancelled = false;
     (async () => {
       try {
-        const { data } = await api.get<{ albums: Album[] }>("/albums");
+        const { data } = await api.get<{ albums: Album[] }>("/albums", { quiet: true });
         const album = data.albums.find(
           (a) => a.title.trim().toLowerCase() === REVIEWS_ALBUM_TITLE
         );
         if (!album) return;
         const res = await api.get<{ album: Album; media: Media[] }>(
-          `/albums/slug/${album.slug}`
+          `/albums/slug/${album.slug}`,
+          { quiet: true }
         );
         const items = res.data.media.filter((m) => m.type === "video");
         if (!cancelled && items.length > 0) setVideos(items);

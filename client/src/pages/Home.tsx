@@ -148,13 +148,14 @@ export default function Home() {
     let cancelled = false;
     (async () => {
       try {
-        const { data } = await api.get<{ albums: Album[] }>("/albums");
+        const { data } = await api.get<{ albums: Album[] }>("/albums", { quiet: true });
         const album = data.albums.find(
           (a) => a.title.trim().toLowerCase() === HERO_ALBUM_TITLE
         );
         if (!album) return;
         const res = await api.get<{ album: Album; media: Media[] }>(
-          `/albums/slug/${album.slug}`
+          `/albums/slug/${album.slug}`,
+          { quiet: true }
         );
         const image = res.data.media.find((m) => m.type === "image");
         if (image && !cancelled) setHeroImage(image.url);

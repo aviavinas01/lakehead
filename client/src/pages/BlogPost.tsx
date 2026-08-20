@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import api, { getErrorMessage } from "../api/client";
+import Loader from "../components/Loader";
 import type { Post } from "../types/api";
 
 export default function BlogPost() {
@@ -23,7 +24,7 @@ export default function BlogPost() {
         <Link to="/blog">← Back to blog</Link>
       </div>
     );
-  if (!post) return <div className="container section">Loading…</div>;
+  if (!post) return <div className="loader-block"><Loader size={72} /></div>;
 
   return (
     <article className="section container article">

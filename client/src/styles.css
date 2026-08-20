@@ -56,6 +56,46 @@ img { max-width: 100%; display: block; }
 .container { max-width: calc(40% + 0.6 * var(--container)); margin: 0 auto; padding: 0 1.5rem; }
 .section { padding: var(--section-y) 0; }
 
+/* ============================================================
+   Loading — the splash on first load and the veil during any
+   request. Both centre the same mark (Loader.tsx).
+   ============================================================ */
+.app-splash {
+  position: fixed; inset: 0; z-index: 300;
+  display: grid; place-items: center;
+  background: var(--color-bg);
+  opacity: 1; transition: opacity 0.45s ease;
+}
+/* Fades away to reveal the page underneath, which has been ready all along */
+.app-splash.out { opacity: 0; pointer-events: none; }
+/* The mark is capped against the viewport so it never overruns a phone */
+.app-splash .loader, .app-splash .loader > * {
+  max-width: 70vw; max-height: 70vw;
+}
+/* Sits over the page while work is in flight; click-blocking on purpose, so
+   a form cannot be submitted twice while the first attempt is still running. */
+.app-veil {
+  position: fixed; inset: 0; z-index: 300;
+  display: grid; place-items: center;
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);
+  opacity: 0; visibility: hidden; pointer-events: none;
+  transition: opacity 0.25s ease, visibility 0.25s;
+}
+.app-veil.on { opacity: 1; visibility: visible; pointer-events: auto; }
+.loader { display: inline-grid; place-items: center; }
+.loader-lottie { display: block; }
+/* Drawn when assets/loading.json is not present */
+.loader-ring {
+  display: inline-block; border-radius: 50%;
+  border: 3px solid var(--color-border);
+  border-top-color: var(--color-topbar-accent);
+  animation: loader-spin 0.9s linear infinite;
+}
+@keyframes loader-spin { to { transform: rotate(360deg); } }
+/* Centred block for a page waiting on its own data */
+.loader-block { display: grid; place-items: center; padding: 4rem 0; }
+
 /* Top bar (above main navbar) — faint blue strip, dark text.
    Semi-transparent with a blur so scrolled content glides behind it. */
 .topbar {
