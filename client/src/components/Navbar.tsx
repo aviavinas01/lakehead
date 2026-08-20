@@ -146,17 +146,20 @@ export default function Navbar() {
   const barH = useRef<HTMLSpanElement>(null);
   const barV = useRef<HTMLSpanElement>(null);
 
-  /* Lock page scroll and close on Escape while the side drawer is open. */
+  /* Lock page scroll and close on Escape while the side drawer is open.
+     The lock goes on <html>, not <body>: the page sets overflow-x on the
+     root element, and once the root has an overflow of its own the browser
+     stops taking the viewport's scrolling from <body> — so locking the body
+     would quietly do nothing. */
   useEffect(() => {
     if (!drawerOpen) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    document.documentElement.classList.add("scroll-locked");
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") setDrawerOpen(false);
     };
     window.addEventListener("keydown", onKey);
     return () => {
-      document.body.style.overflow = prev;
+      document.documentElement.classList.remove("scroll-locked");
       window.removeEventListener("keydown", onKey);
     };
   }, [drawerOpen]);
