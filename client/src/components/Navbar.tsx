@@ -1,25 +1,92 @@
 import { useEffect, useRef, useState } from "react";
-import { NavLink, Link } from "react-router-dom";
+import { NavLink, Link, useLocation } from "react-router-dom";
+import { contact } from "../config/contact";
 
 interface NavItem {
   label: string;
   to: string;
+  /** When present, a caret appears beside the label that opens this panel. */
+  menu?: NavMenu;
 }
 
-/* Contact details shown in the top bar — replace placeholders with real numbers. */
-const contact = {
-  phoneDisplay: "+977-1-5555555",
-  phoneHref: "tel:+97715555555",
-  whatsappHref: "https://wa.me/9779800000000",
-};
+interface NavMenu {
+  /** Panel heading, split so the second half gets the blue→red treatment. */
+  title: string;
+  titleAccent: string;
+  lead: string;
+  links: { label: string; to: string }[];
+}
 
-/* Plain nav links — repoint each `to` as dedicated pages are added. */
+/* Nav links — repoint each `to` as dedicated pages are added. Add a `menu`
+   to any entry to give it a caret and a dropdown panel; entries without one
+   stay plain links. */
 const links: NavItem[] = [
-  { label: "Study Abroad", to: "/services" },
-  { label: "Student Services", to: "/services" },
-  { label: "What We Do", to: "/about" },
+  {
+    label: "Study Abroad",
+    to: "/services",
+    menu: {
+      title: "Study",
+      titleAccent: "Abroad",
+      lead: "Lakehead offers student-focused international education services designed to support every step of your journey through expert guidance, preparation support, and global academic opportunities.",
+      links: [
+        { label: "Study in USA", to: "/services" },
+        { label: "Study in UK", to: "/services" },
+        { label: "Study in Australia", to: "/services" },
+        { label: "Study in Canada", to: "/services" },
+        { label: "Study in Germany", to: "/services" },
+        { label: "Study in New Zealand", to: "/services" },
+      ],
+    },
+  },
+  {
+    label: "Student Services",
+    to: "/services",
+    menu: {
+      title: "Our",
+      titleAccent: "Services",
+      lead: "From your first counselling session to the day you land, our qualified consultants handle the paperwork, the preparation, and everything in between.",
+      links: [
+        { label: "Study Abroad Counselling", to: "/services" },
+        { label: "Test Preparation", to: "/services" },
+        { label: "Visa Guidance", to: "/services" },
+        { label: "Career Counselling", to: "/services" },
+        { label: "Student Accommodation", to: "/services" },
+        { label: "Interview Preparation", to: "/services" },
+      ],
+    },
+  },
+  {
+    label: "What We Do",
+    to: "/about",
+    menu: {
+      title: "About",
+      titleAccent: "Lakehead",
+      lead: "A team of certified consultants guiding students to the right university, the right course, and the right country.",
+      links: [
+        { label: "Who We Are", to: "/about" },
+        { label: "Success Stories", to: "/about" },
+        { label: "Testimonials & Reviews", to: "/about" },
+        { label: "University Partners", to: "/about" },
+        { label: "Contact Us", to: "/contact" },
+      ],
+    },
+  },
   { label: "Events", to: "/blog" },
-  { label: "Resources", to: "/blog" },
+  {
+    label: "Resources",
+    to: "/blog",
+    menu: {
+      title: "Student",
+      titleAccent: "Resources",
+      lead: "Guides, documents, and updates to help you prepare with confidence.",
+      links: [
+        { label: "Blog & Articles", to: "/blog" },
+        { label: "News", to: "/blog" },
+        { label: "Useful Documents", to: "/blog" },
+        { label: "Events", to: "/blog" },
+      ],
+    },
+  },
 ];
 
 /* Sections listed in the side drawer opened by the dashboard icon —
@@ -47,6 +114,15 @@ const WhatsAppIcon = () => (
   </svg>
 );
 
+/** Nav label → id-safe slug, for wiring aria-controls to the panel. */
+const slug = (label: string) => label.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+
+const CaretIcon = () => (
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M6 9l6 6 6-6" />
+  </svg>
+);
+
 const DashboardIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
     <rect x="3.5" y="3.5" width="7" height="7" rx="1.5" />
@@ -57,7 +133,10 @@ const DashboardIcon = () => (
 );
 
 export default function Navbar() {
+  const { pathname } = useLocation();
   const [open, setOpen] = useState(false);
+  /* Label of the nav item whose dropdown panel is open, or null for none */
+  const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [logoMissing, setLogoMissing] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -79,6 +158,23 @@ export default function Navbar() {
       window.removeEventListener("keydown", onKey);
     };
   }, [drawerOpen]);
+
+  /* Close an open dropdown on Escape or on a click outside the header. */
+  useEffect(() => {
+    if (!openMenu) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpenMenu(null);
+    };
+    const onDown = (e: MouseEvent) => {
+      if (!headerRef.current?.contains(e.target as Node)) setOpenMenu(null);
+    };
+    window.addEventListener("keydown", onKey);
+    document.addEventListener("mousedown", onDown);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.removeEventListener("mousedown", onDown);
+    };
+  }, [openMenu]);
 
   /* Scroll progress for the bar under the header: 0→1 across the page,
      switching to the footer color once the footer scrolls into view. */
@@ -108,6 +204,17 @@ export default function Navbar() {
       window.removeEventListener("resize", onScroll);
     };
   }, []);
+
+  /* The open item, narrowed so `menu` is defined inside the panel markup */
+  const activeMenu = links.find(
+    (l): l is NavItem & { menu: NavMenu } => l.label === openMenu && !!l.menu
+  );
+
+  /* A navigation always dismisses the menus */
+  useEffect(() => {
+    setOpenMenu(null);
+    setOpen(false);
+  }, [pathname]);
 
   return (
     <header className="navbar" ref={headerRef}>
@@ -166,6 +273,20 @@ export default function Navbar() {
                 >
                   {item.label}
                 </NavLink>
+                {item.menu && (
+                  <button
+                    type="button"
+                    className={`nav-caret${openMenu === item.label ? " open" : ""}`}
+                    aria-expanded={openMenu === item.label}
+                    aria-controls={`menu-${slug(item.label)}`}
+                    aria-label={`${item.label} menu`}
+                    onClick={() =>
+                      setOpenMenu(openMenu === item.label ? null : item.label)
+                    }
+                  >
+                    <CaretIcon />
+                  </button>
+                )}
               </div>
             ))}
             <button
@@ -178,6 +299,37 @@ export default function Navbar() {
             </button>
           </nav>
         </div>
+        {/* Dropdown panel — full-width band under the nav strip, showing the
+            open item's heading and blurb beside its list of sections. */}
+        {activeMenu && (
+          <div className="mega-panel" id={`menu-${slug(activeMenu.label)}`}>
+            <div className="container mega-inner">
+              <div className="mega-copy">
+                <h3 className="mega-title">
+                  {activeMenu.menu.title}{" "}
+                  <span className="mega-title-accent">
+                    {activeMenu.menu.titleAccent}
+                  </span>
+                </h3>
+                <p>{activeMenu.menu.lead}</p>
+              </div>
+              <ul className="mega-list">
+                {activeMenu.menu.links.map((l) => (
+                  <li key={l.label}>
+                    <Link to={l.to} onClick={() => setOpenMenu(null)}>
+                      <svg viewBox="0 0 24 24" width="15" height="15" fill="none"
+                        stroke="currentColor" strokeWidth="2" strokeLinecap="round"
+                        strokeLinejoin="round" aria-hidden="true">
+                        <path d="M9 6l6 6-6 6" />
+                      </svg>
+                      {l.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        )}
       </div>
       <div className={`scroll-progress${atFooter ? " at-footer" : ""}`}>
         <span style={{ transform: `scaleX(${progress})` }} />

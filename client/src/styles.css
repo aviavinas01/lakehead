@@ -130,6 +130,61 @@ img { max-width: 100%; display: block; }
 }
 .nav-item > a:hover { opacity: 0.85; }
 .nav-item > a.active { text-decoration: underline; text-underline-offset: 6px; text-decoration-thickness: 2px; }
+/* Caret button beside a nav label — toggles that item's dropdown panel */
+.nav-caret {
+  display: inline-grid; place-items: center; margin-left: 0.3rem;
+  width: 20px; height: 20px; padding: 0; border: none; background: none;
+  color: var(--color-nav-bg); cursor: pointer;
+  transition: transform 0.2s, opacity 0.15s;
+}
+.nav-caret:hover { opacity: 0.7; }
+.nav-caret.open { transform: rotate(180deg); }
+
+/* ============================================================
+   Nav dropdown ("mega") panel — a full-width white band under the
+   nav strip: heading and blurb on the left, section links on the
+   right, split by a hairline rule.
+   ============================================================ */
+.mega-panel {
+  position: absolute; top: 100%; left: 0; right: 0; z-index: 45;
+  background: var(--color-bg); border-bottom: 1px solid var(--color-border);
+  box-shadow: 0 18px 32px rgba(23, 39, 92, 0.09);
+  animation: mega-in 0.18s ease;
+}
+@keyframes mega-in {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.mega-inner {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 3rem;
+  padding-top: 2.75rem; padding-bottom: 2.75rem;
+}
+.mega-title {
+  font-size: clamp(1.6rem, 2.4vw, 2.2rem); font-weight: 800;
+  color: var(--color-text); margin-bottom: 0.9rem;
+}
+/* Second half of the heading runs blue into red, matching the brand accents */
+.mega-title-accent {
+  background: linear-gradient(90deg, var(--color-hero-ink) 0 48%, var(--color-hero-red) 48%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.mega-copy p {
+  color: var(--color-muted); font-size: 0.95rem; line-height: 1.7; max-width: 46ch;
+}
+.mega-list {
+  list-style: none; margin: 0; padding: 0 0 0 3rem;
+  border-left: 1px solid var(--color-border);
+  display: grid; align-content: start; gap: 0.35rem;
+}
+.mega-list a {
+  display: flex; align-items: center; gap: 0.9rem;
+  color: var(--color-hero-ink); font-size: 1.05rem; padding: 0.45rem 0;
+  transition: color 0.15s, gap 0.15s;
+}
+.mega-list a svg { color: var(--color-muted); flex-shrink: 0; }
+.mega-list a:hover { color: var(--color-hero-red); gap: 1.15rem; }
+.mega-list a:hover svg { color: var(--color-hero-red); }
+
 /* Dashboard icon beside the nav links — opens the side drawer */
 .drawer-toggle {
   display: grid; place-items: center; width: 38px; height: 38px;
@@ -333,6 +388,20 @@ img { max-width: 100%; display: block; }
 .help-lead { color: var(--color-muted); font-size: 0.95rem; max-width: 440px; justify-self: end; }
 .help-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; }
 .help-card { position: relative; }
+/* Each card eases in from its own side the first time the row is scrolled
+   to — .in-view is set on the grid by Home.tsx. A short travel and a long
+   decelerating curve keep it a settle rather than a slide. */
+.help-card {
+  opacity: 0;
+  transition: opacity 0.75s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.help-card.from-left { transform: translateX(-32px); }
+.help-card.from-bottom { transform: translateY(32px); }
+.help-card.from-right { transform: translateX(32px); }
+/* The middle card trails the outer two very slightly */
+.help-grid.in-view .help-card { opacity: 1; transform: none; }
+.help-grid.in-view .from-bottom { transition-delay: 0.08s; }
 .help-card img, .help-placeholder {
   width: 100%; aspect-ratio: 1 / 1; object-fit: cover; display: block;
 }
@@ -480,7 +549,7 @@ img { max-width: 100%; display: block; }
   to { transform: translateX(-50%); }
 }
 .uni-card {
-  position: relative; flex: 0 0 250px; height: 200px; margin-right: 1.25rem;
+  position: relative; flex: 0 0 205px; height: 165px; margin-right: 1rem;
   display: grid; place-items: center; padding: 0.6rem; overflow: hidden;
   background: #fff; border: 1px solid var(--color-border); border-radius: 12px;
   transition: border-color 0.15s;
@@ -818,6 +887,31 @@ img { max-width: 100%; display: block; }
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* Responsive */
+/* ============================================================
+   Mobile quick-contact bar — fixed to the bottom of the viewport
+   on phones, standing in for the desktop top bar's contact pills.
+   Hidden above 860px; shown in the mobile media query below.
+   ============================================================ */
+.mobile-actions {
+  display: none;
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 60;
+  gap: 0.6rem; padding: 0.6rem 0.75rem;
+  /* Clear the iOS home indicator */
+  padding-bottom: calc(0.6rem + env(safe-area-inset-bottom));
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  border-top: 1px solid var(--color-border);
+}
+.mobile-action {
+  flex: 1; display: inline-flex; align-items: center; justify-content: center;
+  gap: 0.45rem; white-space: nowrap;
+  background: var(--color-topbar-accent); color: #fff;
+  font-weight: 600; font-size: 0.95rem;
+  padding: 0.7rem 0.5rem; border-radius: 999px;
+  transition: background 0.15s;
+}
+.mobile-action:active { background: var(--color-topbar-accent-hover); }
+
 @media (max-width: 860px) {
   .grid-3, .grid-2 { grid-template-columns: 1fr; }
   /* Footer: brand on top, link columns two-up, stacked bottom bar */
@@ -828,18 +922,31 @@ img { max-width: 100%; display: block; }
   .footer-social { text-align: left; }
   .footer-social-icons { justify-content: flex-start; }
   .nav-toggle { display: block; }
-  /* On mobile keep only the contact pills in the top bar */
-  .topbar-link { display: none; }
-  .topbar-right { width: 100%; justify-content: center; }
+  /* The contact details move to the fixed bottom bar on mobile,
+     so the whole top strip goes away */
+  .topbar { display: none; }
+  .mobile-actions { display: flex; }
+  /* Leave room so the fixed bar never covers the end of the page */
+  .footer-bottom { padding-bottom: calc(4.5rem + env(safe-area-inset-bottom)); }
   /* No room to straddle the bars on mobile — keep the logo inside the white strip */
   .brand-logo { height: 64px; margin-top: 0; }
   /* The sloped shoulder would cover the centered contact pills on mobile */
   .navbar-main::before { display: none; }
-  .nav-links { display: none; position: absolute; top: 100%; left: 0; right: 0;
-    background: var(--color-bg); flex-direction: column; padding: 1rem 1.25rem;
-    border-bottom: 1px solid var(--color-border); align-items: flex-start; gap: 0.25rem; }
+  /* The open menu takes a full row of the header instead of floating over the
+     page, so a dropdown panel can appear directly beneath it */
+  .navbar-inner { flex-wrap: wrap; }
+  .nav-links { display: none; flex-basis: 100%;
+    background: var(--color-bg); flex-direction: column; padding: 1rem 0.25rem;
+    border-top: 1px solid var(--color-border); align-items: flex-start; gap: 0.25rem; }
   .nav-links.open { display: flex; }
-  .nav-item { width: 100%; }
+  /* Label left, caret as a big tap target on the right */
+  .nav-item { width: 100%; display: flex; align-items: center; justify-content: space-between; }
+  .nav-caret { width: 44px; height: 44px; margin-left: 0; }
+  /* Dropdown stacks: blurb above the links, no divider rule */
+  .mega-inner { grid-template-columns: 1fr; gap: 1.5rem;
+    padding-top: 1.75rem; padding-bottom: 1.75rem; }
+  .mega-list { padding-left: 0; border-left: none; }
+  .mega-panel { max-height: 70vh; overflow-y: auto; }
   /* Hero stacks: copy on top, orbit visual below */
   .hero-inner { grid-template-columns: 1fr; gap: 2rem; padding-top: 2.5rem; }
   .hero-orbit-wrap { --orbit-size: min(400px, 88vw); }
@@ -865,7 +972,7 @@ img { max-width: 100%; display: block; }
   .video-card { flex-basis: 88%; }
   .video-nav { display: none; }
   /* University marquee: slightly smaller cards on mobile */
-  .uni-card { flex-basis: 190px; height: 155px; margin-right: 0.85rem; }
+  .uni-card { flex-basis: 160px; height: 130px; margin-right: 0.75rem; }
   .testimonials-head { flex-direction: column; gap: 1rem; }
   .testimonials-nav { padding-top: 0; }
   .next-steps { padding: 3.5rem 0; }
@@ -886,4 +993,6 @@ img { max-width: 100%; display: block; }
 
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; animation: none !important; }
+  /* No transition means the entrance never runs — show the cards outright */
+  .help-card { opacity: 1; transform: none; }
 }

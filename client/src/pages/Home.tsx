@@ -20,10 +20,16 @@ const HERO_ALBUM_TITLE = "home hero";
  * (e.g. "/citizenship.jpg") once the photos are in client/public.
  * Until then a neutral placeholder panel is shown in its place.
  */
-const HELP_CARDS: { title: string; text: string; image?: string }[] = [
-  { title: "Citizenship Test", text: "Access practice questions, study guides…", image: "/help/citizenship-test.png" },
-  { title: "TOEFL Coaching", text: "Access practice questions, study guides…", image: "/help/toefl.png" },
-  { title: "Take IELTS", text: "Access practice questions, study guides…", image: "/help/ielts.jpg" },
+const HELP_CARDS: {
+  title: string;
+  text: string;
+  image?: string;
+  /** Side the card eases in from when the section scrolls into view */
+  from: "left" | "bottom" | "right";
+}[] = [
+  { title: "Citizenship Test", text: "Access practice questions, study guides…", image: "/help/citizenship-test.png", from: "left" },
+  { title: "TOEFL Coaching", text: "Access practice questions, study guides…", image: "/help/toefl.png", from: "bottom" },
+  { title: "Take IELTS", text: "Access practice questions, study guides…", image: "/help/ielts.jpg", from: "right" },
 ];
 
 /**
@@ -91,6 +97,7 @@ const TESTIMONIALS: { quote: string; name: string; country: string }[] = [
 export default function Home() {
   const [heroImage, setHeroImage] = useState<string>();
   const testimonialTrack = useRef<HTMLDivElement>(null);
+  const helpGrid = useRef<HTMLDivElement>(null);
 
   const scrollTestimonials = (dir: -1 | 1) => {
     const track = testimonialTrack.current;
@@ -99,6 +106,29 @@ export default function Home() {
     const step = card ? card.offsetWidth + 24 : track.clientWidth;
     track.scrollBy({ left: dir * step, behavior: "smooth" });
   };
+
+  /* The three "how we help" cards settle in from their own side the first
+     time the row is scrolled to. One observer on the row, so the cards move
+     together as a set rather than each waiting its own turn. */
+  useEffect(() => {
+    const grid = helpGrid.current;
+    if (!grid) return;
+    const show = () => grid.classList.add("in-view");
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      show();
+      return;
+    }
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return;
+        show();
+        io.disconnect();
+      },
+      { threshold: 0.25 }
+    );
+    io.observe(grid);
+    return () => io.disconnect();
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -210,9 +240,9 @@ export default function Home() {
               can assist you.
             </p>
           </div>
-          <div className="help-grid">
+          <div className="help-grid" ref={helpGrid}>
             {HELP_CARDS.map((c) => (
-              <div className="help-card" key={c.title}>
+              <div className={`help-card from-${c.from}`} key={c.title}>
                 {c.image ? (
                   <img src={c.image} alt={c.title} loading="lazy" decoding="async" />
                 ) : (
