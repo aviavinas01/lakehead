@@ -139,10 +139,12 @@ export default function Navbar() {
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [logoMissing, setLogoMissing] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [atFooter, setAtFooter] = useState(false);
   const headerRef = useRef<HTMLElement>(null);
-  const [headerH, setHeaderH] = useState(0);
+  /* The progress bars are driven straight through these refs — see below */
+  const trackH = useRef<HTMLDivElement>(null);
+  const trackV = useRef<HTMLDivElement>(null);
+  const barH = useRef<HTMLSpanElement>(null);
+  const barV = useRef<HTMLSpanElement>(null);
 
   /* Lock page scroll and close on Escape while the side drawer is open. */
   useEffect(() => {
@@ -177,31 +179,57 @@ export default function Navbar() {
   }, [openMenu]);
 
   /* Scroll progress for the bar under the header: 0→1 across the page,
-     switching to the footer color once the footer scrolls into view. */
+     switching to the footer color once the footer scrolls into view.
+     Two rules keep this off the critical path of every scroll frame:
+     the page's measurements are taken only when they can actually change
+     (resize / content growth), never inside the frame; and the frame writes
+     to the DOM through refs instead of setting state, so scrolling never
+     re-renders the navbar. Both were costing a forced layout plus a React
+     render on every single frame, which is what made scrolling stutter. */
   useEffect(() => {
     let raf = 0;
-    const update = () => {
-      const doc = document.documentElement;
-      const max = doc.scrollHeight - window.innerHeight;
-      setProgress(max > 0 ? Math.min(window.scrollY / max, 1) : 0);
+    let max = 0;
+    let footerTop = Number.POSITIVE_INFINITY;
+
+    /* Every layout read lives here */
+    const measure = () => {
+      max = document.documentElement.scrollHeight - window.innerHeight;
       const footer = document.querySelector<HTMLElement>("footer.footer");
-      setAtFooter(
-        !!footer && window.scrollY + window.innerHeight >= footer.offsetTop + 40
-      );
+      footerTop = footer ? footer.offsetTop : Number.POSITIVE_INFINITY;
       /* The vertical bar starts where the sticky header ends */
-      setHeaderH(headerRef.current?.offsetHeight ?? 0);
+      if (trackV.current) {
+        trackV.current.style.top = `${headerRef.current?.offsetHeight ?? 0}px`;
+      }
+      paint();
     };
+
+    /* …and only writes live here */
+    const paint = () => {
+      const p = max > 0 ? Math.min(window.scrollY / max, 1) : 0;
+      if (barH.current) barH.current.style.transform = `scaleX(${p})`;
+      if (barV.current) barV.current.style.transform = `scaleY(${p})`;
+      const atFooter = window.scrollY + window.innerHeight >= footerTop + 40;
+      trackH.current?.classList.toggle("at-footer", atFooter);
+      trackV.current?.classList.toggle("at-footer", atFooter);
+    };
+
     const onScroll = () => {
       cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(update);
+      raf = requestAnimationFrame(paint);
     };
-    update();
+
+    measure();
     window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
+    window.addEventListener("resize", measure);
+    /* Content loading in (images, posts) changes the page height */
+    const ro = new ResizeObserver(measure);
+    ro.observe(document.body);
+
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
+      window.removeEventListener("resize", measure);
+      ro.disconnect();
     };
   }, []);
 
@@ -331,17 +359,13 @@ export default function Navbar() {
           </div>
         )}
       </div>
-      <div className={`scroll-progress${atFooter ? " at-footer" : ""}`}>
-        <span style={{ transform: `scaleX(${progress})` }} />
+      <div className="scroll-progress" ref={trackH}>
+        <span ref={barH} />
       </div>
       {/* Vertical twin of the bar above: fills bottom-to-top along the right
           edge and meets the horizontal bar at the top-right corner. */}
-      <div
-        className={`scroll-progress-v${atFooter ? " at-footer" : ""}`}
-        style={{ top: headerH }}
-        aria-hidden="true"
-      >
-        <span style={{ transform: `scaleY(${progress})` }} />
+      <div className="scroll-progress-v" ref={trackV} aria-hidden="true">
+        <span ref={barV} />
       </div>
 
       {drawerOpen && (

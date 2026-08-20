@@ -90,10 +90,10 @@ img { max-width: 100%; display: block; }
 
 /* Top bar (above main navbar) — faint blue strip, dark text.
    Semi-transparent with a blur so scrolled content glides behind it. */
-.topbar {
-  background: rgba(244, 247, 251, 0.6); font-size: 0.875rem;
-  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-}
+/* Solid rather than blurred: this strip is sticky, and a backdrop-filter on
+   a sticky element makes the browser re-blur everything behind it on every
+   scroll frame — one of the costliest things a page can ask for. */
+.topbar { background: #f7f9fc; font-size: 0.875rem; }
 .topbar-inner { display: flex; align-items: center; justify-content: flex-end; gap: 1rem;
   padding-top: 0.4rem; padding-bottom: 0.4rem; }
 .topbar-right { display: flex; align-items: center; gap: 1rem; }
@@ -636,11 +636,15 @@ img { max-width: 100%; display: block; }
   position: absolute; z-index: 0; pointer-events: none;
   top: 0; bottom: 0; left: 0; right: 0;
 }
+/* A large rotated bitmap that sticks as the section scrolls. Left on the
+   main layer the browser repaints it frame by frame; will-change hands it a
+   layer of its own, so scrolling past only moves it. */
 .next-steps-logo span {
   display: block; position: sticky; top: 60px;
   height: min(820px, 64vw);
   background: url("/drawer-logo.png") no-repeat center center / contain;
   opacity: 0.28; transform: rotate(-14deg);
+  will-change: transform;
 }
 .next-steps h2 {
   color: var(--color-hero-ink); font-size: clamp(1.9rem, 3vw, 2.6rem);
