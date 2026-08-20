@@ -114,6 +114,9 @@ const WhatsAppIcon = () => (
   </svg>
 );
 
+/** How long the drawer takes to slide out — matches drawer-out in styles.css */
+const DRAWER_EXIT = 300;
+
 /** Nav label → id-safe slug, for wiring aria-controls to the panel. */
 const slug = (label: string) => label.toLowerCase().replace(/[^a-z0-9]+/g, "-");
 
@@ -138,6 +141,9 @@ export default function Navbar() {
   /* Label of the nav item whose dropdown panel is open, or null for none */
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  /* Held open, in its outgoing state, until the slide-out has played */
+  const [drawerClosing, setDrawerClosing] = useState(false);
+  const exitTimer = useRef<number>();
   const [logoMissing, setLogoMissing] = useState(false);
   const headerRef = useRef<HTMLElement>(null);
   /* The progress bars are driven straight through these refs — see below */
@@ -145,6 +151,25 @@ export default function Navbar() {
   const trackV = useRef<HTMLDivElement>(null);
   const barH = useRef<HTMLSpanElement>(null);
   const barV = useRef<HTMLSpanElement>(null);
+
+  const openDrawer = () => {
+    window.clearTimeout(exitTimer.current);
+    setDrawerClosing(false);
+    setDrawerOpen(true);
+  };
+
+  /* Closing runs the exit animation first and unmounts once it has finished,
+     so the drawer leaves the way it arrived instead of blinking out. */
+  const closeDrawer = () => {
+    if (!drawerOpen || drawerClosing) return;
+    setDrawerClosing(true);
+    exitTimer.current = window.setTimeout(() => {
+      setDrawerOpen(false);
+      setDrawerClosing(false);
+    }, DRAWER_EXIT);
+  };
+
+  useEffect(() => () => window.clearTimeout(exitTimer.current), []);
 
   /* Lock page scroll and close on Escape while the side drawer is open.
      The lock goes on <html>, not <body>: the page sets overflow-x on the
@@ -155,7 +180,7 @@ export default function Navbar() {
     if (!drawerOpen) return;
     document.documentElement.classList.add("scroll-locked");
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setDrawerOpen(false);
+      if (e.key === "Escape") closeDrawer();
     };
     window.addEventListener("keydown", onKey);
     return () => {
@@ -323,7 +348,7 @@ export default function Navbar() {
             <button
               type="button"
               className="drawer-toggle"
-              onClick={() => setDrawerOpen(true)}
+              onClick={openDrawer}
               aria-label="More sections"
             >
               <DashboardIcon />
@@ -373,16 +398,20 @@ export default function Navbar() {
 
       {drawerOpen && (
         <div
-          className="side-drawer-overlay"
+          className={`side-drawer-overlay${drawerClosing ? " out" : ""}`}
           onClick={(e) => {
-            if (e.target === e.currentTarget) setDrawerOpen(false);
+            if (e.target === e.currentTarget) closeDrawer();
           }}
         >
-          <aside className="side-drawer" role="dialog" aria-label="More sections">
+          <aside
+            className={`side-drawer${drawerClosing ? " out" : ""}`}
+            role="dialog"
+            aria-label="More sections"
+          >
             <button
               type="button"
               className="side-drawer-close"
-              onClick={() => setDrawerOpen(false)}
+              onClick={closeDrawer}
               aria-label="Close"
             >
               <svg viewBox="0 0 24 24" width="20" height="20" fill="none"
@@ -396,7 +425,7 @@ export default function Navbar() {
                 <NavLink
                   key={item.label}
                   to={item.to}
-                  onClick={() => setDrawerOpen(false)}
+                  onClick={closeDrawer}
                 >
                   {item.label}
                 </NavLink>

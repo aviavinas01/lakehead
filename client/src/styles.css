@@ -95,10 +95,17 @@ img { max-width: 100%; display: block; }
 
 /* Top bar (above main navbar) — faint blue strip, dark text.
    Semi-transparent with a blur so scrolled content glides behind it. */
-/* Solid rather than blurred: this strip is sticky, and a backdrop-filter on
-   a sticky element makes the browser re-blur everything behind it on every
-   scroll frame — one of the costliest things a page can ask for. */
-.topbar { background: #f7f9fc; font-size: 0.875rem; }
+/* Frosted strip: content scrolling underneath shows through blurred.
+   A backdrop-filter on a sticky element is re-evaluated as the page moves,
+   so this is kept as cheap as such an effect can be — a modest radius, a
+   fairly opaque tint so less has to be sampled through it, and will-change
+   to keep it on its own compositor layer. It is also desktop-only: the bar
+   is hidden below 860px, where the mobile action bar takes over. */
+.topbar {
+  background: rgba(244, 247, 251, 0.72); font-size: 0.875rem;
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  will-change: backdrop-filter;
+}
 .topbar-inner { display: flex; align-items: center; justify-content: flex-end; gap: 1rem;
   padding-top: 0.4rem; padding-bottom: 0.4rem; }
 .topbar-right { display: flex; align-items: center; gap: 1rem; }
@@ -277,6 +284,19 @@ img { max-width: 100%; display: block; }
 @keyframes drawer-in {
   from { transform: translateX(100%); }
   to { transform: translateX(0); }
+}
+/* Mirror of the entrance. `forwards` holds the panel off-screen for the few
+   frames between the animation ending and React unmounting it. */
+.side-drawer.out { animation: drawer-out 0.3s ease forwards; }
+@keyframes drawer-out {
+  from { transform: translateX(0); }
+  to { transform: translateX(100%); }
+}
+/* The dim and blur lift with it */
+.side-drawer-overlay.out { animation: overlay-out 0.3s ease forwards; }
+@keyframes overlay-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
 }
 .side-drawer-close {
   position: absolute; top: 1.1rem; right: 1.25rem;
