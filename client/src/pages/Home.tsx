@@ -21,9 +21,9 @@ const HERO_ALBUM_TITLE = "home hero";
  * Until then a neutral placeholder panel is shown in its place.
  */
 const HELP_CARDS: { title: string; text: string; image?: string }[] = [
-  { title: "Citizenship Test", text: "Access practice questions, study guides…" },
-  { title: "TOEFL Coaching", text: "Access practice questions, study guides…" },
-  { title: "Take IELTS", text: "Access practice questions, study guides…" },
+  { title: "Citizenship Test", text: "Access practice questions, study guides…", image: "/help/citizenship-test.png" },
+  { title: "TOEFL Coaching", text: "Access practice questions, study guides…", image: "/help/toefl.png" },
+  { title: "Take IELTS", text: "Access practice questions, study guides…", image: "/help/ielts.jpg" },
 ];
 
 /**
