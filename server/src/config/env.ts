@@ -12,6 +12,9 @@ const envSchema = z.object({
   ADMIN_EMAIL: z.string().email(),
   ADMIN_PASSWORD: z.string().min(8),
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
+  /* Optional: without these the footer falls back to its static rating */
+  GOOGLE_MAPS_API_KEY: z.string().optional(),
+  GOOGLE_PLACE_ID: z.string().optional(),
 });
 
 const parsed = envSchema.safeParse(process.env);

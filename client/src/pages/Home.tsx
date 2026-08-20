@@ -16,6 +16,20 @@ import type { Album, Media } from "../types/api";
 const HERO_ALBUM_TITLE = "home hero";
 
 /**
+ * Shown in the hero circle until (or unless) a "Home Hero" album exists —
+ * just drop the file at client/public/hero.jpg. An admin-uploaded image
+ * always wins over this one.
+ */
+const HERO_FALLBACK = "/hero.jpg";
+
+/**
+ * Optional clip for the hero circle — drop the file at client/public/hero.mp4
+ * and it plays there muted and looping, using the image above as its poster.
+ * Set this to undefined to go back to the still photo.
+ */
+const HERO_VIDEO = "/hero.mp4";
+
+/**
  * "How we help clients" cards — set each `image` to your file's path
  * (e.g. "/citizenship.jpg") once the photos are in client/public.
  * Until then a neutral placeholder panel is shown in its place.
@@ -27,8 +41,8 @@ const HELP_CARDS: {
   /** Side the card eases in from when the section scrolls into view */
   from: "left" | "bottom" | "right";
 }[] = [
-  { title: "Citizenship Test", text: "Access practice questions, study guides…", image: "/help/citizenship-test.png", from: "left" },
-  { title: "TOEFL Coaching", text: "Access practice questions, study guides…", image: "/help/toefl.png", from: "bottom" },
+  { title: "Citizenship Test", text: "Access practice questions, study guides…", image: "/help/citizenship-test.jpg", from: "left" },
+  { title: "TOEFL Coaching", text: "Access practice questions, study guides…", image: "/help/toefl.jpg", from: "bottom" },
   { title: "Take IELTS", text: "Access practice questions, study guides…", image: "/help/ielts.jpg", from: "right" },
 ];
 
@@ -171,7 +185,7 @@ export default function Home() {
               <Link to="/contact" className="btn btn-outline">Book A Consultation</Link>
             </div>
           </div>
-          <HeroOrbit imageUrl={heroImage} />
+          <HeroOrbit imageUrl={heroImage ?? HERO_FALLBACK} videoUrl={HERO_VIDEO} />
         </div>
       </section>
 

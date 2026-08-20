@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import api from "../api/client";
 
 interface FooterLink {
   label: string;
@@ -121,37 +122,84 @@ const Star = () => (
   </svg>
 );
 
+/** Google rating summary; the static values show until the server answers. */
+interface GoogleRating {
+  rating: number;
+  total: number;
+  url?: string;
+  live: boolean;
+}
+
 export default function Footer() {
-  const [logoMissing, setLogoMissing] = useState(false);
   const year = new Date().getFullYear();
+  const [google, setGoogle] = useState<GoogleRating>({
+    rating: 4.9,
+    total: 0,
+    live: false,
+  });
+
+  /* The score comes from the Places API via our server, which caches it —
+     see server/src/services/googleRating.service.ts. */
+  useEffect(() => {
+    let cancelled = false;
+    api
+      .get<{ rating: GoogleRating }>("/google-rating")
+      .then(({ data }) => {
+        if (!cancelled) setGoogle(data.rating);
+      })
+      .catch(() => {
+        /* Keep the static rating if the lookup is unavailable */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const score = google.rating.toFixed(1);
 
   return (
     <footer className="footer">
       <div className="container footer-main">
         <div className="footer-brand">
-          {!logoMissing ? (
-            <span className="footer-logo-chip">
-              <img
-                src="/logo.png"
-                alt="Lakehead Education"
-                onError={() => setLogoMissing(true)}
-              />
-            </span>
-          ) : (
-            <span className="footer-brand-name">Lakehead Education</span>
-          )}
+          <span className="footer-brand-name">Lakehead Education</span>
           <p className="footer-tagline">Study abroad consultants</p>
           {/* Placeholder rating — swap in the real Google rating and count. */}
           <div className="footer-rating">
             <div className="footer-rating-score">
-              <strong>4.9</strong> <span>of 5</span>
+              <strong>{score}</strong> <span>of 5</span>
               <p>Lakehead Nepal</p>
             </div>
             <div className="footer-rating-stars">
-              <span className="footer-stars" aria-label="Rated 4.9 out of 5">
-                <Star /><Star /><Star /><Star /><Star />
+              {/* Grey stars underneath, gold ones clipped to the score on top,
+                  so a 4.6 shows six tenths of its fifth star. */}
+              <span
+                className="footer-stars"
+                aria-label={`Rated ${score} out of 5`}
+                role="img"
+              >
+                <span className="footer-stars-empty">
+                  <Star /><Star /><Star /><Star /><Star />
+                </span>
+                <span
+                  className="footer-stars-fill"
+                  style={{ width: `${(google.rating / 5) * 100}%` }}
+                >
+                  <Star /><Star /><Star /><Star /><Star />
+                </span>
               </span>
-              <p>Reviews on Google</p>
+              {google.total > 0 ? (
+                <p>
+                  {google.url ? (
+                    <a href={google.url} target="_blank" rel="noopener noreferrer">
+                      {google.total} reviews on Google
+                    </a>
+                  ) : (
+                    `${google.total} reviews on Google`
+                  )}
+                </p>
+              ) : (
+                <p>Reviews on Google</p>
+              )}
             </div>
           </div>
         </div>

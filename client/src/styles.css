@@ -301,7 +301,7 @@ img { max-width: 100%; display: block; }
   position: absolute; inset: 16.5%; border-radius: 50%; overflow: hidden;
   box-shadow: 0 24px 60px rgba(23, 39, 92, 0.18);
 }
-.hero-photo img { width: 100%; height: 100%; object-fit: cover; }
+.hero-photo img, .hero-photo video { width: 100%; height: 100%; object-fit: cover; }
 .hero-photo-placeholder { width: 100%; height: 100%; background: linear-gradient(135deg, #e9eaf5, #c7cae3); }
 .hero-orbit { position: absolute; inset: 0; animation: orbit-revolve var(--orbit-duration) linear infinite; }
 /* Anchor each item's centre onto the dashed ring at its --angle. */
@@ -376,7 +376,9 @@ img { max-width: 100%; display: block; }
    overlapping the bottom of each photo. Photos are supplied
    per-card in Home.tsx; a gradient panel stands in until then.
    ============================================================ */
-.help { background: #f4f7fb; padding: var(--section-y) 0; }
+/* Clipped so the cards can start well outside their column without
+   the travel adding horizontal page scroll */
+.help { background: #f4f7fb; padding: var(--section-y) 0; overflow: hidden; }
 .help-head {
   display: grid; grid-template-columns: 1.2fr 1fr; gap: 3rem;
   align-items: center; margin-bottom: 2.75rem;
@@ -386,22 +388,43 @@ img { max-width: 100%; display: block; }
   letter-spacing: -0.02em; line-height: 1.2; max-width: 480px; margin-bottom: 0;
 }
 .help-lead { color: var(--color-muted); font-size: 0.95rem; max-width: 440px; justify-self: end; }
-.help-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; }
-.help-card { position: relative; }
-/* Each card eases in from its own side the first time the row is scrolled
-   to — .in-view is set on the grid by Home.tsx. A short travel and a long
-   decelerating curve keep it a settle rather than a slide. */
-.help-card {
-  opacity: 0;
-  transition: opacity 0.75s cubic-bezier(0.22, 1, 0.36, 1),
-              transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
+/* A shared vanishing point, so the three cards read as one space rather
+   than three independent boxes */
+.help-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem;
+  perspective: 1400px; perspective-origin: 50% 45%;
 }
-.help-card.from-left { transform: translateX(-32px); }
-.help-card.from-bottom { transform: translateY(32px); }
-.help-card.from-right { transform: translateX(32px); }
-/* The middle card trails the outer two very slightly */
-.help-grid.in-view .help-card { opacity: 1; transform: none; }
-.help-grid.in-view .from-bottom { transition-delay: 0.08s; }
+.help-card { position: relative; }
+/* Each card swings in from its own side the first time the row is scrolled
+   to — .in-view is set on the grid by Home.tsx. The cards start further out,
+   pushed back in Z and turned slightly away, and come to rest square to the
+   viewer. Depth of field (blur → sharp) does most of the work: it reads as
+   the card arriving from somewhere rather than sliding on a flat plane. */
+.help-card {
+  opacity: 0; filter: blur(10px);
+  transition: opacity 1s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 1.15s cubic-bezier(0.18, 0.9, 0.24, 1),
+              filter 0.9s ease-out;
+}
+.help-card.from-left { transform: translate3d(-110px, 18px, -220px) rotateY(16deg); }
+.help-card.from-bottom { transform: translate3d(0, 130px, -220px) rotateX(14deg); }
+.help-card.from-right { transform: translate3d(110px, 18px, -220px) rotateY(-16deg); }
+.help-grid.in-view .help-card {
+  opacity: 1; filter: blur(0); transform: none;
+}
+/* Outer cards lead, the middle one lands last — the row assembles */
+.help-grid.in-view .from-left { transition-delay: 0s; }
+.help-grid.in-view .from-right { transition-delay: 0.1s; }
+.help-grid.in-view .from-bottom { transition-delay: 0.2s; }
+/* The white panel settles a beat after its card has arrived */
+.help-card .help-panel {
+  opacity: 0; transform: translateY(16px);
+  transition: opacity 0.6s ease-out 0.45s, transform 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.45s;
+}
+.help-grid.in-view .help-panel { opacity: 1; transform: none; }
+/* Each panel waits for its own card, keeping the pairs in step */
+.help-grid.in-view .from-right .help-panel { transition-delay: 0.55s; }
+.help-grid.in-view .from-bottom .help-panel { transition-delay: 0.65s; }
 .help-card img, .help-placeholder {
   width: 100%; aspect-ratio: 1 / 1; object-fit: cover; display: block;
 }
@@ -550,13 +573,16 @@ img { max-width: 100%; display: block; }
 }
 .uni-card {
   position: relative; flex: 0 0 205px; height: 165px; margin-right: 1rem;
-  display: grid; place-items: center; padding: 0.6rem; overflow: hidden;
+  display: grid; place-items: center; overflow: hidden;
   background: #fff; border: 1px solid var(--color-border); border-radius: 12px;
   transition: border-color 0.15s;
 }
 .uni-card:hover { border-color: #7b64e0; }
-.uni-card > img { max-width: 100%; max-height: 100%; object-fit: contain; }
-.uni-fallback { color: var(--color-muted); font-size: 0.82rem; text-align: center; }
+/* Every logo file is pre-trimmed and centred on a canvas of the card's own
+   proportions, with its breathing room baked in — so the image fills the
+   card exactly and each mark reads at a consistent size. */
+.uni-card > img { width: 100%; height: 100%; object-fit: contain; }
+.uni-fallback { color: var(--color-muted); font-size: 0.82rem; text-align: center; padding: 0.6rem; }
 /* Campus-photo overlay shown on the other cards while one is hovered */
 .uni-photo {
   position: absolute; inset: 0; z-index: 2; overflow: hidden;
@@ -832,15 +858,22 @@ img { max-width: 100%; display: block; }
 .footer-col a { display: block; margin-bottom: 0.8rem; opacity: 0.95; }
 .footer-brand { display: flex; flex-direction: column; align-items: flex-start; }
 /* White chip keeps the logo readable on the dark background */
-.footer-logo-chip { background: #fff; border-radius: 12px; padding: 0.5rem 0.8rem; display: inline-block; }
-.footer-logo-chip img { height: 52px; width: auto; }
 .footer-brand-name { font-weight: 800; font-size: 1.35rem; letter-spacing: -0.01em; }
 .footer-tagline { margin-top: 0.6rem; font-size: 0.85rem; opacity: 0.85; }
 .footer-rating { display: flex; align-items: flex-start; gap: 2rem; margin-top: 1.75rem; }
 .footer-rating p { font-size: 0.85rem; opacity: 0.9; margin-top: 0.15rem; }
 .footer-rating-score strong { font-size: 1.9rem; font-weight: 800; line-height: 1; }
 .footer-rating-score > span { font-size: 0.9rem; opacity: 0.85; }
-.footer-stars { display: inline-flex; gap: 0.2rem; padding-top: 0.45rem; }
+/* Two rows of stars stacked: the gold layer is clipped to the score's width,
+   which lets a fractional rating render without half-star artwork. */
+.footer-stars { position: relative; display: inline-block; padding-top: 0.45rem; }
+.footer-stars-empty, .footer-stars-fill { display: inline-flex; gap: 0.2rem; }
+.footer-stars-empty svg { fill: rgba(255, 255, 255, 0.3); }
+.footer-stars-fill {
+  position: absolute; left: 0; top: 0.45rem;
+  overflow: hidden; white-space: nowrap;
+}
+.footer-rating a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
 .footer-branches { display: grid; grid-template-columns: 1.35fr repeat(4, 1fr); gap: 2.5rem; padding-bottom: 2.5rem; }
 .footer-divider { border-top: 1px solid rgba(255, 255, 255, 0.18); }
 .footer-destinations { display: flex; flex-wrap: wrap; gap: 0.85rem 2.25rem; padding: 1.6rem 0; font-weight: 500; }
@@ -994,5 +1027,5 @@ img { max-width: 100%; display: block; }
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; animation: none !important; }
   /* No transition means the entrance never runs — show the cards outright */
-  .help-card { opacity: 1; transform: none; }
+  .help-card, .help-panel { opacity: 1; transform: none; filter: none; }
 }

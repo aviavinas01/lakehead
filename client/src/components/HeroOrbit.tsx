@@ -1,9 +1,12 @@
+import { useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 
 /**
- * Circular hero visual: a round photo with flag badges and planes that
- * revolve slowly around its circumference, all at the same pace.
- * The photo is admin-managed — pass the image URL via `imageUrl`.
+ * Circular hero visual: a round photo or video with flag badges and planes
+ * that revolve slowly around its circumference, all at the same pace.
+ * Pass a clip via `videoUrl` and it plays in the circle, muted and looping,
+ * with `imageUrl` as its poster; without one the image is shown on its own.
+
  */
 
 const FlagUS = () => (
@@ -114,12 +117,45 @@ const entries: OrbitEntry[] = [
   { angle: 215, kind: "plane" },
 ];
 
-export default function HeroOrbit({ imageUrl }: { imageUrl?: string }) {
+export default function HeroOrbit({
+  imageUrl,
+  videoUrl,
+}: {
+  imageUrl?: string;
+  videoUrl?: string;
+}) {
+  /* A missing file falls back to the next option rather than a broken image:
+     video → photo → the neutral circle. */
+  const [broken, setBroken] = useState(false);
+  const [videoBroken, setVideoBroken] = useState(false);
+  /* Anyone who asks for less motion gets the still instead of the clip */
+  const reduced =
+    typeof window !== "undefined" &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  const showVideo = videoUrl && !videoBroken && !reduced;
+  const showPhoto = imageUrl && !broken;
+
   return (
     <div className="hero-orbit-wrap" aria-hidden="true">
       <div className="hero-orbit-ring" />
       <div className="hero-photo">
-        {imageUrl ? <img src={imageUrl} alt="" /> : <div className="hero-photo-placeholder" />}
+        {showVideo ? (
+          <video
+            src={videoUrl}
+            poster={showPhoto ? imageUrl : undefined}
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="metadata"
+            onError={() => setVideoBroken(true)}
+          />
+        ) : showPhoto ? (
+          <img src={imageUrl} alt="" onError={() => setBroken(true)} />
+        ) : (
+          <div className="hero-photo-placeholder" />
+        )}
       </div>
       <div className="hero-orbit">
         {entries.map((e) =>
