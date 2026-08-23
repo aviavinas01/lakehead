@@ -136,7 +136,10 @@ export default function NextSteps() {
           {/* Heading and steps are one block, so a small screen holds them
               together rather than letting the heading scroll off. */}
           <div className="next-steps-frame" ref={frame}>
-            <h2>Your Journey to Global Education Starts Here</h2>
+            <h2>
+              Your Journey to Global Education{" "}
+              <span className="h-accent">Starts Here</span>
+            </h2>
             <p className="next-steps-lead">
               Explore international opportunities, gain valuable experience, and build a stronger future through studying abroad.
             </p>

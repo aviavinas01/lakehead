@@ -101,36 +101,10 @@ img { max-width: 100%; display: block; }
    fairly opaque tint so less has to be sampled through it, and will-change
    to keep it on its own compositor layer. It is also desktop-only: the bar
    is hidden below 860px, where the mobile action bar takes over. */
-.topbar {
-  background: rgba(244, 247, 251, 0.72); font-size: 0.875rem;
-  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-  will-change: backdrop-filter;
-}
-.topbar-inner { display: flex; align-items: center; justify-content: flex-end; gap: 1rem;
-  padding-top: 0.4rem; padding-bottom: 0.4rem; }
-.topbar-right { display: flex; align-items: center; gap: 1rem; }
-.topbar-link { color: var(--color-hero-ink); font-weight: 500; font-size: 0.95rem; }
-.topbar-link:hover { opacity: 0.75; }
-.topbar-pill {
-  display: inline-flex; align-items: center; gap: 0.4rem; white-space: nowrap;
-  background: var(--color-topbar-accent); color: #fff; font-weight: 500; font-size: 0.875rem;
-  padding: 0.35rem 1rem; border-radius: 999px; transition: background 0.15s, color 0.15s;
-}
-.topbar-pill:hover { background: var(--color-topbar-accent-hover); }
-.topbar-pill-whatsapp svg { color: #25d366; }
-
 /* Sticky header wrapper — transparent so the top bar's glass effect works;
    the solid white belongs to .navbar-main (the link strip) only. */
 .navbar { position: sticky; top: 0; z-index: 50; }
 .navbar-main { background: var(--color-bg); border-bottom: 1px solid var(--color-border); position: relative; }
-/* Sloped white shoulder on the left: rises over the top bar behind the
-   logo, then angles down to meet the bar's normal top edge. */
-.navbar-main::before {
-  content: ""; position: absolute; left: 0; bottom: 100%;
-  height: 48px; width: clamp(235px, 24vw, 350px);
-  background: var(--color-bg);
-  clip-path: polygon(0 0, calc(100% - 70px) 0, 100% 100%, 0 100%);
-}
 /* Scroll progress bar under the header — purple while in the page body,
    footer-colored once the footer is in view. */
 /* The faint-blue track shows the full space the bar fills as you scroll */
@@ -153,13 +127,17 @@ img { max-width: 100%; display: block; }
   background: #7b64e0; transition: background 0.35s;
 }
 .scroll-progress-v.at-footer span { background: var(--color-footer-bg); }
-.navbar-inner { display: flex; align-items: center; justify-content: space-between; padding-top: 0.2rem; padding-bottom: 0.2rem; }
+/* The bar's height comes from this padding plus the logo — the strip was
+   slim because the logo used to hang up out of it into the old top bar. */
+.navbar-inner {
+  display: flex; align-items: center; justify-content: space-between;
+  padding-top: 0.85rem; padding-bottom: 0.85rem;
+}
 .brand { display: flex; align-items: center; gap: 0.75rem; color: var(--color-text); position: relative; z-index: 55; }
-/* Logo overlaps upward into the purple top bar so it rests on both strips,
-   keeping the white bar itself slim. */
-.brand-logo { height: 84px; width: auto; margin-top: -42px; }
+/* Sits inside the bar now that there is nothing above it to hang into */
+.brand-logo { height: 56px; width: auto; }
 /* Wordmark beside the logo — fiery red-orange to match the phoenix mark */
-.brand-wordmark { display: flex; flex-direction: column; line-height: 1.15; margin-top: -14px; }
+.brand-wordmark { display: flex; flex-direction: column; line-height: 1.15; }
 .brand-wordmark strong {
   font-size: 1.4rem; font-weight: 800; letter-spacing: -0.02em;
   background: linear-gradient(135deg, var(--color-topbar-accent), var(--color-footer-bg));
@@ -169,23 +147,22 @@ img { max-width: 100%; display: block; }
   font-size: 0.7rem; font-weight: 600; color: var(--color-footer-bg);
   letter-spacing: 0.28em; text-transform: uppercase;
 }
-.nav-links { display: flex; gap: 1.4rem; align-items: center; }
+/* Roomy, not cramped — the labels are light, and light type needs air
+   around it to read as deliberate rather than squeezed. The gap is fluid
+   because the full 2.15rem only fits above ~1100px: held fixed, the links
+   run into the logo in the stretch just before the mobile menu takes over. */
+.nav-links {
+  display: flex; align-items: center;
+  gap: clamp(1.15rem, 2.4vw, 2.15rem);
+}
 .nav-item { position: relative; }
 .nav-item > a {
   display: inline-flex; align-items: center; cursor: pointer; white-space: nowrap;
-  color: var(--color-nav-bg); font-weight: 500; font-size: 1rem; letter-spacing: 0.01em; padding: 0.55rem 0;
+  color: var(--color-nav-bg); font-weight: 400; font-size: 0.95rem;
+  letter-spacing: 0.015em; padding: 0.6rem 0.15rem;
 }
 .nav-item > a:hover { opacity: 0.85; }
 .nav-item > a.active { text-decoration: underline; text-underline-offset: 6px; text-decoration-thickness: 2px; }
-/* Caret button beside a nav label — toggles that item's dropdown panel */
-.nav-caret {
-  display: inline-grid; place-items: center; margin-left: 0.3rem;
-  width: 20px; height: 20px; padding: 0; border: none; background: none;
-  color: var(--color-nav-bg); cursor: pointer;
-  transition: transform 0.2s, opacity 0.15s;
-}
-.nav-caret:hover { opacity: 0.7; }
-.nav-caret.open { transform: rotate(180deg); }
 
 /* ============================================================
    Nav dropdown ("mega") panel — a full-width white band under the
@@ -232,8 +209,10 @@ img { max-width: 100%; display: block; }
 .mega-list a:hover { color: var(--color-hero-red); gap: 1.15rem; }
 .mega-list a:hover svg { color: var(--color-hero-red); }
 
-/* Dashboard icon beside the nav links — opens the side drawer */
+/* Dashboard icon beside the nav links — opens the side drawer. Set a step
+   further out than the gap between labels, so it reads as its own control. */
 .drawer-toggle {
+  margin-left: 0.7rem;
   display: grid; place-items: center; width: 38px; height: 38px;
   border: none; border-radius: 10px; background: transparent;
   color: var(--color-nav-bg); cursor: pointer; transition: background 0.15s;
@@ -344,7 +323,7 @@ img { max-width: 100%; display: block; }
 .hero-eyebrow-icon { display: inline-flex; }
 .hero-eyebrow-icon svg { width: 18px; height: 18px; transform: rotate(90deg); }
 .hero h1 {
-  color: var(--color-hero-ink); font-size: clamp(2.4rem, 4vw, 3.5rem);
+  color: var(--color-hero-ink); font-size: clamp(2.8rem, 4.8vw, 4.2rem);
   line-height: 1.12; letter-spacing: -0.03em; max-width: 560px; margin-bottom: 1.25rem;
 }
 .hero-lead { color: var(--color-muted); max-width: 520px; margin-bottom: 2rem; }
@@ -406,37 +385,86 @@ img { max-width: 100%; display: block; }
    ============================================================ */
 .destinations { padding: var(--section-y) 0; }
 .destinations-title {
-  color: var(--color-hero-ink); font-size: clamp(1.6rem, 2.6vw, 2.25rem);
+  color: var(--color-hero-ink); font-size: clamp(2rem, 3.3vw, 2.9rem);
   letter-spacing: -0.02em; margin-bottom: 0.75rem;
 }
 .destinations-lead { color: var(--color-muted); max-width: 1100px; margin-bottom: 2rem; }
-.destinations-grid {
-  display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem;
+/* Map on the left, a deck of country cards on the right. */
+.dest-layout {
+  display: grid; grid-template-columns: 1.35fr 1fr;
+  gap: 3rem; align-items: center;
 }
-.destination-card {
-  position: relative; border-radius: var(--radius); overflow: hidden;
-  aspect-ratio: 4 / 3; cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
+/* The map is greyscale on purpose: it is a backdrop for the pins, and the
+   only colour in this half should be the country currently lit. */
+.dest-map { position: relative; }
+.dest-map svg { width: 100%; height: auto; display: block; }
+.dest-land { fill: #dde0e7; }
+/* Unlit pins need to read as dots you could press, so they sit a good step
+   darker than the land rather than blending into it, with a pale ring to
+   lift them off it. */
+.dest-pin-dot {
+  fill: #7b8397; stroke: #fff; stroke-width: 1.5;
+  transition: fill 0.4s ease, r 0.4s ease;
 }
-.destination-card:hover { transform: translateY(-4px); box-shadow: 0 12px 28px rgba(23, 39, 92, 0.18); }
-.destination-card img { width: 100%; height: 100%; object-fit: cover; }
-.destination-placeholder { width: 100%; height: 100%; background: linear-gradient(135deg, #e9eaf5, #c7cae3); }
-/* Photo zooms in on hover and eases back out; the card's overflow:hidden
-   crops the scaled image so only the inside appears to move. */
-.destination-card img, .destination-placeholder { transition: transform 0.45s ease; }
-.destination-card:hover img, .destination-card:hover .destination-placeholder { transform: scale(1.08); }
-/* Soft bottom scrim keeps the white label readable over any photo */
-.destination-card::after {
-  content: ""; position: absolute; inset: 0;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.45), transparent 45%);
-  pointer-events: none;
+.dest-hit:hover + * .dest-pin-dot { fill: var(--color-hero-ink); }
+.dest-pin.is-on .dest-pin-dot { fill: var(--color-hero-red); r: 8; }
+/* A ring that breathes under the lit pin, so the eye is drawn to it without
+   anything blinking. */
+.dest-pin-halo {
+  fill: none; stroke: var(--color-hero-red); stroke-width: 2; opacity: 0.35;
+  transform-origin: center; transform-box: fill-box;
+  animation: dest-halo 2.4s ease-out infinite;
 }
-.destination-name {
-  position: absolute; left: 1.1rem; bottom: 0.85rem; z-index: 1;
-  color: #fff; font-family: var(--font-display); font-weight: 700;
-  font-size: 1.2rem; letter-spacing: -0.01em;
-  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.35);
+@keyframes dest-halo {
+  0% { transform: scale(0.5); opacity: 0.55; }
+  70% { transform: scale(1.3); opacity: 0; }
+  100% { transform: scale(1.3); opacity: 0; }
 }
+/* Real buttons over the drawn pins — the SVG circles are decoration, these
+   are what gets clicked and focused. */
+.dest-pin-hits { position: absolute; inset: 0; }
+.dest-hit {
+  position: absolute; transform: translate(-50%, -50%);
+  width: 26px; height: 26px; padding: 0; border: none; border-radius: 50%;
+  background: none; cursor: pointer;
+}
+.dest-hit span {
+  position: absolute; left: 50%; bottom: 100%; transform: translateX(-50%);
+  margin-bottom: 6px; padding: 0.15rem 0.5rem; border-radius: 999px;
+  background: var(--color-hero-ink); color: #fff;
+  font-size: 0.7rem; font-weight: 600; white-space: nowrap;
+  opacity: 0; transition: opacity 0.2s; pointer-events: none;
+}
+.dest-hit:hover span, .dest-hit:focus-visible span, .dest-hit.is-on span { opacity: 1; }
+
+/* The deck: every card sits in the same place, the one on top is the country
+   being shown and the next few peek out below it. */
+.dest-deck { position: relative; min-height: 430px; }
+.dest-card {
+  position: absolute; inset: 0 0 auto; margin: 0;
+  border-radius: 20px; overflow: hidden; background: var(--color-nav-bg);
+  box-shadow: 0 18px 40px -18px rgba(23, 39, 92, 0.45);
+  transition: transform 0.65s cubic-bezier(0.22, 0.68, 0.3, 1), opacity 0.5s ease;
+}
+.dest-card img, .dest-card-placeholder {
+  width: 100%; height: 300px; object-fit: cover; display: block;
+}
+.dest-card-placeholder { background: linear-gradient(150deg, #d9dce6, #eef0f5); }
+.dest-card-body { padding: 1.1rem 1.35rem 1.4rem; color: #fff; }
+.dest-card-body h3 { font-size: 1.5rem; letter-spacing: -0.02em; margin-bottom: 0.25rem; }
+.dest-card-body p { font-size: 0.9rem; line-height: 1.55; opacity: 0.85; margin: 0; }
+/* Depth 0 is face up; the rest sit lower, smaller and dimmer behind it. */
+.dest-card[data-depth="0"] { transform: none; opacity: 1; z-index: 4; }
+.dest-card[data-depth="1"] { transform: translateY(20px) scale(0.955); opacity: 0.75; z-index: 3; }
+.dest-card[data-depth="2"] { transform: translateY(38px) scale(0.91); opacity: 0.45; z-index: 2; }
+.dest-card[data-depth="3"] { transform: translateY(52px) scale(0.875); opacity: 0.2; z-index: 1; }
+.dest-card[data-depth="back"] { transform: translateY(52px) scale(0.875); opacity: 0; z-index: 0; }
+.dest-cta {
+  position: absolute; left: 0; top: calc(100% + 1.25rem);
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  color: var(--color-hero-red); font-weight: 600; font-size: 0.95rem;
+}
+.dest-cta:hover { gap: 0.75rem; }
 
 /* ============================================================
    "How we help clients" — eyebrow + navy headline left, muted
@@ -452,7 +480,7 @@ img { max-width: 100%; display: block; }
   align-items: center; margin-bottom: 2.75rem;
 }
 .help-title {
-  color: var(--color-hero-ink); font-size: clamp(1.7rem, 2.8vw, 2.4rem);
+  color: var(--color-hero-ink); font-size: clamp(2.1rem, 3.5vw, 3.05rem);
   letter-spacing: -0.02em; line-height: 1.2; max-width: 480px; margin-bottom: 0;
 }
 .help-lead { color: var(--color-muted); font-size: 0.95rem; max-width: 440px; justify-self: end; }
@@ -506,47 +534,82 @@ img { max-width: 100%; display: block; }
 .success-stories { padding: var(--section-y) 0 0; }
 .success-title {
   color: var(--color-hero-ink);
-  font-size: clamp(1.6rem, 2.6vw, 2.25rem); letter-spacing: -0.02em;
+  font-size: clamp(2rem, 3.3vw, 2.9rem); letter-spacing: -0.02em;
 }
 .success-lead { color: var(--color-muted); max-width: 960px; margin-bottom: 2rem; }
+/* Copy on the left, arrows top right. They are the same pair of thin round
+   buttons the testimonial section uses, reddening on hover the same way —
+   see .testimonial-arrow, which is positioned differently but styled to
+   match this. */
+.success-head {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 2rem; margin-bottom: 2rem;
+}
+.success-head .success-lead { margin-bottom: 0; }
+.success-nav { display: flex; gap: 0.75rem; flex-shrink: 0; padding-top: 0.4rem; }
+.success-nav button {
+  display: grid; place-items: center; width: 42px; height: 42px;
+  border: 1px solid var(--color-border); border-radius: 50%;
+  background: var(--color-bg); color: var(--color-muted);
+  cursor: pointer; transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+.success-nav button:hover {
+  color: var(--color-hero-red); border-color: var(--color-hero-red);
+}
 .video-track-wrap { position: relative; }
 .video-track {
   display: flex; gap: 1.5rem; overflow-x: auto;
   scroll-snap-type: x mandatory; scrollbar-width: none;
 }
 .video-track::-webkit-scrollbar { display: none; }
+/* Sized by width rather than by a count, so the cards stay big and however
+   many fit at that width is how many show — three on a laptop, four on a
+   wide monitor. The rest are a press of the arrows away. */
 .video-card {
-  position: relative; flex: 0 0 calc((100% - 3rem) / 3); scroll-snap-align: start;
+  position: relative; flex: 0 0 clamp(280px, 27vw, 420px);
+  scroll-snap-align: start;
   aspect-ratio: 4 / 5; margin: 0; border-radius: 18px; overflow: hidden;
   background: var(--color-nav-bg);
 }
 .video-card video, .video-card img, .video-card iframe {
   width: 100%; height: 100%; object-fit: cover; display: block; border: 0;
 }
-/* YouTube is landscape — a 4:5 frame would letterbox it. The thumbnail and
-   the player share the card, so the shape must not change on click. */
-.video-card-yt { aspect-ratio: 16 / 9; }
-/* Titles from YouTube run longer than a student's name */
+/* A tall card filled edge to edge by the thumbnail: the widescreen picture
+   is scaled up until it covers, centred, so it is the middle of the frame
+   that survives the crop. */
+.video-card-yt { aspect-ratio: 5 / 8; }
+.video-card img.video-card-thumb {
+  width: 100%; height: 100%; object-fit: cover; object-position: center;
+}
+/* The hqdefault fallback is a 4:3 file with the wide frame letterboxed
+   inside it — covering a portrait card by height would bring those black
+   bars along, so this zooms past them. The frame is 3/4 of that file's
+   height, so 4/3 is the minimum; the rest is margin, because landing on
+   the exact figure leaves a sliver of bar to rounding. */
+.video-card-thumb.is-letterboxed { transform: scale(1.4); }
+/* Titles run long, so two lines over a scrim that keeps them readable
+   whatever the thumbnail behind them looks like. */
 .video-card-yt .video-card-name {
   right: 1.1rem; z-index: 2;
   display: -webkit-box; -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2; overflow: hidden; font-size: 0.92rem;
+  -webkit-line-clamp: 2; overflow: hidden; font-size: 0.95rem;
 }
 .video-card-yt .video-card-play { z-index: 2; }
-/* A thumbnail can be any brightness — this keeps the title readable over a
-   pale one. Only while showing the thumbnail: over the player it would
-   darken the top of the video. */
 .video-card-yt:not(.is-playing)::after {
-  content: ""; position: absolute; inset: 0 0 auto; height: 45%;
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0.5), transparent);
+  content: ""; position: absolute; inset: 0 0 auto; height: 38%;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.55), transparent);
   pointer-events: none;
 }
+/* Playing: the widescreen player sits centred in the tall card. */
+.video-card-yt.is-playing { display: grid; place-items: center; background: #000; }
+.video-card-yt.is-playing iframe { height: auto; aspect-ratio: 16 / 9; }
+
 .video-card-name {
   position: absolute; top: 0.9rem; left: 1.1rem; color: #fff; font-weight: 600;
   font-size: 1rem; text-shadow: 0 1px 8px rgba(0, 0, 0, 0.55); pointer-events: none;
 }
 .video-card-play {
-  position: absolute; inset: 0; margin: auto; width: 64px; height: 64px;
+  position: absolute; inset: 0; margin: auto; width: 72px; height: 72px;
   display: grid; place-items: center; border: none; border-radius: 50%;
   background: rgba(255, 255, 255, 0.92); color: var(--color-primary);
   cursor: pointer; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.28);
@@ -554,17 +617,6 @@ img { max-width: 100%; display: block; }
 }
 .video-card-play:hover { transform: scale(1.07); background: #fff; }
 .video-card-play svg { margin-left: 3px; }
-/* Round white arrows floating half over the track edges */
-.video-nav {
-  position: absolute; top: 50%; transform: translateY(-50%); z-index: 5;
-  display: grid; place-items: center; width: 44px; height: 44px;
-  border: none; border-radius: 50%; background: var(--color-bg);
-  color: var(--color-text); box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
-  cursor: pointer; transition: background 0.15s;
-}
-.video-nav:hover { background: var(--color-surface); }
-.video-nav-prev { left: -22px; }
-.video-nav-next { right: -22px; }
 
 /* ============================================================
    Testimonials — one story at a time (Testimonials.tsx). The
@@ -588,7 +640,7 @@ img { max-width: 100%; display: block; }
 .testimonials-head { text-align: center; margin-bottom: 2.5rem; }
 .testimonials-title {
   color: var(--color-hero-ink);
-  font-size: clamp(1.6rem, 2.6vw, 2.25rem); letter-spacing: -0.02em;
+  font-size: clamp(2rem, 3.3vw, 2.9rem); letter-spacing: -0.02em;
 }
 /* Short rule under the heading, echoing the reference layout */
 .testimonials-title::after {
@@ -760,6 +812,101 @@ img { max-width: 100%; display: block; }
 }
 
 /* ============================================================
+   Heading treatments, shared across the home page. Two only, so
+   the page reads as one system rather than a pile of effects:
+   a flat accent colour for a phrase inside a heading, an outline
+   for the one heading meant to carry the most weight, and a teal
+   for the one section that changes colour outright. All flat —
+   no gradients.
+
+   The outline is guarded: it makes the text itself transparent,
+   so without text-stroke the words would vanish rather than
+   degrade, and the plain colour above the guard shows instead.
+   Headings only: body copy is left alone deliberately.
+   ============================================================ */
+.h-accent { color: var(--color-hero-red); }
+.h-outline { color: var(--color-hero-ink); }
+@supports (-webkit-text-stroke: 1px red) {
+  .h-outline {
+    -webkit-text-stroke: 2px var(--color-hero-ink);
+    color: transparent;
+  }
+}
+/* The teal heading — one section changing colour outright, rather than
+   every heading wearing the same navy. */
+.h-teal { color: #0d9488; }
+
+/* ============================================================
+   Google reviews — the band above the footer (GoogleReviews.tsx).
+   It only exists on the page when the server has real reviews, so
+   none of this is ever seen as an empty shell.
+   ============================================================ */
+.greviews { background: #f4f7fb; padding: var(--section-y) 0; }
+.greviews-head {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 2rem; margin-bottom: 2rem;
+}
+.greviews-eyebrow {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  color: var(--color-muted); font-weight: 600; font-size: 0.85rem;
+  letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 0.5rem;
+}
+.greviews-title {
+  color: var(--color-hero-ink);
+  font-size: clamp(1.85rem, 3vw, 2.6rem); letter-spacing: -0.02em; margin: 0;
+}
+/* The score, set big beside the heading */
+.greviews-score { display: flex; align-items: center; gap: 0.85rem; flex-shrink: 0; }
+.greviews-score strong {
+  font-family: var(--font-display); font-weight: 800; line-height: 1;
+  font-size: 2.6rem; color: var(--color-hero-ink);
+}
+.greviews-stars, .greview-stars { display: inline-flex; gap: 2px; }
+.greviews-count {
+  display: block; margin-top: 0.2rem;
+  color: var(--color-muted); font-size: 0.85rem;
+}
+/* Cards wrap on their own — Google returns at most five, and any number of
+   them between one and five has to look deliberate. */
+.greviews-grid {
+  display: grid; gap: 1.25rem;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+.greview {
+  display: flex; flex-direction: column; gap: 0.75rem;
+  background: var(--color-bg); border: 1px solid var(--color-border);
+  border-radius: 16px; padding: 1.3rem 1.35rem;
+}
+.greview-head { display: flex; align-items: center; gap: 0.75rem; }
+.greview-avatar {
+  width: 42px; height: 42px; border-radius: 50%; object-fit: cover;
+  flex-shrink: 0; background: var(--color-surface);
+}
+.greview-initial {
+  display: grid; place-items: center;
+  font-family: var(--font-display); font-weight: 700; font-size: 1.1rem;
+  color: var(--color-hero-ink);
+}
+.greview-author {
+  display: block; color: var(--color-hero-ink);
+  font-weight: 600; font-size: 0.95rem;
+}
+a.greview-author:hover { text-decoration: underline; }
+.greview-when { color: var(--color-muted); font-size: 0.8rem; }
+.greview-text {
+  color: #43434d; font-size: 0.92rem; line-height: 1.65; margin: 0;
+  /* Long reviews are trimmed so the cards stay a row, not a wall */
+  display: -webkit-box; -webkit-box-orient: vertical;
+  -webkit-line-clamp: 7; overflow: hidden;
+}
+.greviews-all {
+  display: inline-flex; align-items: center; gap: 0.5rem; margin-top: 1.75rem;
+  color: var(--color-hero-red); font-weight: 600; font-size: 0.95rem;
+}
+.greviews-all:hover { gap: 0.75rem; }
+.greviews-all svg { transition: transform 0.15s; }
+
+/* ============================================================
    University partnerships — logo cards glide right-to-left in a
    seamless marquee (the list is rendered twice; the track slides
    by -50%). Hovering pauses the scroll and overlays the hovered
@@ -767,7 +914,7 @@ img { max-width: 100%; display: block; }
    ============================================================ */
 .universities { background: #f4f7fb; padding: var(--section-y) 0; overflow: hidden; }
 .universities-title {
-  color: var(--color-hero-ink); font-size: clamp(1.6rem, 2.6vw, 2.25rem);
+  color: var(--color-hero-ink); font-size: clamp(2rem, 3.3vw, 2.9rem);
   letter-spacing: -0.02em; margin-bottom: 2.25rem;
 }
 .uni-marquee { overflow: hidden; }
@@ -845,7 +992,7 @@ img { max-width: 100%; display: block; }
   will-change: transform;
 }
 .next-steps h2 {
-  color: var(--color-hero-ink); font-size: clamp(1.9rem, 3vw, 2.6rem);
+  color: var(--color-hero-ink); font-size: clamp(2.2rem, 3.6vw, 3.15rem);
   letter-spacing: -0.02em; margin-bottom: 1rem;
 }
 .next-steps-lead {
@@ -955,17 +1102,15 @@ img { max-width: 100%; display: block; }
    always on. The frame must stay flush with the top of its track — the
    measuring in NextSteps.tsx reads the two as sharing a top edge. */
 @media (max-width: 860px), (max-height: 779px) {
-  .next-steps-frame { position: sticky; top: 80px; }
+  .next-steps-frame { position: sticky; top: 96px; }
   .next-steps-room { display: block; height: calc((var(--steps) - 1) * 55vh); }
   .steps-stage { min-height: 255px; }
 }
 
 
-/* Stats strip below the hero — crimson figures on a warm off-white band */
-.stats-strip {
-  background: #f9f4f1;
-  padding: 2.5rem 0 1.5rem;
-}
+/* Stats strip below the hero — crimson figures, sitting on the page itself
+   rather than a band of their own. */
+.stats-strip { padding: 2.5rem 0 1.5rem; }
 .stats-grid {
   display: grid; grid-template-columns: repeat(4, 1fr);
   gap: 2rem; text-align: center;
@@ -975,7 +1120,24 @@ img { max-width: 100%; display: block; }
   font-size: clamp(2rem, 3.2vw, 2.75rem); font-weight: 700; letter-spacing: -0.02em;
   line-height: 1.1; margin-bottom: 0.4rem;
 }
-.stat span { color: #3d2b2b; font-size: 0.95rem; }
+/* Direct child only: the label. The rolling figure is built from spans too,
+   and a bare `.stat span` was catching those and dropping them to label size. */
+.stat > span { color: #3d2b2b; font-size: 0.95rem; }
+/* Each figure rolls into place: a one-line window per digit with a tall
+   strip of numerals behind it, slid up until the right one shows. The real
+   figure is in .stat-value for screen readers and sits out of the layout. */
+.stat-value {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip-path: inset(50%); white-space: nowrap;
+}
+.roll { display: inline-flex; line-height: 1; }
+.roll-digit { display: inline-block; height: 1em; overflow: hidden; }
+.roll-strip {
+  display: block;
+  transition: transform 1.9s cubic-bezier(0.16, 0.86, 0.26, 1);
+}
+.roll-strip span, .roll-fixed { display: block; height: 1em; line-height: 1; }
+.roll-fixed { display: inline-block; }
 .stats-note { text-align: center; color: #3d2b2b; font-size: 0.8rem; margin-top: 1.25rem; }
 
 /* White consultation card — right-aligned and sticky, so it holds its
@@ -1055,7 +1217,7 @@ img { max-width: 100%; display: block; }
 .journey-card.no-photo { grid-template-columns: 1fr; margin-top: 0; }
 .journey-copy { padding-bottom: 0.5rem; }
 .journey-title {
-  color: #fff; font-size: clamp(2rem, 3.6vw, 3.1rem);
+  color: #fff; font-size: clamp(2.3rem, 4.2vw, 3.7rem);
   line-height: 1.15; letter-spacing: -0.02em; margin-bottom: 1.5rem;
 }
 .journey-title strong { position: relative; display: inline-block; font-weight: 800; }
@@ -1274,14 +1436,12 @@ img { max-width: 100%; display: block; }
   .nav-toggle { display: block; }
   /* The contact details move to the fixed bottom bar on mobile,
      so the whole top strip goes away */
-  .topbar { display: none; }
   .mobile-actions { display: flex; }
   /* Leave room so the fixed bar never covers the end of the page */
   .footer-bottom { padding-bottom: calc(4.5rem + env(safe-area-inset-bottom)); }
   /* No room to straddle the bars on mobile — keep the logo inside the white strip */
-  .brand-logo { height: 64px; margin-top: 0; }
+  .brand-logo { height: 46px; }
   /* The sloped shoulder would cover the centered contact pills on mobile */
-  .navbar-main::before { display: none; }
   /* The open menu takes a full row of the header instead of floating over the
      page, so a dropdown panel can appear directly beneath it */
   .navbar-inner { flex-wrap: wrap; }
@@ -1289,9 +1449,7 @@ img { max-width: 100%; display: block; }
     background: var(--color-bg); flex-direction: column; padding: 1rem 0.25rem;
     border-top: 1px solid var(--color-border); align-items: flex-start; gap: 0.25rem; }
   .nav-links.open { display: flex; }
-  /* Label left, caret as a big tap target on the right */
-  .nav-item { width: 100%; display: flex; align-items: center; justify-content: space-between; }
-  .nav-caret { width: 44px; height: 44px; margin-left: 0; }
+  .nav-item { width: 100%; }
   /* Dropdown stacks: blurb above the links, no divider rule */
   .mega-inner { grid-template-columns: 1fr; gap: 1.5rem;
     padding-top: 1.75rem; padding-bottom: 1.75rem; }
@@ -1310,7 +1468,10 @@ img { max-width: 100%; display: block; }
   }
   .journey-photo img { margin-top: -120px; max-height: 380px; }
   .journey-actions { gap: 1rem; }
-  .destinations-grid { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+  .dest-layout { grid-template-columns: 1fr; gap: 2rem; }
+  .dest-deck { min-height: 370px; }
+  .dest-card img, .dest-card-placeholder { height: 250px; }
+  .dest-hit { width: 34px; height: 34px; }
   .help-head { grid-template-columns: 1fr; gap: 1.25rem; }
   .help-lead { justify-self: start; }
   .help-grid { grid-template-columns: 1fr; }
@@ -1324,12 +1485,16 @@ img { max-width: 100%; display: block; }
   .testimonial-story blockquote { font-size: 0.95rem; line-height: 1.75; }
   /* No room for the flight-path artwork alongside a single column */
   .testimonials-decor { display: none; }
-  /* Video reviews: one card per view, swipe instead of arrows */
+  /* Video reviews: one card per view, swipe or the arrows in the head */
   .video-card { flex-basis: 88%; }
-  .video-nav { display: none; }
+  .success-head { flex-direction: column; gap: 1rem; }
+  .success-nav { padding-top: 0; }
   /* University marquee: slightly smaller cards on mobile */
   .uni-card { flex-basis: 160px; height: 130px; margin-right: 0.75rem; }
   .testimonials-head { margin-bottom: 1.75rem; }
+  /* Reviews: heading and score stack, cards go one-up */
+  .greviews-head { flex-direction: column; gap: 1rem; }
+  .greviews-grid { grid-template-columns: 1fr; }
   .next-steps { padding: 3.5rem 0; }
   .next-steps-inner { grid-template-columns: 1fr; gap: 3rem; }
   /* Single column: the form flows normally below the stacked cards */
@@ -1342,9 +1507,6 @@ img { max-width: 100%; display: block; }
 }
 
 @media (max-width: 520px) {
-  /* Keep destinations two-up on small phones rather than one long column */
-  .destinations-grid { grid-template-columns: repeat(2, 1fr); gap: 0.75rem; }
-  .destination-name { font-size: 0.85rem; }
   /* Tighten the testimonial row so the arrows still clear the faces */
   .testimonial-stage { height: 132px; }
   .testimonial-faces {

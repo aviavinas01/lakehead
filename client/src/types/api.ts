@@ -100,3 +100,24 @@ export interface YouTubeVideo {
   publishedAt: string;
   thumbnail: string;
 }
+
+/** One Google review, as the server hands it over (see googleRating.service). */
+export interface GoogleReview {
+  id: string;
+  author: string;
+  photo?: string;
+  profileUrl?: string;
+  rating: number;
+  text: string;
+  relativeTime: string;
+}
+
+/** The consultancy's Google rating summary, plus up to five reviews. */
+export interface GoogleRating {
+  rating: number;
+  total: number;
+  url?: string;
+  /** False when the server fell back to its static score */
+  live: boolean;
+  reviews: GoogleReview[];
+}

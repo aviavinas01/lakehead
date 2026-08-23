@@ -58,7 +58,9 @@ export default function UniversityPartners() {
   return (
     <section className="universities">
       <div className="container">
-        <h2 className="universities-title">Our University Partnerships</h2>
+        <h2 className="universities-title">
+          Our University <span className="h-accent">Partnerships</span>
+        </h2>
       </div>
       <div className="uni-marquee">
         <div className="uni-track">

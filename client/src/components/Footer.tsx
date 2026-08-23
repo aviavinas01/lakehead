@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import api from "../api/client";
+import { fetchGoogleRating, FALLBACK_RATING } from "../api/googleRating";
+import type { GoogleRating } from "../types/api";
 
 interface FooterLink {
   label: string;
@@ -122,34 +123,19 @@ const Star = () => (
   </svg>
 );
 
-/** Google rating summary; the static values show until the server answers. */
-interface GoogleRating {
-  rating: number;
-  total: number;
-  url?: string;
-  live: boolean;
-}
 
 export default function Footer() {
   const year = new Date().getFullYear();
-  const [google, setGoogle] = useState<GoogleRating>({
-    rating: 4.9,
-    total: 0,
-    live: false,
-  });
+  const [google, setGoogle] = useState<GoogleRating>(FALLBACK_RATING);
 
   /* The score comes from the Places API via our server, which caches it —
-     see server/src/services/googleRating.service.ts. */
+     see server/src/services/googleRating.service.ts. The request is shared
+     with the reviews band above the footer, so the page only makes one. */
   useEffect(() => {
     let cancelled = false;
-    api
-      .get<{ rating: GoogleRating }>("/google-rating", { quiet: true })
-      .then(({ data }) => {
-        if (!cancelled) setGoogle(data.rating);
-      })
-      .catch(() => {
-        /* Keep the static rating if the lookup is unavailable */
-      });
+    fetchGoogleRating().then((data) => {
+      if (!cancelled) setGoogle(data);
+    });
     return () => {
       cancelled = true;
     };
