@@ -4,6 +4,7 @@ import api from "../api/client";
 import HeroOrbit, { PlaneIcon } from "../components/HeroOrbit";
 import NextSteps from "../components/NextSteps";
 import VideoTestimonials from "../components/VideoTestimonials";
+import Testimonials from "../components/Testimonials";
 import ConsultBanner from "../components/ConsultBanner";
 import UniversityPartners from "../components/UniversityPartners";
 import type { Album, Media } from "../types/api";
@@ -62,64 +63,9 @@ const DESTINATIONS: { name: string; image?: string }[] = [
   { name: "Canada", image: "/canada.jpg" },
 ];
 
-/** Student testimonials — add more entries here and the row becomes scrollable. */
-const TESTIMONIALS: { quote: string; name: string; country: string }[] = [
-  {
-    quote:
-      "I’m truly grateful for the guidance and support I received throughout my USA visa process. The team helped me understand each step clearly and prepared me thoroughly for my visa interview. What I appreciated most was the honest advice and practical guidance—I always knew what to expect and how to prepare. Their patience, professionalism, and willingness to answer every question made the entire process much less stressful. I would definitely recommend their guidance to anyone planning to study in the USA.",
-    name: "Aarav",
-    country: "USA",
-  },
-  {
-    quote:
-      "I had a great experience with the team throughout my study-abroad and visa application journey. A special thanks to the entire counseling team for their continuous support, clear guidance, and professional service at every stage. They were always approachable and made sure my questions were answered and my application was prepared properly. I truly appreciate their dedication and would happily recommend their services to other students planning to study abroad.",
-    name: "Sanjay",
-    country: "Australia",
-  },
-  {
-    quote:
-      "I had a really positive experience with the consultancy throughout my study-abroad application. From selecting the right university to preparing my documents, the team was supportive and easy to communicate with. They explained each step clearly and helped me feel confident about my application. I’m very thankful for their guidance and would definitely recommend them to other students.",
-    name: "Nisha",
-    country: "Australia",
-  },
-  {
-    quote:
-      "The entire process was much easier than I expected, thanks to the guidance I received from the counseling team. They helped me shortlist suitable universities, understand the requirements, and prepare my application properly. Whenever I had questions, the team was quick to respond and provide clear answers. I really appreciate their professionalism and support throughout my journey.",
-    name: "Rohan",
-    country: "Uk",
-  },
-  {
-    quote:
-      "I’m extremely happy with the support I received during my study-abroad journey. The counselors were patient, approachable, and genuinely focused on helping me make the right decisions. They guided me through the documentation and application process and kept me informed at every stage. It was reassuring to have a team I could rely on throughout the process.",
-    name: "Sneha",
-    country: "New Zealand",
-  },
-  {
-    quote:
-      "I had a smooth and positive experience with the team from the beginning of my application journey. They helped me understand the admission requirements, guided me through the documentation, and kept the process well organized. Their quick responses and friendly approach made everything much easier. I’m grateful for their support and would recommend them to anyone planning to study abroad.",
-    name: "Aayush",
-    country: "Canada",
-  },
-  {
-    quote:
-      "The guidance I received throughout my application process was excellent. The counselors took the time to understand my goals and helped me choose an option that suited my academic plans. They were always available to clarify my doubts and provided helpful advice whenever I needed it. I truly appreciate their dedication and support in helping me take the next step toward studying abroad.",
-    name: "Srijana",
-    country: "Denmark",
-  },
-];
-
 export default function Home() {
   const [heroImage, setHeroImage] = useState<string>();
-  const testimonialTrack = useRef<HTMLDivElement>(null);
   const helpGrid = useRef<HTMLDivElement>(null);
-
-  const scrollTestimonials = (dir: -1 | 1) => {
-    const track = testimonialTrack.current;
-    if (!track) return;
-    const card = track.firstElementChild as HTMLElement | null;
-    const step = card ? card.offsetWidth + 24 : track.clientWidth;
-    track.scrollBy({ left: dir * step, behavior: "smooth" });
-  };
 
   /* The three "how we help" cards settle in from their own side the first
      time the row is scrolled to. One observer on the row, so the cards move
@@ -286,73 +232,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="testimonials section">
-        {/* Decorative plane + dashed flight trail, behind the cards */}
-        <svg
-          className="testimonials-decor"
-          viewBox="0 0 300 260"
-          fill="none"
-          aria-hidden="true"
-        >
-          <path
-            d="M42 34C74 74 92 108 138 122c52 16 104-6 108-48 3-30-36-40-49-8-14 36 20 78 84 84"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeDasharray="5 9"
-          />
-          <path
-            className="testimonials-plane"
-            d="M12 2l2 8 8 4v2l-8-2-1 6 3 2v1l-4-1-4 1v-1l3-2-1-6-8 2v-2l8-4z"
-            fill="currentColor"
-          />
-        </svg>
-        <div className="container">
-          <div className="testimonials-head">
-            <div>
-              <h2 className="testimonials-title">What Our Students Say</h2>
-              <p className="testimonials-lead">
-                Every student has a unique journey. Hear from those who have trusted us to guide their study-abroad plans and take the next step toward their international education goals.
-              </p>
-            </div>
-            <div className="testimonials-nav">
-              <button
-                type="button"
-                onClick={() => scrollTestimonials(-1)}
-                aria-label="Previous testimonials"
-              >
-                <svg viewBox="0 0 24 24" width="18" height="18" fill="none"
-                  stroke="currentColor" strokeWidth="2" strokeLinecap="round"
-                  strokeLinejoin="round" aria-hidden="true">
-                  <path d="M15 18l-6-6 6-6" />
-                </svg>
-              </button>
-              <button
-                type="button"
-                onClick={() => scrollTestimonials(1)}
-                aria-label="Next testimonials"
-              >
-                <svg viewBox="0 0 24 24" width="18" height="18" fill="none"
-                  stroke="currentColor" strokeWidth="2" strokeLinecap="round"
-                  strokeLinejoin="round" aria-hidden="true">
-                  <path d="M9 6l6 6-6 6" />
-                </svg>
-              </button>
-            </div>
-          </div>
-          <div className="testimonials-track" ref={testimonialTrack}>
-            {TESTIMONIALS.map((t) => (
-              <figure className="testimonial-card" key={t.name}>
-                <blockquote>{t.quote}</blockquote>
-                <figcaption>
-                  <strong>{t.name}</strong>
-                  <span>{t.country}</span>
-                </figcaption>
-              </figure>
-            ))}
-          </div>
-        </div>
-      </section>
+      <Testimonials />
 
       <UniversityPartners />
 

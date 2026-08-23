@@ -547,57 +547,130 @@ img { max-width: 100%; display: block; }
 .video-nav-next { right: -22px; }
 
 /* ============================================================
-   Testimonials — violet quote cards in a scrollable row with
-   round prev/next buttons in the header. All cards fit on
-   desktop; the arrows matter once more entries are added.
+   Testimonials — one story at a time (Testimonials.tsx). The
+   student being read sits in a large circle in the middle, the
+   neighbouring students fade back either side, and the arrows
+   (or a tap on a faded face, or a swipe) bring the next one in.
    ============================================================ */
 /* The section anchors the decorative trail; the container sits above it
-   so the cards always cover the artwork rather than fighting it. */
+   so the content always covers the artwork rather than fighting it. */
 .testimonials { position: relative; overflow: hidden; }
 .testimonials > .container { position: relative; z-index: 1; }
+/* Runs from about the middle of the section out past the right edge, tinted
+   with the brand navy and kept faint enough to stay a watermark. */
 .testimonials-decor {
   position: absolute; z-index: 0; pointer-events: none;
-  right: -40px; bottom: 40px; width: clamp(240px, 26vw, 340px);
-  color: #c9ccd6; opacity: 0.75;
+  right: -24px; bottom: 32px; width: clamp(300px, 44vw, 620px);
+  color: var(--color-hero-ink); opacity: 0.22;
 }
-.testimonials-plane { transform: translate(30px, 14px) rotate(28deg) scale(1.5); }
-.testimonials-head {
-  display: flex; align-items: flex-start; justify-content: space-between;
-  gap: 2rem; margin-bottom: 2rem;
-}
+.testimonials-head { text-align: center; margin-bottom: 2.5rem; }
 .testimonials-title {
   color: var(--color-hero-ink);
   font-size: clamp(1.6rem, 2.6vw, 2.25rem); letter-spacing: -0.02em;
 }
-.testimonials-lead { color: var(--color-muted); max-width: 900px; }
-.testimonials-nav { display: flex; gap: 0.75rem; flex-shrink: 0; padding-top: 0.5rem; }
-.testimonials-nav button {
+/* Short rule under the heading, echoing the reference layout */
+.testimonials-title::after {
+  content: ""; display: block; width: 54px; height: 2px; margin: 0.9rem auto 0;
+  background: var(--color-hero-red); opacity: 0.85;
+}
+.testimonials-lead { color: var(--color-muted); max-width: 760px; margin: 1rem auto 0; }
+
+/* Row of faces, with the arrows parked at either end. Every photo is
+   absolutely placed on this track and moves by transform alone, so a change
+   of story slides the whole row rather than rebuilding it. */
+.testimonial-stage { position: relative; height: 190px; touch-action: pan-y; }
+.testimonial-faces {
+  position: absolute; inset: 0;
+  /* Slot geometry: --face is the active circle, --s-* the scale of each ring
+     out from it, and --x-* how far from the middle that ring sits. */
+  --face: 150px;
+  --s-1: 0.72; --s-2: 0.61; --s-out: 0.5;
+  --x-1: 147px; --x-2: 265px; --x-out: 360px;
+}
+/* Each face is a button — clicking a faded one brings that story forward */
+.testimonial-face {
+  position: absolute; top: 50%; left: 50%;
+  width: var(--face); height: var(--face);
+  padding: 0; border: none; border-radius: 50%; overflow: hidden;
+  cursor: pointer; background: var(--color-surface);
+  transform: translate(calc(-50% + (var(--x) * var(--dir))), -50%) scale(var(--s));
+  transition: transform 0.6s cubic-bezier(0.32, 0.72, 0.24, 1),
+    opacity 0.5s ease, filter 0.5s ease, box-shadow 0.5s ease;
+  will-change: transform;
+}
+.testimonial-face img { width: 100%; height: 100%; object-fit: cover; }
+/* Stand-in until a photo is supplied: the student's initial on a soft disc */
+.testimonial-initial {
+  display: grid; place-items: center; width: 100%; height: 100%;
+  background: linear-gradient(150deg, #f6e7dd, #e6d3c6);
+  color: var(--color-hero-ink); font-family: var(--font-display);
+  font-weight: 700; font-size: 2.6rem;
+}
+/* Which side of the middle a face drifts to */
+.testimonial-face[data-dir="c"] { --dir: 0; }
+.testimonial-face[data-dir="l"] { --dir: -1; }
+.testimonial-face[data-dir="r"] { --dir: 1; }
+/* The student being read: full colour, ringed, and on top of the rest */
+.testimonial-face[data-depth="0"] {
+  --x: 0px; --s: 1; z-index: 3; opacity: 1; cursor: default;
+  box-shadow: 0 0 0 4px var(--color-bg), 0 0 0 6px rgba(224, 35, 78, 0.22),
+    0 12px 28px rgba(23, 39, 92, 0.18);
+}
+/* The two rings of neighbours: smaller, warmer, and pushed back */
+.testimonial-face[data-depth="1"] {
+  --x: var(--x-1); --s: var(--s-1); z-index: 2;
+  opacity: 0.5; filter: sepia(0.35) saturate(1.15);
+}
+.testimonial-face[data-depth="2"] {
+  --x: var(--x-2); --s: var(--s-2); z-index: 1;
+  opacity: 0.32; filter: sepia(0.35) saturate(1.15);
+}
+.testimonial-face[data-depth]:not([data-depth="0"]):hover {
+  opacity: 0.8; filter: none;
+}
+/* Waiting off the row — these fade in as they come round into the rings */
+.testimonial-face[data-hidden] {
+  --x: var(--x-out); --s: var(--s-out); z-index: 0;
+  opacity: 0; pointer-events: none;
+}
+/* Thin round arrows at the edges, matching the reference's controls */
+.testimonial-arrow {
+  position: absolute; top: 50%; z-index: 4; transform: translateY(-50%);
   display: grid; place-items: center; width: 42px; height: 42px;
-  border: none; border-radius: 50%; background: var(--color-bg);
-  color: var(--color-text); box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
-  cursor: pointer; transition: background 0.15s;
+  border: 1px solid var(--color-border); border-radius: 50%;
+  background: var(--color-bg); color: var(--color-muted);
+  cursor: pointer; transition: color 0.15s, border-color 0.15s, background 0.15s;
 }
-.testimonials-nav button:hover { background: var(--color-surface); }
-.testimonials-track {
-  display: flex; gap: 1.5rem; overflow-x: auto;
-  scroll-snap-type: x mandatory; scrollbar-width: none;
+.testimonial-arrow-prev { left: 0; }
+.testimonial-arrow-next { right: 0; }
+.testimonial-arrow:hover {
+  color: var(--color-hero-red); border-color: var(--color-hero-red);
 }
-.testimonials-track::-webkit-scrollbar { display: none; }
-.testimonial-card {
-  flex: 0 0 calc((100% - 3rem) / 3); scroll-snap-align: start;
-  display: flex; flex-direction: column; background: #f9f4f1; color: #3d2b2b;
-  border-radius: 18px; padding: 1.25rem 1.4rem 1.5rem; margin: 0;
+
+/* The story itself, centred under the faces */
+.testimonial-story {
+  margin: 1.75rem auto 0; max-width: 860px; text-align: center;
+  animation: testimonial-in 0.55s cubic-bezier(0.32, 0.72, 0.24, 1) 0.1s both;
 }
-/* Big decorative opening quote above the text */
-.testimonial-card::before {
-  content: "\201C"; font-family: Georgia, "Times New Roman", serif;
-  font-size: 3.5rem; line-height: 1; color: #d9c3b8; height: 2.5rem;
+.testimonial-who { display: flex; flex-direction: column; gap: 0.35rem; }
+.testimonial-who strong {
+  font-family: var(--font-display); font-size: 1.3rem;
+  color: var(--color-hero-ink); letter-spacing: -0.01em;
 }
-.testimonial-card figcaption strong { color: var(--color-hero-ink); }
-.testimonial-card blockquote { flex: 1; font-size: 0.88rem; line-height: 1.55; margin: 0 0 1.4rem; }
-.testimonial-card figcaption { display: flex; flex-direction: column; gap: 0.1rem; }
-.testimonial-card figcaption strong { font-size: 0.95rem; }
-.testimonial-card figcaption span { font-size: 0.88rem; opacity: 0.95; }
+.testimonial-who span {
+  color: var(--color-muted); font-size: 0.78rem; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.12em;
+}
+.testimonial-story blockquote {
+  margin: 1.4rem 0 0; color: var(--color-text); opacity: 0.88;
+  font-size: 1.02rem; line-height: 1.85;
+}
+.testimonial-story blockquote::before { content: "\201C"; }
+.testimonial-story blockquote::after { content: "\201D"; }
+@keyframes testimonial-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
 
 /* ============================================================
    University partnerships — logo cards glide right-to-left in a
@@ -1059,17 +1132,22 @@ img { max-width: 100%; display: block; }
   .help-head { grid-template-columns: 1fr; gap: 1.25rem; }
   .help-lead { justify-self: start; }
   .help-grid { grid-template-columns: 1fr; }
-  /* One testimonial per view on mobile, with a peek of the next card */
-  .testimonial-card { flex-basis: 88%; }
-  /* No room for the flight-trail artwork alongside a single card */
+  /* Smaller circles, and the outer ring tucked closer in, on a phone */
+  .testimonial-stage { height: 150px; }
+  .testimonial-faces {
+    --face: 116px;
+    --s-1: 0.6; --s-2: 0.5; --s-out: 0.44;
+    --x-1: 100px; --x-2: 168px; --x-out: 230px;
+  }
+  .testimonial-story blockquote { font-size: 0.95rem; line-height: 1.75; }
+  /* No room for the flight-path artwork alongside a single column */
   .testimonials-decor { display: none; }
   /* Video reviews: one card per view, swipe instead of arrows */
   .video-card { flex-basis: 88%; }
   .video-nav { display: none; }
   /* University marquee: slightly smaller cards on mobile */
   .uni-card { flex-basis: 160px; height: 130px; margin-right: 0.75rem; }
-  .testimonials-head { flex-direction: column; gap: 1rem; }
-  .testimonials-nav { padding-top: 0; }
+  .testimonials-head { margin-bottom: 1.75rem; }
   .next-steps { padding: 3.5rem 0; }
   .next-steps-inner { grid-template-columns: 1fr; gap: 3rem; }
   /* Single column: the form flows normally below the stacked cards */
@@ -1084,10 +1162,18 @@ img { max-width: 100%; display: block; }
   /* Keep destinations two-up on small phones rather than one long column */
   .destinations-grid { grid-template-columns: repeat(2, 1fr); gap: 0.75rem; }
   .destination-name { font-size: 0.85rem; }
+  /* Tighten the testimonial row so the arrows still clear the faces */
+  .testimonial-stage { height: 132px; }
+  .testimonial-faces {
+    --face: 100px;
+    --x-1: 84px; --x-2: 140px; --x-out: 190px;
+  }
+  .testimonial-arrow { width: 36px; height: 36px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; animation: none !important; }
   /* No transition means the entrance never runs — show the cards outright */
   .help-card { opacity: 1; transform: none; }
+  .testimonial-story { opacity: 1; transform: none; }
 }
