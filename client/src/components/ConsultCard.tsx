@@ -95,9 +95,9 @@ export default function ConsultCard() {
   return (
     <div className="consult-card">
       <h3>
-        Book Your <span className="accent">FREE</span> Consultation
+        Thinking About <span className="accent">STUDYING</span> Abroad?
       </h3>
-      <p className="consult-sub">Talk to our certified counsellors today!</p>
+      <p className="consult-sub">Not sure where to start? Tell us a little about your plans, and our team will help you figure out the next step.</p>
       <div className="consult-form">
         <input
           name="name" placeholder="Full Name*" value={form.name}

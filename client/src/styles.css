@@ -520,7 +520,17 @@ img { max-width: 100%; display: block; }
   aspect-ratio: 4 / 5; margin: 0; border-radius: 18px; overflow: hidden;
   background: var(--color-nav-bg);
 }
-.video-card video { width: 100%; height: 100%; object-fit: cover; display: block; }
+.video-card video, .video-card img, .video-card iframe {
+  width: 100%; height: 100%; object-fit: cover; display: block; border: 0;
+}
+/* YouTube is landscape — a 4:5 frame would letterbox it. The thumbnail and
+   the player share the card, so the shape must not change on click. */
+.video-card-yt { aspect-ratio: 16 / 9; }
+/* Titles from YouTube run longer than a student's name */
+.video-card-yt .video-card-name {
+  right: 1.1rem; display: -webkit-box; -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2; overflow: hidden; font-size: 0.92rem;
+}
 .video-card-name {
   position: absolute; top: 0.9rem; left: 1.1rem; color: #fff; font-weight: 600;
   font-size: 1rem; text-shadow: 0 1px 8px rgba(0, 0, 0, 0.55); pointer-events: none;

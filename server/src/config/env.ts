@@ -15,6 +15,13 @@ const envSchema = z.object({
   /* Optional: without these the footer falls back to its static rating */
   GOOGLE_MAPS_API_KEY: z.string().optional(),
   GOOGLE_PLACE_ID: z.string().optional(),
+  /* Optional: where the home page's Success Stories videos come from.
+     Set ONE of these — the playlist wins if both are present. Without
+     either, that row falls back to the "Student Reviews" media album.
+       YOUTUBE_PLAYLIST_ID  a playlist you curate, id starts "PL"
+       YOUTUBE_CHANNEL_ID   the channel's latest uploads, id starts "UC" */
+  YOUTUBE_PLAYLIST_ID: z.string().optional(),
+  YOUTUBE_CHANNEL_ID: z.string().optional(),
 });
 
 const parsed = envSchema.safeParse(process.env);

@@ -88,3 +88,15 @@ export interface Paginated<T> {
   total: number;
   totalPages: number;
 }
+
+/**
+ * A video from the YouTube feed the server proxies (GET /youtube/videos).
+ * `id` is the 11-character video id — everything the embed needs.
+ */
+export interface YouTubeVideo {
+  id: string;
+  title: string;
+  author: string;
+  publishedAt: string;
+  thumbnail: string;
+}

@@ -1,12 +1,22 @@
 import { useEffect, useRef, useState } from "react";
 import api from "../api/client";
-import type { Album, Media } from "../types/api";
+import type { Album, Media, YouTubeVideo } from "../types/api";
 
 /**
- * Video testimonials are admin-managed: in the admin Media Library, create a
- * published album titled "Student Reviews" and upload videos into it — each
- * video becomes a card here, with its Title shown as the student's name.
- * The section renders nothing until that album has at least one video.
+ * Where the videos in this row come from, in order of preference:
+ *
+ *   1. YouTube — set YOUTUBE_PLAYLIST_ID (or YOUTUBE_CHANNEL_ID) on the
+ *      server and the videos in that playlist appear here. Adding one to
+ *      the playlist publishes it: no upload, no deploy. The server reads
+ *      YouTube's public feed and caches it (server/src/services/youtube).
+ *   2. The Media Library — a published album titled "Student Reviews";
+ *      each video in it becomes a card, its Title shown as the name.
+ *   3. The sample clips below, so the row is never empty in development.
+ *
+ * YouTube cards stay as a thumbnail and a play button until they are
+ * clicked. That is on purpose: an embedded player pulls in around a
+ * megabyte of YouTube's own code, and loading four of those on a page
+ * nobody has clicked yet is the quickest way to ruin the home page.
  */
 const REVIEWS_ALBUM_TITLE = "student reviews";
 
@@ -65,6 +75,46 @@ const PlayIcon = () => (
   </svg>
 );
 
+function YouTubeCard({
+  video,
+  active,
+  onPlay,
+}: {
+  video: YouTubeVideo;
+  active: boolean;
+  onPlay: () => void;
+}) {
+  /* Only the card that was clicked mounts an iframe; the rest fall back to
+     their thumbnail, which also unloads the player they were running. */
+  if (active) {
+    return (
+      <figure className="video-card video-card-yt">
+        <iframe
+          src={`https://www.youtube-nocookie.com/embed/${video.id}?autoplay=1&rel=0&modestbranding=1&playsinline=1`}
+          title={video.title}
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowFullScreen
+        />
+      </figure>
+    );
+  }
+
+  return (
+    <figure className="video-card video-card-yt">
+      <img src={video.thumbnail} alt="" loading="lazy" decoding="async" />
+      <figcaption className="video-card-name">{video.title}</figcaption>
+      <button
+        type="button"
+        className="video-card-play"
+        onClick={onPlay}
+        aria-label={`Play ${video.title}`}
+      >
+        <PlayIcon />
+      </button>
+    </figure>
+  );
+}
+
 function VideoCard({
   media,
   active,
@@ -114,12 +164,29 @@ function VideoCard({
 
 export default function VideoTestimonials() {
   const [videos, setVideos] = useState<Media[]>(DUMMY_VIDEOS);
+  const [tube, setTube] = useState<YouTubeVideo[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const track = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
+      /* A configured YouTube source wins outright — when there is one, the
+         album lookup below is skipped entirely. */
+      try {
+        const { data } = await api.get<{ videos: YouTubeVideo[] }>(
+          "/youtube/videos",
+          { quiet: true }
+        );
+        if (!cancelled && data.videos.length > 0) {
+          setTube(data.videos);
+          return;
+        }
+      } catch {
+        /* No YouTube configured, or the feed is unreachable — fall through
+           to the album, exactly as before. */
+      }
+
       try {
         const { data } = await api.get<{ albums: Album[] }>("/albums", { quiet: true });
         const album = data.albums.find(
@@ -149,7 +216,8 @@ export default function VideoTestimonials() {
     el.scrollBy({ left: dir * step, behavior: "smooth" });
   };
 
-  if (videos.length === 0) return null;
+  const showing = tube.length > 0 ? tube.length : videos.length;
+  if (showing === 0) return null;
 
   return (
     <section className="success-stories">
@@ -175,14 +243,23 @@ export default function VideoTestimonials() {
             </svg>
           </button>
           <div className="video-track" ref={track}>
-            {videos.map((m) => (
-              <VideoCard
-                key={m._id}
-                media={m}
-                active={activeId === m._id}
-                onPlay={() => setActiveId(m._id)}
-              />
-            ))}
+            {tube.length > 0
+              ? tube.map((v) => (
+                  <YouTubeCard
+                    key={v.id}
+                    video={v}
+                    active={activeId === v.id}
+                    onPlay={() => setActiveId(v.id)}
+                  />
+                ))
+              : videos.map((m) => (
+                  <VideoCard
+                    key={m._id}
+                    media={m}
+                    active={activeId === m._id}
+                    onPlay={() => setActiveId(m._id)}
+                  />
+                ))}
           </div>
           <button
             type="button"
