@@ -528,8 +528,18 @@ img { max-width: 100%; display: block; }
 .video-card-yt { aspect-ratio: 16 / 9; }
 /* Titles from YouTube run longer than a student's name */
 .video-card-yt .video-card-name {
-  right: 1.1rem; display: -webkit-box; -webkit-box-orient: vertical;
+  right: 1.1rem; z-index: 2;
+  display: -webkit-box; -webkit-box-orient: vertical;
   -webkit-line-clamp: 2; overflow: hidden; font-size: 0.92rem;
+}
+.video-card-yt .video-card-play { z-index: 2; }
+/* A thumbnail can be any brightness — this keeps the title readable over a
+   pale one. Only while showing the thumbnail: over the player it would
+   darken the top of the video. */
+.video-card-yt:not(.is-playing)::after {
+  content: ""; position: absolute; inset: 0 0 auto; height: 45%;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.5), transparent);
+  pointer-events: none;
 }
 .video-card-name {
   position: absolute; top: 0.9rem; left: 1.1rem; color: #fff; font-weight: 600;

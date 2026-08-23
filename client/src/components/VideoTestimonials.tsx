@@ -88,7 +88,7 @@ function YouTubeCard({
      their thumbnail, which also unloads the player they were running. */
   if (active) {
     return (
-      <figure className="video-card video-card-yt">
+      <figure className="video-card video-card-yt is-playing">
         <iframe
           src={`https://www.youtube-nocookie.com/embed/${video.id}?autoplay=1&rel=0&modestbranding=1&playsinline=1`}
           title={video.title}
