@@ -556,11 +556,13 @@ img { max-width: 100%; display: block; }
    so the content always covers the artwork rather than fighting it. */
 .testimonials { position: relative; overflow: hidden; }
 .testimonials > .container { position: relative; z-index: 1; }
-/* Runs from about the middle of the section out past the right edge, tinted
-   with the brand navy and kept faint enough to stay a watermark. */
+/* Loops away into the left margin, which the centred layout leaves empty.
+   Sat just below the photo row so it clears the prev arrow; the section's
+   overflow crops whatever runs off the edge. */
 .testimonials-decor {
   position: absolute; z-index: 0; pointer-events: none;
-  right: -24px; bottom: 32px; width: clamp(300px, 44vw, 620px);
+  left: -100px; top: 62%; transform: translateY(-50%);
+  width: clamp(280px, 34vw, 470px);
   color: var(--color-hero-ink); opacity: 0.22;
 }
 .testimonials-head { text-align: center; margin-bottom: 2.5rem; }
@@ -673,6 +675,71 @@ img { max-width: 100%; display: block; }
 }
 
 /* ============================================================
+   The consultation form as it appears INSIDE the Next Steps band:
+   no white card, glass fields, and an outlined submit button. The
+   colours hold still — nothing here follows the steps, so the form
+   stays put visually while they take their turns beside it.
+
+   Scoped to .next-steps on purpose: the booking modal opened from
+   the consultation banner still needs the solid white card, which
+   is what gives that dialog its own background.
+   ============================================================ */
+.next-steps .consult-card {
+  background: transparent; box-shadow: none;
+  padding: 0; border-radius: 0;
+}
+/* Set like the step numerals — outlined, and big enough to carry a
+   stroke without the letters closing up. */
+.next-steps .consult-card h3 {
+  font-family: var(--font-display); font-weight: 800;
+  font-size: clamp(1.6rem, 2.2vw, 2.05rem);
+  line-height: 1.15; letter-spacing: -0.02em;
+  color: var(--color-hero-ink); margin-bottom: 0.55rem;
+}
+@supports (-webkit-text-stroke: 1px red) {
+  .next-steps .consult-card h3 {
+    -webkit-text-stroke: 1.4px var(--color-hero-ink); color: transparent;
+  }
+  /* One word stays solid, so the outline has something to play against */
+  .next-steps .consult-card h3 .accent {
+    -webkit-text-stroke: 0; color: var(--color-hero-red);
+  }
+}
+.next-steps .consult-sub { font-size: 0.95rem; margin-bottom: 1.5rem; }
+/* Glass fields, so the band and its watermark carry on behind them */
+.next-steps .consult-form input,
+.next-steps .consult-form select,
+.next-steps .consult-prefix {
+  background: rgba(255, 255, 255, 0.72);
+  border-color: rgba(23, 39, 92, 0.16);
+}
+.next-steps .consult-form input:focus,
+.next-steps .consult-form select:focus {
+  background: #fff; outline-color: var(--color-hero-red);
+}
+.next-steps .consult-agree input { accent-color: var(--color-hero-red); }
+/* No panel here either — an outline in the brand crimson that fills in
+   and flips its lettering to white on hover, the same move the arrows on
+   the "how we help" cards make. */
+.next-steps .consult-submit {
+  background: transparent; box-shadow: none;
+  border: 1.5px solid var(--color-hero-red);
+  color: var(--color-hero-red);
+  font-weight: 700; font-size: 0.98rem; padding: 0.9rem 1.5rem;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+.next-steps .consult-submit:hover:not(:disabled) {
+  background-color: var(--color-hero-red); color: #fff;
+}
+.next-steps .consult-submit svg { transition: transform 0.2s ease; }
+.next-steps .consult-submit:hover svg { transform: translateX(3px); }
+/* The reassurance strip drops its green panel for the same glass */
+.next-steps .consult-trust {
+  background: rgba(255, 255, 255, 0.45);
+  border-color: rgba(23, 39, 92, 0.1);
+}
+
+/* ============================================================
    University partnerships — logo cards glide right-to-left in a
    seamless marquee (the list is rendered twice; the track slides
    by -50%). Hovering pauses the scroll and overlays the hovered
@@ -725,7 +792,7 @@ img { max-width: 100%; display: block; }
    turned 14°, and a rotated box is wider than the element it came from, so
    it pushed ~80px past the right edge and gave the whole page a horizontal
    scrollbar. `clip` trims that without becoming a scroll container, which
-   is what would break the sticky step cards and consultation form inside. */
+   is what would break the sticky consultation form inside. */
 .next-steps {
   background: #f9f4f1; margin-top: var(--section-y); padding: 5rem 0;
   position: relative; overflow-x: clip;
@@ -749,7 +816,12 @@ img { max-width: 100%; display: block; }
   display: block; position: sticky; top: 60px;
   height: min(820px, 64vw);
   background: url("/drawer-logo.png") no-repeat center center / contain;
-  opacity: 0.28; transform: rotate(-14deg);
+  /* The artwork is a red PNG. brightness(0) flattens it to black and
+     invert(1) takes that to white, keeping the alpha — so the same file
+     serves as a white mark here without a second asset. The side drawer
+     uses this file too and is left on its own rule, still red. */
+  filter: brightness(0) invert(1);
+  opacity: 0.9; transform: rotate(-14deg);
   will-change: transform;
 }
 .next-steps h2 {
@@ -760,25 +832,115 @@ img { max-width: 100%; display: block; }
   color: var(--color-muted); max-width: 580px;
   line-height: 1.7; margin-bottom: 2.75rem;
 }
-/* Sticky-stacking step cards: each card pins at its inline `top` offset
-   (set in NextSteps.tsx) and the next card scrolls up over it. The tall
-   in-flow height of each card is what provides the scroll distance. */
+/* The steps. No fill, no shadow, nothing behind the words at all — the
+   watermark shows through them untouched.
+
+   They share one spot: the step in play sits in it, the ones still to come
+   wait low, the ones done with have risen away. Which spot is being held
+   still, and by what, is the two media queries further down — but one of
+   them always applies, so the stage below is always the arrangement. */
+.steps-stage { display: block; position: relative; }
+/* Scroll room for the small-screen pin only — see the media query below. */
+.next-steps-room { display: none; }
 .step-card {
-  position: sticky; min-height: 190px;
-  background: var(--color-topbar-bg); border-radius: 22px;
-  padding: 1.3rem 1.9rem 1.5rem;
-  box-shadow: 0 -12px 28px rgba(23, 39, 92, 0.08);
+  /* --enter is the full climb: a step starts down at the foot of the band
+     and travels all the way up into place. --leave stays short, so the one
+     going gets out of the way without carrying its text up over the
+     paragraph above. */
+  --enter: clamp(220px, 40vh, 440px);
+  --leave: -74px;
+  position: absolute; top: 0; left: 0; right: 0; max-width: 620px;
+  opacity: 0; transform: translateY(var(--enter)); pointer-events: none;
+  transition: opacity 0.3s ease, transform 0.5s cubic-bezier(0.22, 0.68, 0.3, 1);
 }
-.step-head { display: flex; align-items: baseline; gap: 1.3rem; }
+/* Arriving: fades up well before the climb ends, so it is legible for most
+   of the way rather than snapping into place at the top. */
+.step-card.is-current {
+  opacity: 1; transform: none; pointer-events: auto;
+  transition: opacity 0.4s ease, transform 0.9s cubic-bezier(0.16, 0.74, 0.22, 1);
+}
+.step-card.is-past { opacity: 0; transform: translateY(var(--leave)); }
+/* Without a card to sit on, the type carries the section on its own — so
+   it is set big. The number becomes a ghost figure behind the title
+   rather than a digit beside it: that way it can be enormous without
+   taking a single pixel of width from the words. */
 .step-num {
-  font-family: var(--font-display); font-size: 2.3rem; font-weight: 300;
-  line-height: 1; color: #3d56c5; width: 2.2rem; flex-shrink: 0; text-align: center;
+  display: block; margin-bottom: 0.35rem;
+  font-family: var(--font-display); font-weight: 800; line-height: 1;
+  font-size: clamp(2.9rem, 4.4vw, 4.2rem);
+  color: var(--step-color, #3d56c5);
+  user-select: none;
 }
-.step-card h3 { color: var(--color-text); font-size: 1.45rem; margin: 0; }
+/* Drawn as an outline, so the figure can be big and loud without shouting
+   over the title under it. Guarded: without text-stroke the transparent
+   fill would erase it, so the solid colour above stays the fallback. */
+@supports (-webkit-text-stroke: 1px red) {
+  .step-num {
+    -webkit-text-stroke: 2px var(--step-color, #3d56c5);
+    color: transparent;
+  }
+}
+.step-card h3 {
+  position: relative; z-index: 1; margin: 0;
+  color: var(--step-color, #3d56c5);
+  font-size: clamp(2.1rem, 3.6vw, 3.3rem); font-weight: 800;
+  line-height: 1.06; letter-spacing: -0.03em;
+}
+/* The flash: each title is filled with its own colour running down into
+   the brand navy. Guarded — where background-clip is missing, the
+   transparent fill below would leave the words invisible. */
+@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+  .step-card h3 {
+    background-image:
+      linear-gradient(96deg, var(--step-color, #3d56c5) 5%, #17275c 118%);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+}
 .step-body {
-  margin: 0.8rem 0 0 3.5rem; color: var(--color-muted);
-  font-size: 0.98rem; line-height: 1.6; max-width: 460px;
+  position: relative; z-index: 1;
+  margin: 1rem 0 0; color: #43434d;
+  font-size: 1.12rem; line-height: 1.7; max-width: 540px;
 }
+/* The pin. The band stands a screen tall plus one stretch of scroll per
+   step (--steps is set on the section by NextSteps.tsx); its contents are
+   sticky, so they hold still under the header while that extra height
+   scrolls past, and the band only leaves once the last step has had its
+   turn. The steps share one spot: the current one sits in place, the ones
+   still to come wait below it, and the ones done with have risen away.
+   Held back to windows with the room for it — a short window or a phone
+   keeps the plain list above, where every step is visible at once. */
+@media (min-width: 861px) and (min-height: 780px) {
+  .next-steps { height: calc(100vh + (var(--steps) - 1) * 50vh); }
+  /* Headroom above the heading, as much as the window can spare. The
+     middle term is the spare room itself — the form runs about 640px, so
+     whatever a window has beyond that goes overhead, down to a floor of
+     110px on a short screen and capped so a tall one is not all gap. */
+  .next-steps-inner {
+    position: sticky; top: clamp(110px, calc(100vh - 700px), 220px);
+  }
+  /* The form is pinned by the band now; its own sticky would fight it. */
+  .next-steps-inner .consult-card { position: static; }
+  /* One spot, shared: the step in play sits at the top of the stage, the
+     ones still to come wait low in it, the ones done with have risen off.
+     The stage is deep enough for the arriving step to make the climb. */
+  .steps-stage { min-height: 310px; }
+}
+
+/* Narrow or short — no room to hold the whole band, so the heading and the
+   steps are held together as one frame instead, and the form is left to
+   scroll normally after them. The padding below the frame is the track:
+   the steps take their turns while it scrolls past, then the frame lets go.
+   Exactly the complement of the query above, so one mode or the other is
+   always on. The frame must stay flush with the top of its track — the
+   measuring in NextSteps.tsx reads the two as sharing a top edge. */
+@media (max-width: 860px), (max-height: 779px) {
+  .next-steps-frame { position: sticky; top: 80px; }
+  .next-steps-room { display: block; height: calc((var(--steps) - 1) * 55vh); }
+  .steps-stage { min-height: 255px; }
+}
+
+
 /* Stats strip below the hero — crimson figures on a warm off-white band */
 .stats-strip {
   background: #f9f4f1;
@@ -797,7 +959,7 @@ img { max-width: 100%; display: block; }
 .stats-note { text-align: center; color: #3d2b2b; font-size: 0.8rem; margin-top: 1.25rem; }
 
 /* White consultation card — right-aligned and sticky, so it holds its
-   place on screen while the step cards stack on the left. */
+   place on screen while the steps come up on the left. */
 .consult-card {
   background: #fff; border-radius: 18px; padding: 1.9rem 1.7rem;
   box-shadow: 0 18px 44px rgba(23, 39, 92, 0.14);
@@ -1153,9 +1315,10 @@ img { max-width: 100%; display: block; }
   /* Single column: the form flows normally below the stacked cards */
   .consult-card { justify-self: center; position: static; }
   .next-steps-logo { display: none; }
-  .step-card { min-height: 170px; padding: 1.2rem 1.4rem 1.3rem; }
-  .step-card h3 { font-size: 1.2rem; }
-  .step-body { margin-left: 0; }
+  .step-card { max-width: none; }
+  .step-num { font-size: 2.6rem; }
+  .step-card h3 { font-size: 1.85rem; }
+  .step-body { font-size: 1.02rem; }
 }
 
 @media (max-width: 520px) {
