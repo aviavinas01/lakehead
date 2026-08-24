@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { GLOBE_RINGS } from "./globeRings";
+import { COUNTRY_SHAPES } from "./countryShapes";
 
 /**
  * An outlined globe that turns, can be dragged, and carries a pin on every
@@ -15,6 +16,18 @@ import { GLOBE_RINGS } from "./globeRings";
  * refs, never through React state. Re-rendering ~2,500 projected points
  * sixty times a second through the virtual DOM would drop frames; writing
  * the path strings and pin positions directly does not.
+ *
+ * Left alone it simply turns one way at a steady rate, and the card beside
+ * it follows whichever country is facing the viewer. Only a deliberate
+ * pick — a click or Enter on a pin — swings a country round to face the
+ * viewer; the timed advance does not, or the globe would reverse direction
+ * every few seconds chasing the next card.
+ *
+ * The country in play is painted red: its outline is projected the same way
+ * as the coastline and filled. It is only drawn while that country faces the
+ * viewer — a filled shape crossing the horizon would tear — which costs
+ * nothing here, because the country in play is by definition the one facing
+ * us.
  *
  * The frame loop only runs while `spinning` is true — the parent stops it
  * when the section scrolls out of view, so an idle tab is not turning a
@@ -81,6 +94,16 @@ function toPath(ring: readonly (readonly [number, number])[], rot: Rotation) {
   return d;
 }
 
+/** Same as toPath, but closes each run — filled shapes need closing. */
+function toShape(rings: readonly (readonly [number, number])[][], rot: Rotation) {
+  let d = "";
+  for (const ring of rings) {
+    const part = toPath(ring, rot);
+    if (part) d += part + "Z";
+  }
+  return d;
+}
+
 /* Meridians and parallels, built once. They are lines of constant longitude
    and latitude, so they are just as much data as the coastline. */
 const GRATICULE: [number, number][][] = [];
@@ -100,13 +123,17 @@ export default function Globe({
   active,
   spinning,
   onSelect,
+  onFacing,
 }: {
   points: GlobePoint[];
   active: number;
   spinning: boolean;
   onSelect: (index: number) => void;
+  /** Fired when a different country turns to face the viewer. */
+  onFacing: (index: number) => void;
 }) {
   const landRef = useRef<SVGPathElement>(null);
+  const countryRef = useRef<SVGPathElement>(null);
   const gridRef = useRef<SVGPathElement>(null);
   const pinRefs = useRef<(SVGGElement | null)[]>([]);
   const rot = useRef<Rotation>({ lambda: 10, phi: 12 });
@@ -117,14 +144,14 @@ export default function Globe({
   const spin = useRef({ lambda: 0, phi: 0 });
   const spinRef = useRef(spinning);
   spinRef.current = spinning;
-
-  /* Send the active country round to the front whenever it changes — a pin
-     on the far side is no use to anyone. */
-  useEffect(() => {
-    const p = points[active];
-    if (!p) return;
-    target.current = { lambda: p.at[0], phi: Math.max(-40, Math.min(40, p.at[1])) };
-  }, [active, points]);
+  /* The loop is created once, so it reads the current country through a ref
+     rather than the value captured when the effect ran. */
+  const activeRef = useRef(active);
+  activeRef.current = active;
+  /* Held in a ref so the frame loop, which is built once, always calls the
+     current handler rather than the one captured on first render. */
+  const facingRef = useRef(onFacing);
+  facingRef.current = onFacing;
 
   useEffect(() => {
     let raf = 0;
@@ -154,6 +181,30 @@ export default function Globe({
       }
 
       const r = rot.current;
+
+      /* Whichever country is nearest the middle of the disc is the one facing
+         us, and that is the one whose card shows. Driving the deck from the
+         rotation rather than a timer is what makes the countries arrive in
+         the order they actually come round — and gives each one a turn as
+         long as the gap to its neighbour, so close pairs like Canada and the
+         USA get a short spell each.
+
+         Skipped while easing to a picked country: the globe sweeps past
+         several others on the way, and the card should not flicker through
+         all of them. */
+      if (!target.current && !drag.current) {
+        let nearest = 0;
+        let best = 360;
+        points.forEach((p, i) => {
+          const gap = Math.abs(((p.at[0] - r.lambda + 540) % 360) - 180);
+          if (gap < best) {
+            best = gap;
+            nearest = i;
+          }
+        });
+        if (nearest !== activeRef.current) facingRef.current(nearest);
+      }
+
       if (landRef.current) {
         landRef.current.setAttribute(
           "d",
@@ -166,6 +217,18 @@ export default function Globe({
           GRATICULE.map((line) => toPath(line, r)).join("")
         );
       }
+      /* Paint the chosen country, but only while it is facing us — the
+         shape would tear across the horizon otherwise. */
+      if (countryRef.current) {
+        const chosen = points[activeRef.current];
+        const rings = chosen && COUNTRY_SHAPES[chosen.name];
+        const facing = chosen && project(chosen.at[0], chosen.at[1], r);
+        countryRef.current.setAttribute(
+          "d",
+          rings && facing ? toShape(rings, r) : ""
+        );
+      }
+
       points.forEach((p, i) => {
         const g = pinRefs.current[i];
         if (!g) return;
@@ -239,7 +302,17 @@ export default function Globe({
         best = i;
       }
     });
-    if (best >= 0) onSelect(best);
+    if (best >= 0) {
+      /* A pick brings its country round to face us. The timed advance
+         deliberately does not: left alone the globe should keep turning one
+         way, not reverse every few seconds to chase the next card. */
+      const picked = points[best];
+      target.current = {
+        lambda: picked.at[0],
+        phi: Math.max(-40, Math.min(40, picked.at[1])),
+      };
+      onSelect(best);
+    }
   };
 
   return (
@@ -255,6 +328,7 @@ export default function Globe({
     >
       <circle className="globe-edge" cx={C} cy={C} r={R} />
       <path className="globe-grid" ref={gridRef} />
+      <path className="globe-country" ref={countryRef} />
       <path className="globe-land" ref={landRef} />
       {points.map((p, i) => (
         <g
@@ -272,6 +346,10 @@ export default function Globe({
           onKeyDown={(e) => {
             if (e.key === "Enter" || e.key === " ") {
               e.preventDefault();
+              target.current = {
+                lambda: p.at[0],
+                phi: Math.max(-40, Math.min(40, p.at[1])),
+              };
               onSelect(i);
             }
           }}

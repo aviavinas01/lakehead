@@ -398,16 +398,31 @@ img { max-width: 100%; display: block; }
 /* The globe is line work only — no fill anywhere, so it reads as a drawing
    rather than a map, and the pins are the only colour on it. */
 .dest-globe { position: relative; }
+/* A plain dot instead of a pointer, over the globe and the space around it.
+   Inlined as a data URI: a cursor that arrives a moment late is worse than
+   no cursor at all, and at under a kilobyte it is cheaper than the request
+   would be. The pair of numbers is the hotspot — the middle of the dot, so
+   it sits on whatever it is over. */
+.dest-globe, .globe {
+  cursor: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAB7UlEQVR42u1WvWoUURg955udIBa7MNOJjYQkYCViYSNWPoBNsLG2tskr6Cv4FMZaEMQoKIg+QEJUbHTjTm4KWd2d79jcwCC6c3ey2+geuDDFd+ec7/8CK6zwv4Md71k8TXg8SxeczSlsYRGwUw+LorgIZNfdtQUgI7Vf1/b65GR4EG0zAPUiBRgA7/f7hdnaAxJ3SPabBpLGkp6QvlNV1adUEUwlL4rispTtktyQHPHnaqaGJCR9lbB9fHz0vBm1rgIIgIPBYGCWvyV5SdIEQO8PdwVgSjKXFNyzKyF8+RjtfJZ3rd6T+cMGef4X4QSQS5qSHJD1o0aEOkXAAHhZlhfceQBg7TQiCWlzklbXuhrC0btZqbAWAZhMeIPkuehNatFGMt1q42ntWTNsRHLNPa0MmykVnmJzlol5VgE87Eguqf2uteVR+rknaRptNYfnJPms0aKdBGQhhENJuyQNwDSBfErS3PWmqoavIkfdNQUCYGa6L2lEMgcwmUUOoCdpIvFeSudYSjuNRqPPEm43RCiSNY+T7AH4AeBuCMP3KfsgSykmANl4/P1Dnp9/THKdxCZpRsJIWvymu166azuEb08XuYzw+4oty/KaO25K2CKRSbZP4kVVDffmXcdd+poLmC1LeZJpWV6vsMK/jV/QbNJqwwiCLgAAAABJRU5ErkJggg==") 16 16, grab;
+}
 /* Capped rather than filling its column, so the globe reads as an object on
    the page instead of a backdrop. */
 .globe {
   width: 100%; max-width: 460px; height: auto; margin: 0 auto;
-  display: block; touch-action: pan-y; cursor: grab; user-select: none;
+  display: block; touch-action: pan-y; user-select: none;
 }
-.globe:active { cursor: grabbing; }
 .globe-edge { fill: none; stroke: #c3c7d2; stroke-width: 1; }
 .globe-grid { fill: none; stroke: #dcdfe7; stroke-width: 1; }
 .globe-land { fill: none; stroke: #2b3145; stroke-width: 1.5; stroke-linejoin: round; }
+/* The country in play, filled red so it is unmistakable the whole time it is
+   coming round. It sits under the coastline, so the outline still draws over
+   the top of it and the shape keeps its edge. */
+.globe-country {
+  fill: var(--color-hero-red);
+  stroke: #2b3145; stroke-width: 1; stroke-linejoin: round;
+  opacity: 0.9;
+}
 .globe-pin { cursor: pointer; }
 .globe-pin-hit { fill: transparent; }
 .globe-pin-dot { fill: #7b8397; transition: fill 0.35s ease; }
@@ -430,23 +445,31 @@ img { max-width: 100%; display: block; }
   font-size: 0.82rem; letter-spacing: 0.04em; margin-top: 0.5rem;
 }
 
-/* The deck: photos stacked in one place, the top one being the country
-   shown. No panel behind them — the picture is the card. */
-.dest-deck { position: relative; height: 330px; }
+/* The deck reads as a column moving downwards: the country next in line
+   waits above, the one showing sits in the middle at full strength, and the
+   one just shown slides out below. The mask fades both ends so the
+   neighbours trail off rather than being cut. */
+.dest-deck {
+  position: relative; height: 430px; overflow: hidden;
+  -webkit-mask-image: linear-gradient(180deg, transparent, #000 20%, #000 80%, transparent);
+  mask-image: linear-gradient(180deg, transparent, #000 20%, #000 80%, transparent);
+}
 .dest-photo {
-  position: absolute; inset: 0;
+  position: absolute; left: 0; right: 0; top: 50%; height: 290px;
+  margin-top: -145px;
   border-radius: 20px; overflow: hidden;
   box-shadow: 0 18px 38px -20px rgba(23, 39, 92, 0.55);
-  transition: transform 0.65s cubic-bezier(0.22, 0.68, 0.3, 1), opacity 0.5s ease;
+  transition: transform 0.85s cubic-bezier(0.25, 0.8, 0.28, 1), opacity 0.7s ease;
 }
 .dest-photo img, .dest-photo-placeholder { width: 100%; height: 100%; object-fit: cover; display: block; }
 .dest-photo-placeholder { background: linear-gradient(150deg, #d9dce6, #eef0f5); }
-.dest-photo[data-depth="0"] { transform: none; opacity: 1; z-index: 4; }
-.dest-photo[data-depth="1"] { transform: translateY(16px) scale(0.96); opacity: 0.7; z-index: 3; }
-.dest-photo[data-depth="2"] { transform: translateY(30px) scale(0.925); opacity: 0.4; z-index: 2; }
-.dest-photo[data-depth="3"] { transform: translateY(42px) scale(0.9); opacity: 0.16; z-index: 1; }
-.dest-photo[data-depth="back"] { transform: translateY(42px) scale(0.9); opacity: 0; z-index: 0; }
-/* The country's details sit under the stack, on the page itself */
+/* Slot 1 is next and waits above; 0 is showing; -1 has just been and is on
+   its way out below. Everything the queue is not near sits where the next
+   one waits, so it enters from the same direction. */
+.dest-photo[data-slot="0"] { transform: none; opacity: 1; z-index: 3; }
+.dest-photo[data-slot="1"] { transform: translateY(-215px) scale(0.86); opacity: 0.3; z-index: 2; }
+.dest-photo[data-slot="-1"] { transform: translateY(215px) scale(0.86); opacity: 0.3; z-index: 2; }
+.dest-photo[data-slot="away"] { transform: translateY(-215px) scale(0.86); opacity: 0; z-index: 1; }
 .dest-info { margin-top: 3.75rem; }
 .dest-info h3 {
   color: var(--color-hero-ink); font-size: 1.75rem;
@@ -1436,7 +1459,10 @@ a.greview-author:hover { text-decoration: underline; }
      The stacked photos carry the section on their own. */
   .dest-globe { display: none; }
   .dest-layout { grid-template-columns: 1fr; gap: 0; }
-  .dest-deck { height: 260px; }
+  .dest-deck { height: 330px; }
+  .dest-photo { height: 230px; margin-top: -115px; }
+  .dest-photo[data-slot="1"], .dest-photo[data-slot="away"] { transform: translateY(-172px) scale(0.86); }
+  .dest-photo[data-slot="-1"] { transform: translateY(172px) scale(0.86); }
   .dest-info { margin-top: 3.25rem; }
   .help-head { grid-template-columns: 1fr; gap: 1.25rem; }
   .help-lead { justify-self: start; }

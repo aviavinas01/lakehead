@@ -7,10 +7,13 @@ import Globe from "./Globe";
  * on every country we place students in, and a deck of photos on the right
  * with the country's details underneath.
  *
- * The two halves are one control: the photo on top is always the country
- * whose pin is lit, whether it got there on its own, because the pin was
- * clicked, or because the globe was dragged round to it. It advances every
- * DWELL ms, and the globe swings the new country to the front each time.
+ * The globe drives the cards, not a timer: whichever country is facing the
+ * viewer is the one whose photo shows. So they arrive in the order the globe
+ * actually brings them round — Canada, the USA, the UK, Denmark, India,
+ * South Korea, Australia, New Zealand — and each gets a spell as long as the
+ * gap to its neighbour, which is why close pairs like Canada and the USA
+ * each get a short one. Dragging the globe or picking a pin moves the cards
+ * the same way, because it moves what is facing.
  *
  * Below the width in the stylesheet where the layout stacks, the globe is
  * dropped entirely and only the photo deck remains — a globe that small is
@@ -20,34 +23,43 @@ import Globe from "./Globe";
  * `at` is the country's real longitude and latitude; the globe projects it.
  */
 
-const DWELL = 5000;
-
 const DESTINATIONS: {
   name: string;
   blurb: string;
   image: string;
   at: [number, number];
 }[] = [
+  { name: "Canada", blurb: "Affordable tuition and a clear path to residency.", image: "/canada.jpg", at: [-106, 56] },
   { name: "USA", blurb: "World-ranked universities and OPT work rights after you graduate.", image: "/usa.jpg", at: [-98, 39.5] },
   { name: "UK", blurb: "One-year master's degrees and a two-year graduate visa.", image: "/uk.jpg", at: [-1.5, 53] },
-  { name: "Australia", blurb: "Strong post-study work rights in every state.", image: "/australia.jpg", at: [134, -25] },
-  { name: "Canada", blurb: "Affordable tuition and a clear path to residency.", image: "/canada.jpg", at: [-106, 56] },
-  { name: "New Zealand", blurb: "Small class sizes and a welcoming visa system.", image: "/newzealand.jpg", at: [172, -41] },
-  { name: "South Korea", blurb: "Scholarship-rich programmes taught in English.", image: "/southkorea.jpg", at: [127.8, 36.5] },
   { name: "Denmark", blurb: "Tuition-free public universities and paid internships.", image: "/denmark.jpg", at: [10, 56] },
   { name: "India", blurb: "Globally recognised degrees close to home.", image: "/india.jpg", at: [79, 22] },
+  { name: "South Korea", blurb: "Scholarship-rich programmes taught in English.", image: "/southkorea.jpg", at: [127.8, 36.5] },
+  { name: "Australia", blurb: "Strong post-study work rights in every state.", image: "/australia.jpg", at: [134, -25] },
+  { name: "New Zealand", blurb: "Small class sizes and a welcoming visa system.", image: "/newzealand.jpg", at: [172, -41] },
 ];
 
-/** Depth of a photo in the deck: 0 is the one on top. */
-const depthOf = (index: number, active: number, total: number) =>
-  (index - active + total) % total;
 
-function Photo({ src, depth }: { src: string; depth: number }) {
+/**
+ * Where a photo sits relative to the one showing: 0 is the middle, +1 is the
+ * country next in line (waiting above), -1 the one just shown (leaving
+ * below). Everything else is out of sight. Taking the shorter way round the
+ * list keeps the queue moving one way as the globe turns.
+ */
+function offsetOf(index: number, active: number, total: number) {
+  let rel = index - active;
+  if (rel > total / 2) rel -= total;
+  if (rel < -total / 2) rel += total;
+  return rel;
+}
+
+function Photo({ src, offset }: { src: string; offset: number }) {
   /* A country without a photo yet shows a plain panel rather than a broken
      image — drop the file in client/public and it appears by itself. */
   const [missing, setMissing] = useState(false);
+  const slot = Math.abs(offset) > 1 ? "away" : String(offset);
   return (
-    <div className="dest-photo" data-depth={depth > 3 ? "back" : depth} aria-hidden={depth !== 0}>
+    <div className="dest-photo" data-slot={slot} aria-hidden={offset !== 0}>
       {missing ? (
         <div className="dest-photo-placeholder" />
       ) : (
@@ -77,16 +89,6 @@ export default function Destinations() {
     return () => io.disconnect();
   }, []);
 
-  useEffect(() => {
-    /* Nothing moves on its own for a visitor who asked for less motion —
-       the pins and the drag still work. */
-    if (!running || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      return;
-    }
-    const id = window.setInterval(() => setActive((i) => (i + 1) % total), DWELL);
-    return () => window.clearInterval(id);
-  }, [running, total]);
-
   return (
     <section className="destinations" ref={section}>
       <div className="container">
@@ -101,18 +103,16 @@ export default function Destinations() {
           study-abroad plans into reality.
         </p>
 
-        <div
-          className="dest-layout"
-          /* Hovering holds whichever country you are looking at */
-          onMouseEnter={() => setRunning(false)}
-          onMouseLeave={() => setRunning(true)}
-        >
+        {/* Nothing here pauses on hover: the globe keeps turning while the
+            pointer is over it, and the cards keep following it round. */}
+        <div className="dest-layout">
           <div className="dest-globe">
             <Globe
               points={DESTINATIONS.map((d) => ({ name: d.name, at: d.at }))}
               active={active}
               spinning={running}
               onSelect={setActive}
+              onFacing={setActive}
             />
             <p className="dest-hint">Drag the globe, or tap a pin</p>
           </div>
@@ -120,7 +120,7 @@ export default function Destinations() {
           <div className="dest-side">
             <div className="dest-deck">
               {DESTINATIONS.map((d, i) => (
-                <Photo key={d.name} src={d.image} depth={depthOf(i, active, total)} />
+                <Photo key={d.name} src={d.image} offset={offsetOf(i, active, total)} />
               ))}
             </div>
             <div className="dest-info" aria-live="polite">
