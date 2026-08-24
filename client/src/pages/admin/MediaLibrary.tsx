@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import api, { getErrorMessage } from "../../api/client";
+import { mediaSrc } from "../../api/media";
 import AdminNav from "./AdminNav";
 import { useAuth } from "../../context/AuthContext";
 import type { Album, Media, Paginated } from "../../types/api";
@@ -176,9 +177,9 @@ export default function MediaLibrary() {
               {data.items.map((m) => (
                 <div className="card media-card" key={m._id}>
                   {m.type === "image" ? (
-                    <img src={m.url} alt={m.title || "Uploaded image"} loading="lazy" />
+                    <img src={mediaSrc(m.url)} alt={m.title || "Uploaded image"} loading="lazy" />
                   ) : (
-                    <video src={m.url} controls preload="metadata" />
+                    <video src={mediaSrc(m.url)} controls preload="metadata" />
                   )}
                   <p className="media-title">{m.title || "Untitled"}</p>
                   {user?.role === "admin" && (

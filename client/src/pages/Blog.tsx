@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api, { getErrorMessage } from "../api/client";
+import { mediaSrc } from "../api/media";
 import Loader from "../components/Loader";
 import type { Paginated, PostSummary } from "../types/api";
 
@@ -26,7 +27,7 @@ export default function Blog() {
       <div className="grid grid-3">
         {data.items.map((p) => (
           <Link to={`/blog/${p.slug}`} className="card post-card" key={p._id}>
-            {p.coverImage && <img src={p.coverImage} alt="" />}
+            {p.coverImage && <img src={mediaSrc(p.coverImage)} alt="" />}
             <h3>{p.title}</h3>
             <p>{p.excerpt}</p>
             {p.publishedAt && <time>{new Date(p.publishedAt).toLocaleDateString()}</time>}

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import api from "../api/client";
+import { mediaSrc } from "../api/media";
 import type { Album, Media, YouTubeVideo } from "../types/api";
 
 /**
@@ -164,7 +165,7 @@ function VideoCard({
     <figure className="video-card">
       <video
         ref={videoRef}
-        src={media.url}
+        src={mediaSrc(media.url)}
         preload="metadata"
         playsInline
         controls={active}

@@ -1,0 +1,43 @@
+# Render Blueprint — the API service, declared in the repo so the settings
+# cannot drift or be mistyped in the dashboard.
+#
+# The build command is the important line: `dist/` is gitignored, so Render
+# has to compile TypeScript itself. `--include=dev` is required because
+# NODE_ENV=production makes npm skip devDependencies, and TypeScript is one
+# of them — without it the build fails with "tsc: not found" and the start
+# command then dies looking for dist/server.js that was never written.
+services:
+  - type: web
+    name: lakehead-api
+    runtime: node
+    rootDir: server
+    plan: starter          # not free: free has no disk and sleeps when idle
+    region: singapore      # closest to Nepal; put the Atlas cluster here too
+    buildCommand: npm install --include=dev && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    disk:
+      # Uploaded media lives here and nowhere else — it is not in git.
+      name: uploads
+      mountPath: /opt/render/project/src/server/uploads
+      sizeGB: 5
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # Everything below is set in the dashboard, never committed.
+      - key: MONGO_URI
+        sync: false
+      - key: JWT_SECRET      # must be 32+ characters or the server exits
+        sync: false
+      - key: CLIENT_URL      # exact Vercel origin, no trailing slash
+        sync: false
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: YOUTUBE_PLAYLIST_ID
+        sync: false
+      - key: GOOGLE_MAPS_API_KEY
+        sync: false
+      - key: GOOGLE_PLACE_ID
+        sync: false

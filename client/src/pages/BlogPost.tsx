@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import api, { getErrorMessage } from "../api/client";
+import { mediaSrc } from "../api/media";
 import Loader from "../components/Loader";
 import type { Post } from "../types/api";
 
@@ -31,7 +32,7 @@ export default function BlogPost() {
       <Link to="/blog">← All posts</Link>
       <h1>{post.title}</h1>
       {post.publishedAt && <time>{new Date(post.publishedAt).toLocaleDateString()}</time>}
-      {post.coverImage && <img src={post.coverImage} alt="" className="cover" />}
+      {post.coverImage && <img src={mediaSrc(post.coverImage)} alt="" className="cover" />}
       {post.content.split("\n\n").map((para, i) => (
         <p key={i}>{para}</p>
       ))}

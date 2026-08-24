@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../api/client";
+import { mediaSrc } from "../api/media";
 import HeroOrbit, { PlaneIcon } from "../components/HeroOrbit";
 import NextSteps from "../components/NextSteps";
 import StatsStrip from "../components/StatsStrip";
@@ -78,7 +79,7 @@ export default function Home() {
           `/albums/slug/${album.slug}`
         );
         const image = res.data.media.find((m) => m.type === "image");
-        if (image && !cancelled) setHeroImage(image.url);
+        if (image && !cancelled) setHeroImage(mediaSrc(image.url));
       } catch {
         /* no hero album yet — the placeholder circle is shown instead */
       }
