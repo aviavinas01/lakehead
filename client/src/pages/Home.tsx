@@ -20,6 +20,14 @@ import type { Album, Media } from "../types/api";
 const HERO_ALBUM_TITLE = "home hero";
 
 /**
+ * The clip that plays in the hero circle — muted, looping, and used as the
+ * fallback when no "Home Hero" album exists, which is why the circle sits
+ * empty without it. An admin-uploaded image becomes its poster frame.
+ * Set to undefined to go back to a still photo only.
+ */
+const HERO_VIDEO = "/hero.mp4";
+
+/**
  * "How we help clients" cards — set each `image` to your file's path
  * (e.g. "/citizenship.png") once the photos are in client/public.
  * Until then a neutral placeholder panel is shown in its place.
@@ -110,7 +118,7 @@ export default function Home() {
               <Link to="/contact" className="btn btn-outline">Talk to Us →</Link>
             </div>
           </div>
-          <HeroOrbit imageUrl={heroImage} />
+          <HeroOrbit imageUrl={heroImage} videoUrl={HERO_VIDEO} />
         </div>
       </section>
 

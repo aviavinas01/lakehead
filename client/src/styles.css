@@ -825,7 +825,10 @@ img { max-width: 100%; display: block; }
    Headings only: body copy is left alone deliberately.
    ============================================================ */
 .h-accent { color: var(--color-hero-red); }
-.h-outline { color: var(--color-hero-ink); }
+/* Outlined text needs the tracking its heading takes away: a stroke adds
+   weight to both sides of every glyph, so negative letter-spacing that
+   looks right filled makes the outlines collide. */
+.h-outline { color: var(--color-hero-ink); letter-spacing: 0; }
 @supports (-webkit-text-stroke: 1px red) {
   .h-outline {
     -webkit-text-stroke: 2px var(--color-hero-ink);
@@ -1205,62 +1208,33 @@ a.greview-author:hover { text-decoration: underline; }
    above the card's top edge (negative margin + overflow), so the
    section reserves headroom for it.
    ============================================================ */
-.journey-cta { padding: var(--section-y) 0 3rem; }
-.journey-card {
-  position: relative; overflow: visible;
-  display: grid; grid-template-columns: 1.05fr 0.95fr; align-items: end; gap: 2rem;
-  background: linear-gradient(135deg, #1f4ba0, #17275c);
-  border-radius: 28px; padding: 4rem 3.5rem;
-  margin-top: 130px; /* headroom for the photo's overflow */
-}
-/* With no photo file present the copy spans the full card */
-.journey-card.no-photo { grid-template-columns: 1fr; margin-top: 0; }
-.journey-copy { padding-bottom: 0.5rem; }
+.journey-cta { padding: var(--section-y) 0 3.5rem; }
+.journey-inner { margin-inline: auto; }
+/* No card, no panel: the type carries this on the page itself. Centred,
+   generous, and ending on a single action — everything else that used to be
+   here (the blue card, the student photo, the tray of social tiles) was
+   competing with the one thing this section is for. */
+.journey-inner { text-align: center; max-width: 760px; }
 .journey-title {
-  color: #fff; font-size: clamp(2.3rem, 4.2vw, 3.7rem);
-  line-height: 1.15; letter-spacing: -0.02em; margin-bottom: 1.5rem;
-}
-.journey-title strong { position: relative; display: inline-block; font-weight: 800; }
-/* Hand-drawn style red underline beneath the second line */
-.journey-underline {
-  position: absolute; left: 0; right: 0; bottom: -0.35rem; height: 8px;
-  background:
-    linear-gradient(var(--color-hero-red), var(--color-hero-red)) left top / 100% 3px no-repeat,
-    linear-gradient(var(--color-hero-red), var(--color-hero-red)) 6% bottom / 88% 3px no-repeat;
-  border-radius: 3px; opacity: 0.95;
+  color: var(--color-hero-ink);
+  font-size: clamp(2.6rem, 5vw, 4.4rem);
+  line-height: 1.08; letter-spacing: -0.03em; margin-bottom: 1.25rem;
 }
 .journey-lead {
-  color: rgba(255, 255, 255, 0.85); font-size: 1.05rem;
-  line-height: 1.7; max-width: 460px; margin-bottom: 2.5rem;
+  color: var(--color-muted); font-size: 1.08rem; line-height: 1.75;
+  max-width: 540px; margin: 0 auto 2.25rem;
 }
-.journey-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 1.25rem; }
+/* The same outlined button as the consultation form, so the two calls to
+   action on the page read as the same gesture. */
 .journey-btn {
-  border: none; cursor: pointer; white-space: nowrap; font-family: inherit;
-  background: #fff; color: var(--color-text); font-weight: 600; font-size: 1rem;
-  padding: 0.95rem 2rem; border-radius: 8px; transition: transform 0.15s, box-shadow 0.15s;
+  display: inline-flex; align-items: center; gap: 0.6rem;
+  background: transparent; border: 1.5px solid var(--color-hero-red);
+  color: var(--color-hero-red); cursor: pointer; font-family: inherit;
+  font-weight: 700; font-size: 1rem; padding: 0.95rem 2.1rem; border-radius: 999px;
+  transition: background-color 0.25s ease, color 0.25s ease, gap 0.25s ease;
 }
-.journey-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(0, 0, 0, 0.25); }
-/* Brand-colored social tiles on a translucent tray */
-.journey-socials {
-  display: flex; gap: 0.5rem; padding: 0.5rem;
-  background: rgba(255, 255, 255, 0.14); border-radius: 10px;
-}
-.journey-socials a {
-  display: grid; place-items: center; width: 38px; height: 38px;
-  border-radius: 7px; color: #fff; transition: transform 0.15s;
-}
-.journey-socials a:hover { transform: translateY(-2px); }
-.journey-socials svg { width: 20px; height: 20px; }
-.journey-socials .is-instagram { background: linear-gradient(45deg, #f9ce34, #ee2a7b, #6228d7); }
-.journey-socials .is-youtube { background: #ff0000; }
-.journey-socials .is-linkedin { background: #0a66c2; }
-.journey-socials .is-facebook { background: #1877f2; }
-.journey-socials .is-x { background: #000; }
-/* Photo column — the image overflows the card top */
-.journey-photo { position: relative; align-self: end; justify-self: center; }
-.journey-photo img {
-  display: block; margin-top: -170px; max-height: 540px;
-  width: auto; max-width: 100%; object-fit: contain;
+.journey-btn:hover {
+  background-color: var(--color-hero-red); color: #fff; gap: 0.85rem;
 }
 .consult-modal-overlay {
   position: fixed; inset: 0; z-index: 100; overflow-y: auto;
@@ -1461,13 +1435,6 @@ a.greview-author:hover { text-decoration: underline; }
   /* Stats strip wraps to 2×2; the trust strip stacks */
   .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
   .consult-trust { flex-direction: column; align-items: flex-start; }
-  /* Journey CTA stacks: copy on top, photo below inside the card */
-  .journey-card {
-    grid-template-columns: 1fr; margin-top: 90px;
-    padding: 2.5rem 1.75rem 0; gap: 1.5rem;
-  }
-  .journey-photo img { margin-top: -120px; max-height: 380px; }
-  .journey-actions { gap: 1rem; }
   .dest-layout { grid-template-columns: 1fr; gap: 2rem; }
   .dest-deck { min-height: 370px; }
   .dest-card img, .dest-card-placeholder { height: 250px; }
