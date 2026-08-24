@@ -944,7 +944,6 @@ a.greview-author:hover { text-decoration: underline; }
   display: flex; width: max-content;
   animation: uni-scroll 40s linear infinite;
 }
-.uni-marquee:hover .uni-track { animation-play-state: paused; }
 @keyframes uni-scroll {
   from { transform: translateX(0); }
   to { transform: translateX(-50%); }
@@ -1319,47 +1318,92 @@ a.greview-author:hover { text-decoration: underline; }
    the left, link columns, branches row, destination strip, then
    copyright / legal / social bottom bar.
    ============================================================ */
-.footer { background: var(--color-footer-bg); color: #fff; margin-top: var(--section-y); font-size: 0.92rem; }
+/* Footer: brand on the left, three link columns on the right, a band of
+   cut-off shapes beneath them, and a dark bar for the legal links. Same red
+   as the rest of the brand; the shapes and the bar are the site's navy, so
+   the foot of the page has some weight to sit on. */
+.footer {
+  background: var(--color-footer-bg); color: #fff;
+  margin-top: var(--section-y); font-size: 0.95rem;
+}
 .footer a { color: #fff; }
-.footer a:hover { opacity: 0.8; }
-.footer h4 { font-size: 1.05rem; font-weight: 700; margin-bottom: 1.1rem; }
 .footer-main {
-  display: grid; grid-template-columns: 1.35fr repeat(4, 1fr);
-  gap: 2.5rem; padding-top: 3.5rem; padding-bottom: 1.5rem;
+  display: grid; grid-template-columns: 1.15fr 1.4fr;
+  gap: 4rem; padding: 4.5rem 1.5rem 4rem;
 }
-.footer-col a { display: block; margin-bottom: 0.8rem; opacity: 0.95; }
-.footer-brand { display: flex; flex-direction: column; align-items: flex-start; }
-/* White chip keeps the logo readable on the dark background */
-.footer-brand-name { font-weight: 800; font-size: 1.35rem; letter-spacing: -0.01em; }
-.footer-tagline { margin-top: 0.6rem; font-size: 0.85rem; opacity: 0.85; }
-.footer-rating { display: flex; align-items: flex-start; gap: 2rem; margin-top: 1.75rem; }
-.footer-rating p { font-size: 0.85rem; opacity: 0.9; margin-top: 0.15rem; }
-.footer-rating-score strong { font-size: 1.9rem; font-weight: 800; line-height: 1; }
-.footer-rating-score > span { font-size: 0.9rem; opacity: 0.85; }
-/* Two rows of stars stacked: the gold layer is clipped to the score's width,
-   which lets a fractional rating render without half-star artwork. */
-.footer-stars { position: relative; display: inline-block; padding-top: 0.45rem; }
-.footer-stars-empty, .footer-stars-fill { display: inline-flex; gap: 0.2rem; }
-.footer-stars-empty svg { fill: rgba(255, 255, 255, 0.3); }
+/* The mark is a red PNG — flattened to black then inverted, it comes out
+   white, so one file serves both the drawer and here. */
+.footer-logo { display: flex; align-items: center; gap: 0.85rem; }
+.footer-logo img { height: 62px; width: auto; filter: brightness(0) invert(1); }
+.footer-logo span {
+  font-family: var(--font-display); font-weight: 800;
+  font-size: 1.5rem; letter-spacing: -0.02em; color: #fff;
+}
+.footer-blurb {
+  margin-top: 1.4rem; max-width: 34rem;
+  font-size: 1rem; line-height: 1.75; color: rgba(255, 255, 255, 0.88);
+}
+/* Compact rating: the score, the stars, and where they came from */
+/* The whole rating is one link to our Google listing, so it gets a hit area
+   of its own and a hover that moves — otherwise a row of text and stars gives
+   no sign it can be clicked. */
+.footer-rating {
+  display: inline-flex; align-items: center; gap: 0.7rem;
+  margin-top: 1.3rem; margin-left: -0.75rem;
+  padding: 0.55rem 0.85rem 0.55rem 0.75rem; border-radius: 12px;
+  transition: background-color 0.2s ease;
+}
+.footer-rating:hover, .footer-rating:focus-visible { background: rgba(255, 255, 255, 0.12); }
+.footer-rating:hover .footer-rating-note { text-decoration: underline; text-underline-offset: 3px; }
+.footer-rating strong { font-size: 1.35rem; font-weight: 800; line-height: 1; }
+.footer-rating-arrow { flex: none; transition: transform 0.2s ease; }
+.footer-rating:hover .footer-rating-arrow { transform: translateX(3px); }
+.footer-stars { position: relative; display: inline-block; height: 15px; }
+.footer-stars-empty, .footer-stars-fill { display: inline-flex; gap: 0.15rem; }
+.footer-stars-empty svg { fill: rgba(255, 255, 255, 0.32); }
 .footer-stars-fill {
-  position: absolute; left: 0; top: 0.45rem;
-  overflow: hidden; white-space: nowrap;
+  position: absolute; inset: 0; overflow: hidden; white-space: nowrap;
 }
-.footer-rating a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
-.footer-branches { display: grid; grid-template-columns: 1.35fr repeat(4, 1fr); gap: 2.5rem; padding-bottom: 2.5rem; }
-.footer-divider { border-top: 1px solid rgba(255, 255, 255, 0.18); }
-.footer-destinations { display: flex; flex-wrap: wrap; gap: 0.85rem 2.25rem; padding: 1.6rem 0; font-weight: 500; }
-.footer-bottom {
-  display: flex; align-items: flex-end; justify-content: space-between;
-  gap: 2rem; padding-bottom: 2.25rem;
+.footer-rating-note { font-size: 0.88rem; color: rgba(255, 255, 255, 0.85); }
+/* Outlined tiles, as in the reference — the ring is the whole treatment */
+.footer-socials { display: flex; gap: 0.85rem; margin-top: 2rem; }
+.footer-socials a {
+  display: grid; place-items: center; width: 46px; height: 46px;
+  border: 1.5px solid rgba(255, 255, 255, 0.55); border-radius: 12px;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
 }
-.footer-copyright { font-size: 1rem; }
-.footer-legal { display: flex; gap: 1.75rem; margin-top: 0.9rem; font-weight: 500; }
-.footer-social { text-align: right; }
-.footer-social p { font-size: 1.05rem; font-weight: 600; margin-bottom: 0.75rem; }
-.footer-social-icons { display: flex; gap: 1rem; justify-content: flex-end; }
-.footer-social-icons a { display: grid; place-items: center; }
-.footer-social-icons svg { width: 24px; height: 24px; }
+.footer-socials a:hover { background: #fff; border-color: #fff; color: var(--color-footer-bg); }
+.footer-socials svg { width: 21px; height: 21px; }
+
+.footer-cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2.5rem; }
+.footer-col h4 {
+  font-family: var(--font-display); font-size: 1.1rem; font-weight: 700;
+  margin-bottom: 1.3rem;
+}
+.footer-col a {
+  display: block; margin-bottom: 0.85rem;
+  color: rgba(255, 255, 255, 0.9); transition: color 0.15s, padding-left 0.15s;
+}
+.footer-col a:hover { color: #fff; padding-left: 0.25rem; }
+
+/* The shape band. Overflow is what cuts the shapes at the edges: whole ones
+   would read as a row of icons rather than a pattern passing through. */
+.footer-shapes { height: 170px; overflow: hidden; line-height: 0; }
+.footer-shapes svg { width: 100%; height: 100%; display: block; }
+.footer-shapes path {
+  fill: none; stroke: #12203f; stroke-width: 34; stroke-linecap: round;
+}
+
+.footer-bar { background: #12203f; }
+.footer-bar-inner {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 1.5rem; padding-top: 1.15rem; padding-bottom: 1.15rem;
+  font-size: 0.92rem;
+}
+.footer-bar p { color: rgba(255, 255, 255, 0.82); margin: 0; }
+.footer-legal { display: flex; align-items: center; gap: 1.5rem; }
+.footer-legal a { color: rgba(255, 255, 255, 0.92); }
+.footer-legal a:hover { text-decoration: underline; text-underline-offset: 3px; }
 
 /* Admin */
 .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
@@ -1419,19 +1463,19 @@ a.greview-author:hover { text-decoration: underline; }
 
 @media (max-width: 860px) {
   .grid-3, .grid-2 { grid-template-columns: 1fr; }
-  /* Footer: brand on top, link columns two-up, stacked bottom bar */
-  .footer-main { grid-template-columns: 1fr 1fr; padding-top: 2.5rem; }
-  .footer-brand { grid-column: 1 / -1; }
-  .footer-branches { grid-template-columns: 1fr; gap: 0; padding-bottom: 2rem; }
-  .footer-bottom { flex-direction: column; align-items: flex-start; }
-  .footer-social { text-align: left; }
-  .footer-social-icons { justify-content: flex-start; }
+  /* Footer: brand on top, link columns beneath it, stacked legal bar */
+  .footer-main { grid-template-columns: 1fr; gap: 2.75rem; padding: 3rem 1.5rem 2.5rem; }
+  .footer-cols { grid-template-columns: repeat(2, 1fr); gap: 2rem 1.5rem; }
+  .footer-blurb { font-size: 0.95rem; }
+  .footer-shapes { height: 120px; }
+  .footer-bar-inner { flex-direction: column; align-items: flex-start; gap: 0.85rem; }
+  .footer-legal { flex-wrap: wrap; gap: 1rem; }
   .nav-toggle { display: block; }
   /* The contact details move to the fixed bottom bar on mobile,
      so the whole top strip goes away */
   .mobile-actions { display: flex; }
   /* Leave room so the fixed bar never covers the end of the page */
-  .footer-bottom { padding-bottom: calc(4.5rem + env(safe-area-inset-bottom)); }
+  .footer-bar-inner { padding-bottom: calc(6rem + env(safe-area-inset-bottom)); }
   /* No room to straddle the bars on mobile — keep the logo inside the white strip */
   .brand-logo { height: 46px; }
   /* The sloped shoulder would cover the centered contact pills on mobile */
