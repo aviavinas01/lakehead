@@ -392,15 +392,17 @@ img { max-width: 100%; display: block; }
 /* Globe on the left, a deck of photos on the right with the country's
    details underneath. */
 .dest-layout {
-  display: grid; grid-template-columns: 1fr 0.85fr;
+  display: grid; grid-template-columns: 0.9fr 1fr;
   gap: 3.5rem; align-items: center;
 }
 /* The globe is line work only — no fill anywhere, so it reads as a drawing
    rather than a map, and the pins are the only colour on it. */
 .dest-globe { position: relative; }
+/* Capped rather than filling its column, so the globe reads as an object on
+   the page instead of a backdrop. */
 .globe {
-  width: 100%; height: auto; display: block; touch-action: pan-y;
-  cursor: grab; user-select: none;
+  width: 100%; max-width: 460px; height: auto; margin: 0 auto;
+  display: block; touch-action: pan-y; cursor: grab; user-select: none;
 }
 .globe:active { cursor: grabbing; }
 .globe-edge { fill: none; stroke: #c3c7d2; stroke-width: 1; }

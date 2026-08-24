@@ -26,8 +26,14 @@ const SIZE = 520;
 const R = 236;
 const C = SIZE / 2;
 
-/** Degrees per second the globe drifts when it is left alone. */
-const DRIFT = 4;
+/** Degrees per second the globe turns when it is left alone. */
+const DRIFT = 11;
+/** How much of its speed a flung globe keeps each frame after release. */
+const FRICTION = 0.94;
+/** Movement under this many pixels counts as a click, not a drag. */
+const CLICK_SLOP = 6;
+/** How near a click has to land to count as picking that country. */
+const PICK_RADIUS = 95;
 /** How quickly it eases when sent to a country: fraction of the gap per frame. */
 const EASE = 0.085;
 
@@ -41,6 +47,9 @@ interface Rotation {
   lambda: number;
   phi: number;
 }
+
+/** Keeps the globe from rolling over the poles. */
+const clampTilt = (phi: number) => Math.max(-72, Math.min(72, phi));
 
 /** Screen position of a lon/lat, or null when it is round the back. */
 function project(lon: number, lat: number, rot: Rotation) {
@@ -103,7 +112,9 @@ export default function Globe({
   const rot = useRef<Rotation>({ lambda: 10, phi: 12 });
   /* Where the globe is heading, when it has been sent somewhere */
   const target = useRef<Rotation | null>(null);
-  const drag = useRef<{ x: number; y: number } | null>(null);
+  const drag = useRef<{ x: number; y: number; moved: number } | null>(null);
+  /* Speed carried over from a drag, so a flung globe keeps going and slows */
+  const spin = useRef({ lambda: 0, phi: 0 });
   const spinRef = useRef(spinning);
   spinRef.current = spinning;
 
@@ -124,7 +135,13 @@ export default function Globe({
       last = now;
 
       if (!drag.current) {
-        if (target.current) {
+        if (Math.abs(spin.current.lambda) > 0.02 || Math.abs(spin.current.phi) > 0.02) {
+          /* Still carrying speed from a fling: coast, and slow down */
+          rot.current.lambda += spin.current.lambda;
+          rot.current.phi = clampTilt(rot.current.phi + spin.current.phi);
+          spin.current.lambda *= FRICTION;
+          spin.current.phi *= FRICTION;
+        } else if (target.current) {
           /* Ease along the shorter way round, so it never spins the long way */
           let d = target.current.lambda - rot.current.lambda;
           d = ((d + 540) % 360) - 180;
@@ -168,29 +185,61 @@ export default function Globe({
     return () => cancelAnimationFrame(raf);
   }, [points]);
 
-  /* Dragging turns the globe. Horizontal movement spins it, vertical tips it,
-     and the tilt is capped so it never rolls past the poles. */
+  /* Dragging turns the globe. The pixel-to-degree conversion is taken from
+     the sphere's own radius on screen, so the surface travels with the
+     pointer instead of at some arbitrary rate — a small globe turns less per
+     pixel than a large one, which is what makes it feel like an object. */
   const onDown = (e: React.PointerEvent<SVGSVGElement>) => {
-    drag.current = { x: e.clientX, y: e.clientY };
+    drag.current = { x: e.clientX, y: e.clientY, moved: 0 };
     target.current = null;
+    spin.current = { lambda: 0, phi: 0 };
     e.currentTarget.setPointerCapture(e.pointerId);
   };
+
   const onMove = (e: React.PointerEvent<SVGSVGElement>) => {
     const d = drag.current;
     if (!d) return;
-    const scale = 0.28;
-    rot.current.lambda += (e.clientX - d.x) * scale;
-    rot.current.phi = Math.max(
-      -75,
-      Math.min(75, rot.current.phi - (e.clientY - d.y) * scale)
-    );
-    drag.current = { x: e.clientX, y: e.clientY };
+    const rect = e.currentTarget.getBoundingClientRect();
+    const perPixel = 90 / ((rect.width / SIZE) * R);   // degrees per pixel
+    const dx = (e.clientX - d.x) * perPixel;
+    const dy = (e.clientY - d.y) * perPixel;
+    rot.current.lambda += dx;
+    rot.current.phi = clampTilt(rot.current.phi - dy);
+    /* Remember the last movement as speed, so letting go throws the globe */
+    spin.current = { lambda: dx, phi: -dy };
+    d.moved += Math.abs(e.clientX - d.x) + Math.abs(e.clientY - d.y);
+    d.x = e.clientX;
+    d.y = e.clientY;
   };
+
   const endDrag = (e: React.PointerEvent<SVGSVGElement>) => {
+    const d = drag.current;
     drag.current = null;
     if (e.currentTarget.hasPointerCapture(e.pointerId)) {
       e.currentTarget.releasePointerCapture(e.pointerId);
     }
+    if (!d) return;
+    /* A press that barely moved is a click: pick whichever destination the
+       pointer landed nearest, so the whole globe is a target rather than
+       eight small dots. A real drag keeps its speed and coasts instead. */
+    if (d.moved > CLICK_SLOP) return;
+    spin.current = { lambda: 0, phi: 0 };
+    const rect = e.currentTarget.getBoundingClientRect();
+    const scale = SIZE / rect.width;
+    const px = (e.clientX - rect.left) * scale;
+    const py = (e.clientY - rect.top) * scale;
+    let best = -1;
+    let bestDist = PICK_RADIUS;
+    points.forEach((point, i) => {
+      const q = project(point.at[0], point.at[1], rot.current);
+      if (!q) return;
+      const dist = Math.hypot(q.x - px, q.y - py);
+      if (dist < bestDist) {
+        bestDist = dist;
+        best = i;
+      }
+    });
+    if (best >= 0) onSelect(best);
   };
 
   return (
@@ -217,7 +266,9 @@ export default function Globe({
           role="button"
           tabIndex={0}
           aria-label={`Show ${p.name}`}
-          onClick={() => onSelect(i)}
+          /* No onClick here: the globe picks the nearest destination on
+             pointerup, so a pin click is already handled and a second
+             handler would fire for the same press. */
           onKeyDown={(e) => {
             if (e.key === "Enter" || e.key === " ") {
               e.preventDefault();
