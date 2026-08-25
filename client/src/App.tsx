@@ -11,6 +11,7 @@ import TestDetail from "./pages/TestDetail";
 import VisaGuidance from "./pages/VisaGuidance";
 import CareerCounselling from "./pages/CareerCounselling";
 import StudentAccommodation from "./pages/StudentAccommodation";
+import AdmissionGuidance from "./pages/AdmissionGuidance";
 import StudyAbroad from "./pages/StudyAbroad";
 import StudyInAustralia from "./pages/StudyInAustralia";
 import StudyInCanada from "./pages/StudyInCanada";
@@ -45,6 +46,7 @@ export default function App() {
           <Route path="/services/visa-guidance" element={<VisaGuidance />} />
           <Route path="/services/career-counselling" element={<CareerCounselling />} />
           <Route path="/services/student-accommodation" element={<StudentAccommodation />} />
+          <Route path="/services/admission-guidance" element={<AdmissionGuidance />} />
           <Route path="/services/:slug" element={<ServiceDetail />} />
           <Route path="/study-abroad" element={<StudyAbroad />} />
           <Route path="/study-in-australia" element={<StudyInAustralia />} />

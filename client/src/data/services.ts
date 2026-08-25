@@ -155,21 +155,28 @@ export const SERVICES: Service[] = [
       "Sort this before you fly. Looking for a room in a city you have never been to, in your first week of term, is the hardest way to do it.",
   },
   {
-    slug: "interview-preparation",
-    title: "Interview Preparation",
-    summary: "For admissions panels and visa interviews — practised, not improvised.",
+    slug: "admission-guidance",
+    title: "Admission Guidance",
+    /* Has a page of its own (pages/AdmissionGuidance.tsx) that outranks the
+       generic route, so only `title`, `summary` and `image` are read from
+       here — the fields below feed the hub card, not the page.
+
+       This replaced a separate "Interview Preparation" service: interview
+       prep is stage 06 of admission guidance, and listing both made the same
+       work look like two things. */
+    summary: "The whole application, from first conversation to visa decision.",
     image: "/services/interview.jpg",
     intro:
-      "Some universities interview, and several visa routes do too. Both reward the same thing: being able to explain your own plan clearly — what you are studying, why there, how it is funded, and what you intend to do afterwards.",
+      "From choosing the course to submitting the visa application, handled as one sequence rather than a series of separate errands.",
     includes: [
-      "Mock interviews for both admissions and visa formats",
-      "The questions that actually come up, and why they are being asked",
-      "Explaining your course choice, funding and intentions consistently",
-      "Feedback on delivery — pace, clarity, and what to leave out",
-      "Preparation for the documents an interviewer may ask you to talk through",
+      "Counselling, and identifying the right course, country and university",
+      "Test preparation and document editing",
+      "The application itself, paper or online",
+      "Interview preparation for admission and for the visa",
+      "Visa guidance, free for every Lakehead student",
     ],
     closing:
-      "Nobody performs well improvising answers about their own future. An hour of practice changes how the conversation goes.",
+      "Most students come to us at the first stage and stay to the last, but you can join at any point.",
   },
 ];
 
