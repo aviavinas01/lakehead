@@ -206,9 +206,14 @@ export default function Navbar() {
       const footer = document.querySelector<HTMLElement>("footer.footer");
       footerTop = footer ? footer.offsetTop : Number.POSITIVE_INFINITY;
       /* The vertical bar starts where the sticky header ends */
+      const headerH = headerRef.current?.offsetHeight ?? 0;
       if (trackV.current) {
-        trackV.current.style.top = `${headerRef.current?.offsetHeight ?? 0}px`;
+        trackV.current.style.top = `${headerH}px`;
       }
+      /* Published for the destination pages, whose hero reaches up behind
+         this bar by exactly this much. Measured rather than guessed: the bar
+         is shorter on mobile, where the logo shrinks. */
+      document.documentElement.style.setProperty("--navbar-h", `${headerH}px`);
       paint();
     };
 
@@ -253,8 +258,27 @@ export default function Navbar() {
     setOpen(false);
   }, [pathname]);
 
+  /* The destination pages open on a full-bleed photograph and the bar sits
+     over it rather than on a white strip above it. It goes solid again as
+     soon as you scroll, because a transparent bar over white body copy is
+     unreadable — and it goes solid the moment a menu opens, so a white panel
+     never hangs off a bar you can see through.
+
+     setAtTop is called on every scroll event but passes the same boolean
+     almost every time, and React bails on an unchanged value — so this
+     re-renders only when the threshold is actually crossed. */
+  const overHero = /^\/study-in-/.test(pathname);
+  const [atTop, setAtTop] = useState(true);
+  useEffect(() => {
+    const onScroll = () => setAtTop(window.scrollY < 100);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+  const seeThrough = overHero && atTop && !openMenu && !open;
+
   return (
-    <header className="navbar" ref={headerRef}>
+    <header className={`navbar${seeThrough ? " is-over" : ""}`} ref={headerRef}>
       {/* Leaving the bar closes any open panel. It lives here rather than on
           the nav item because the panel is a sibling below the strip — closing
           on the item's own mouseleave would snatch it away as the pointer
