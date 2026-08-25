@@ -1,23 +1,27 @@
-import { useEffect, useRef, useState } from "react";
-import type { CSSProperties, ReactNode } from "react";
+import type { CSSProperties, ReactNode, RefObject } from "react";
 
 /**
  * Circular hero visual: a round photo or video with flag badges and planes
  * that revolve slowly around its circumference, all at the same pace.
- * Pass a clip via `videoUrl` and it plays in the circle, muted and looping,
- * with `imageUrl` as its poster; without one the image is shown on its own.
+ * The clip that fills the circle is NOT rendered here — see below.
  *
- * Resting on the circle blooms the whole orbit outward — the video included —
- * and stepping off settles it back. Two things make that behave:
+ * Resting on the circle opens that video out until it is the background of
+ * the entire hero, and stepping off closes it again. The video has to be a
+ * child of the SECTION for that — an element cannot escape its own
+ * containing block — so Home.tsx owns the media layer and this component
+ * contributes two things to it:
  *
- *  - Only `.hero-orbit-stage` scales, and it scales with a transform, so the
- *    hero grid never reflows and the headline beside it never moves.
- *  - The pointer target is `.hero-orbit-hit`, which stays the size of the
- *    RESTING circle. The enlarged visual is inert, so it can never trap the
- *    cursor: step off the small circle and it collapses however big it got.
+ *  - `.hero-photo-slot`, an empty marker sitting exactly where the resting
+ *    circle belongs. Home measures it and parks the media layer on top.
+ *  - `.hero-orbit-hit`, the pointer target, which stays the size of that
+ *    resting circle so the opened video can never trap the cursor: step off
+ *    the small circle and it closes however far it has grown.
  *
- * The stylesheet gates the growth to screens with a real pointer and room to
- * spare, so this is a desktop flourish — on a phone the circle just sits
+ * Open/closed state is owned by Home, because the section changes with it —
+ * the headline and body copy turn white as the video comes up behind them.
+ *
+ * The stylesheet gates all of this to screens with a real pointer and room
+ * to spare, so it is a desktop flourish; on a phone the circle just sits
  * there as before.
  */
 
@@ -151,72 +155,32 @@ const entries: OrbitEntry[] = [
 ];
 
 export default function HeroOrbit({
-  imageUrl,
-  videoUrl,
+  open,
+  onOpen,
+  onClose,
+  slotRef,
 }: {
-  imageUrl?: string;
-  videoUrl?: string;
+  /** True while the video is opened out across the whole section */
+  open: boolean;
+  /** The pointer has come to rest on the circle */
+  onOpen: () => void;
+  /** ...and has left it */
+  onClose: () => void;
+  /** Home measures this to park the media layer on the resting circle */
+  slotRef: RefObject<HTMLDivElement>;
 }) {
-  /* A missing file falls back to the next option rather than a broken image:
-     video → photo → the neutral circle. */
-  const [broken, setBroken] = useState(false);
-  const [videoBroken, setVideoBroken] = useState(false);
-  /* Anyone who asks for less motion gets the still instead of the clip */
-  const reduced =
-    typeof window !== "undefined" &&
-    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-  const showVideo = videoUrl && !videoBroken && !reduced;
-  const showPhoto = imageUrl && !broken;
-
-  const [big, setBig] = useState(false);
-  /* Scrolling wins outright over hovering, and keeps winning briefly after,
-     so the circle cannot bloom under a cursor that never moved — scrolling
-     re-runs hit-testing and would otherwise fire a fresh pointerenter. */
-  const settleAt = useRef(0);
-
-  useEffect(() => {
-    const onScroll = () => {
-      settleAt.current = Date.now() + 350;
-      setBig(false);
-    };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
-  /* Bound to pointermove as well as pointerenter: once the page is still
-     again, the next flick of the mouse over the circle re-opens it without
-     making anyone leave and come back. */
-  const expand = () => {
-    if (Date.now() < settleAt.current) return;
-    setBig(true);
-  };
-
   return (
     <div
-      className={`hero-orbit-wrap${big ? " is-big" : ""}`}
+      className={`hero-orbit-wrap${open ? " is-open" : ""}`}
       aria-hidden="true"
     >
       <div className="hero-orbit-stage">
         <div className="hero-orbit-ring" />
-        <div className="hero-photo">
-          {showVideo ? (
-            <video
-              src={videoUrl}
-              poster={showPhoto ? imageUrl : undefined}
-              autoPlay
-              muted
-              loop
-              playsInline
-              preload="metadata"
-              onError={() => setVideoBroken(true)}
-            />
-          ) : showPhoto ? (
-            <img src={imageUrl} alt="" onError={() => setBroken(true)} />
-          ) : (
-            <div className="hero-photo-placeholder" />
-          )}
-        </div>
+        {/* Empty on purpose. The video that fills this circle is rendered by
+            Home as a child of the section, because an element cannot escape
+            its own containing block and this one has to open out to the full
+            width of the hero. All this marks is where it sits at rest. */}
+        <div className="hero-photo-slot" ref={slotRef} />
         <div className="hero-orbit">
           {entries.map((e) =>
             e.kind === "flag" ? (
@@ -245,9 +209,9 @@ export default function HeroOrbit({
       </div>
       <div
         className="hero-orbit-hit"
-        onPointerEnter={expand}
-        onPointerMove={expand}
-        onPointerLeave={() => setBig(false)}
+        onPointerEnter={onOpen}
+        onPointerMove={onOpen}
+        onPointerLeave={onClose}
       />
     </div>
   );

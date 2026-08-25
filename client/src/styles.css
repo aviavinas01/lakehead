@@ -109,26 +109,28 @@ img { max-width: 100%; display: block; }
   position: relative;
   transition: background-color 0.3s ease, border-color 0.3s ease;
 }
-/* Over a destination page's photographic hero the bar carries no ground of
-   its own — see `seeThrough` in Navbar.tsx, which drops the class the moment
-   you scroll or open a menu. Everything inside has to invert with it: the
-   mark is a red PNG, so it is flattened and inverted to white the same way
-   the footer logo is. */
-.navbar.is-over .navbar-main { background: transparent; border-bottom-color: transparent; }
-.navbar.is-over .brand-logo { filter: brightness(0) invert(1); }
+/* The bar carries no ground of its own in two situations: over a destination
+   page's photographic hero (`seeThrough` in Navbar.tsx, dropped the moment
+   you scroll or open a menu), and under the home page's opened hero film
+   (`hero-film` on <body>, set by Home.tsx). Same appearance either way, so
+   both triggers share one selector. Everything inside has to invert with it:
+   the mark is a red PNG, flattened and inverted to white exactly as the
+   footer logo is. */
+:is(.navbar.is-over, body.hero-film .navbar) .navbar-main { background: transparent; border-bottom-color: transparent; }
+:is(.navbar.is-over, body.hero-film .navbar) .brand-logo { filter: brightness(0) invert(1); }
 /* The wordmark is a gradient clipped to the text, so plain `color` cannot
    reach it — the fill has to be overridden and the gradient removed. */
-.navbar.is-over .brand-wordmark strong {
+:is(.navbar.is-over, body.hero-film .navbar) .brand-wordmark strong {
   background: none; color: #fff; -webkit-text-fill-color: #fff;
 }
-.navbar.is-over .brand-wordmark span { color: rgba(255, 255, 255, 0.85); }
-.navbar.is-over .nav-item > a { color: #fff; }
-.navbar.is-over .nav-toggle { color: #fff; }
+:is(.navbar.is-over, body.hero-film .navbar) .brand-wordmark span { color: rgba(255, 255, 255, 0.85); }
+:is(.navbar.is-over, body.hero-film .navbar) .nav-item > a { color: #fff; }
+:is(.navbar.is-over, body.hero-film .navbar) .nav-toggle { color: #fff; }
 /* The progress track is a pale tint meant to sit under a white bar; over the
    photo it reads as a rule ruling off the hero, which is the one thing this
    whole change is trying to get rid of. At the top of the page the fill is
    zero-width anyway, so there is nothing to see but the track — drop it. */
-.navbar.is-over .scroll-progress { background: transparent; }
+:is(.navbar.is-over, body.hero-film .navbar) .scroll-progress { background: transparent; }
 .brand-logo, .brand-wordmark strong, .brand-wordmark span,
 .nav-item > a, .nav-toggle {
   transition: color 0.3s ease, filter 0.3s ease;
@@ -342,12 +344,16 @@ img { max-width: 100%; display: block; }
    margin lets the circle bloom past the section edges on hover instead of
    being sliced flat. Browsers without `clip` keep the old `hidden`. */
 .hero {
+  /* The containing block for .hero-media — without this the film measures
+     itself against an ancestor further up and lands a navbar's height out. */
+  position: relative;
   background: var(--color-bg);
   overflow: hidden;
   overflow: clip;
   overflow-clip-margin: 120px;
 }
 .hero-inner {
+  position: relative; z-index: 2;
   display: grid; grid-template-columns: 1.05fr 1fr; align-items: center; gap: 3rem;
   padding-top: 3.5rem; padding-bottom: 3.5rem;
 }
@@ -376,9 +382,6 @@ img { max-width: 100%; display: block; }
 .hero-orbit-wrap {
   --orbit-size: min(540px, 88vw);
   --orbit-duration: 55s;
-  /* 1 while resting; the hover rule below raises it. Kept on the wrap so
-     every part of the visual can read the same number. */
-  --orbit-zoom: 1;
   position: relative; width: var(--orbit-size); height: var(--orbit-size);
   margin-inline: auto; z-index: 1;
 }
@@ -386,11 +389,7 @@ img { max-width: 100%; display: block; }
    alone — the wrap keeps its box, so the hero grid never reflows and the
    headline beside it never shifts. Inert to the pointer so the enlarged
    circle cannot swallow clicks meant for the buttons underneath it. */
-.hero-orbit-stage {
-  position: absolute; inset: 0; pointer-events: none;
-  transform: scale(var(--orbit-zoom));
-  transition: transform 0.6s cubic-bezier(0.22, 0.9, 0.28, 1);
-}
+.hero-orbit-stage { position: absolute; inset: 0; pointer-events: none; }
 /* The pointer target, and the reason the bloom is not sticky: it stays the
    size of the resting circle no matter how far the stage has grown, so
    stepping off the small circle always settles it. */
@@ -401,13 +400,81 @@ img { max-width: 100%; display: block; }
   position: absolute; inset: 7%; border: 1.5px dashed #d4d7e5; border-radius: 50%;
   transition: opacity 0.6s ease;
 }
-.hero-photo {
-  position: absolute; inset: 16.5%; border-radius: 50%; overflow: hidden;
+/* The opening video. Closed it is the circle inside the orbit; open it is
+   the background of the whole section. Only this one absolutely positioned
+   element animates, so nothing else on the page reflows while it moves.
+
+   Its closed geometry comes from the variables Home publishes after
+   measuring `.hero-photo-slot` — nothing here is hardcoded, so the circle
+   lands on the orbit at any window size. */
+.hero-media {
+  position: absolute; z-index: 0; overflow: hidden;
+  top: var(--media-y, 16.5%); left: var(--media-x, 60%);
+  width: var(--media-size, 360px); height: var(--media-size, 360px);
+  border-radius: 50%;
   box-shadow: 0 24px 60px rgba(23, 39, 92, 0.18);
-  transition: box-shadow 0.6s ease;
+  transition:
+    top 0.75s cubic-bezier(0.22, 0.9, 0.28, 1),
+    left 0.75s cubic-bezier(0.22, 0.9, 0.28, 1),
+    width 0.75s cubic-bezier(0.22, 0.9, 0.28, 1),
+    height 0.75s cubic-bezier(0.22, 0.9, 0.28, 1),
+    border-radius 0.6s ease,
+    box-shadow 0.6s ease;
 }
-.hero-photo img, .hero-photo video { width: 100%; height: 100%; object-fit: cover; }
+.hero-media img, .hero-media video { width: 100%; height: 100%; object-fit: cover; }
 .hero-photo-placeholder { width: 100%; height: 100%; background: linear-gradient(135deg, #e9eaf5, #c7cae3); }
+/* The scrim only exists once the video is behind the words — we cannot know
+   how bright a frame the clip is on, so the text brings its own ground with
+   it. Weighted to the left, where the copy sits. */
+.hero-media::after {
+  content: ""; position: absolute; inset: 0; opacity: 0;
+  transition: opacity 0.55s ease;
+  background: linear-gradient(
+    100deg,
+    rgba(9, 16, 38, 0.93) 0%,
+    rgba(9, 16, 38, 0.84) 36%,
+    rgba(9, 16, 38, 0.5) 68%,
+    rgba(9, 16, 38, 0.3) 100%
+  );
+}
+/* An empty marker: it has no appearance of its own, it just holds the place
+   the media layer measures itself against. */
+.hero-photo-slot { position: absolute; inset: 16.5%; border-radius: 50%; }
+
+/* ---- opened out ---- */
+/* Reaches up over the header and down across the gap beneath the section.
+   The 2.5rem is the stats strip's own top padding — the film stops exactly
+   where the figures begin, so the white band disappears without a single
+   number being covered. Both overhangs sit inside .hero's 120px clip
+   margin, which is what lets them paint outside the section at all. */
+.hero.is-media-open .hero-media {
+  top: calc(-1 * var(--navbar-h, 87px));
+  left: 0; width: 100%;
+  height: calc(100% + var(--navbar-h, 87px) + 2.5rem);
+  border-radius: 0; box-shadow: none;
+}
+.hero.is-media-open .hero-media::after { opacity: 1; }
+/* The copy turns over with the video. The accent keeps its red — it is
+   display-sized and reads well on the scrim — so the headline shifts from
+   navy-on-white to white-on-film rather than losing its colour entirely. */
+.hero.is-media-open h1 { color: #fff; }
+.hero.is-media-open .hero-eyebrow { color: rgba(255, 255, 255, 0.88); }
+.hero.is-media-open .hero-lead { color: rgba(255, 255, 255, 0.9); }
+.hero.is-media-open .btn-outline {
+  background: transparent; color: #fff;
+  border: 1.5px solid rgba(255, 255, 255, 0.8);
+}
+.hero.is-media-open .btn-outline:hover {
+  background: #fff; border-color: #fff; color: var(--color-hero-ink);
+}
+/* The badges ride a ring drawn for a white page. Once the film is up they
+   have nothing to sit on, so they step aside and let it be the picture. */
+.hero.is-media-open .hero-orbit { opacity: 0; }
+.hero.is-media-open .hero-orbit-ring { opacity: 0; }
+.hero h1, .hero-eyebrow, .hero-lead, .hero .btn-outline {
+  transition: color 0.55s ease, background-color 0.55s ease, border-color 0.55s ease;
+}
+
 .hero-orbit {
   position: absolute; inset: 0;
   animation: orbit-revolve var(--orbit-duration) linear infinite;
@@ -443,41 +510,11 @@ img { max-width: 100%; display: block; }
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
-/* The hover bloom. Gated to real pointers with room to spare: a phone has no
-   hover to speak of, and a narrow window has nowhere to put the extra size.
-   Below this, the hit target is switched off entirely and the circle behaves
-   exactly as it always did. */
+/* Below a real pointer with room to spare there is nothing to open: the hit
+   target is switched off, so the video simply stays in its circle and the
+   section behaves exactly as it always did. */
 @media not all and (hover: hover) and (pointer: fine) and (min-width: 1024px) {
   .hero-orbit-hit { display: none; }
-}
-@media (hover: hover) and (pointer: fine) and (min-width: 1024px) {
-  .hero-orbit-wrap.is-big { z-index: 3; }
-  /* How far it blooms is limited by the viewport's HEIGHT, not its width:
-     the circle grows from a centre that sits a fixed distance down the page,
-     so a short window runs out of room below the fold long before a narrow
-     one runs out beside it. On a 1440x900 screen the top tier lands the
-     circle at almost exactly half the screen width. Anything above the
-     navbar simply passes behind it — it is opaque and sits at z-index 50. */
-  .hero-orbit-wrap.is-big .hero-orbit-stage { --orbit-zoom: 1.7; }
-  @media (min-height: 780px) { .hero-orbit-wrap.is-big .hero-orbit-stage { --orbit-zoom: 1.85; } }
-  @media (min-height: 860px) { .hero-orbit-wrap.is-big .hero-orbit-stage { --orbit-zoom: 2; } }
-  @media (min-height: 1000px) { .hero-orbit-wrap.is-big .hero-orbit-stage { --orbit-zoom: 2.2; } }
-  /* Badges and planes shrink as the stage grows, so they end up a little
-     larger than they started rather than 1.55x chunkier. */
-  .hero-orbit-wrap.is-big .orbit-badge { width: 40px; height: 40px; }
-  .hero-orbit-wrap.is-big .orbit-badge svg { width: 23px; height: 23px; }
-  .hero-orbit-wrap.is-big .orbit-badge-sm { width: 31px; height: 31px; }
-  .hero-orbit-wrap.is-big .orbit-badge-sm svg { width: 17px; height: 17px; }
-  .hero-orbit-wrap.is-big .orbit-plane svg { width: 18px; height: 18px; }
-  /* The badges ride a ring that grows with everything else, so at full bloom
-     they would be flung out across the headline and off the edges of the
-     screen. They fade out instead and the video is left to fill the circle —
-     the dashed ring stays on faintly as a halo, and both come straight back
-     when the pointer leaves. */
-  .hero-orbit-wrap.is-big .hero-orbit { opacity: 0; }
-  .hero-orbit-wrap.is-big .hero-orbit-ring { opacity: 0.3; }
-  /* The photo lifts off the page, so it plainly sits above the section. */
-  .hero-orbit-wrap.is-big .hero-photo { box-shadow: 0 44px 90px rgba(23, 39, 92, 0.3); }
 }
 
 /* ============================================================
@@ -1659,9 +1696,18 @@ a.greview-author:hover { text-decoration: underline; }
   /* No transition means the entrance never runs — show the cards outright */
   .help-card { opacity: 1; transform: none; }
   .testimonial-story { opacity: 1; transform: none; }
-  /* Without a transition the hover growth would be an instant jump — so for
-     anyone asking for less motion the circle simply does not grow. */
-  .hero-orbit-stage { transform: none !important; }
+  /* Without a transition the video would snap open rather than travel, so
+     for anyone asking for less motion it simply stays in its circle. */
+  .hero.is-media-open .hero-media {
+    top: var(--media-y); left: var(--media-x);
+    width: var(--media-size); height: var(--media-size);
+    border-radius: 50%;
+  }
+  .hero.is-media-open .hero-media::after { opacity: 0; }
+  .hero.is-media-open h1 { color: var(--color-hero-ink); }
+  .hero.is-media-open .hero-lead { color: var(--color-muted); }
+  .hero.is-media-open .hero-orbit,
+  .hero.is-media-open .hero-orbit-ring { opacity: 1; }
 }
 
 /* ============================================================
