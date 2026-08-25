@@ -310,7 +310,15 @@ img { max-width: 100%; display: block; }
    Landing hero — text left, orbiting circular photo right.
    The photo comes from the admin album titled "Home Hero".
    ============================================================ */
-.hero { background: var(--color-bg); overflow: hidden; }
+/* `clip` behaves like `hidden` but never creates a scroll container, and the
+   margin lets the circle bloom past the section edges on hover instead of
+   being sliced flat. Browsers without `clip` keep the old `hidden`. */
+.hero {
+  background: var(--color-bg);
+  overflow: hidden;
+  overflow: clip;
+  overflow-clip-margin: 120px;
+}
 .hero-inner {
   display: grid; grid-template-columns: 1.05fr 1fr; align-items: center; gap: 3rem;
   padding-top: 3.5rem; padding-bottom: 3.5rem;
@@ -340,17 +348,43 @@ img { max-width: 100%; display: block; }
 .hero-orbit-wrap {
   --orbit-size: min(540px, 88vw);
   --orbit-duration: 55s;
+  /* 1 while resting; the hover rule below raises it. Kept on the wrap so
+     every part of the visual can read the same number. */
+  --orbit-zoom: 1;
   position: relative; width: var(--orbit-size); height: var(--orbit-size);
-  margin-inline: auto;
+  margin-inline: auto; z-index: 1;
 }
-.hero-orbit-ring { position: absolute; inset: 7%; border: 1.5px dashed #d4d7e5; border-radius: 50%; }
+/* Everything visible lives in the stage, and the stage grows by transform
+   alone — the wrap keeps its box, so the hero grid never reflows and the
+   headline beside it never shifts. Inert to the pointer so the enlarged
+   circle cannot swallow clicks meant for the buttons underneath it. */
+.hero-orbit-stage {
+  position: absolute; inset: 0; pointer-events: none;
+  transform: scale(var(--orbit-zoom));
+  transition: transform 0.6s cubic-bezier(0.22, 0.9, 0.28, 1);
+}
+/* The pointer target, and the reason the bloom is not sticky: it stays the
+   size of the resting circle no matter how far the stage has grown, so
+   stepping off the small circle always settles it. */
+.hero-orbit-hit {
+  position: absolute; inset: 14%; border-radius: 50%; z-index: 2;
+}
+.hero-orbit-ring {
+  position: absolute; inset: 7%; border: 1.5px dashed #d4d7e5; border-radius: 50%;
+  transition: opacity 0.6s ease;
+}
 .hero-photo {
   position: absolute; inset: 16.5%; border-radius: 50%; overflow: hidden;
   box-shadow: 0 24px 60px rgba(23, 39, 92, 0.18);
+  transition: box-shadow 0.6s ease;
 }
 .hero-photo img, .hero-photo video { width: 100%; height: 100%; object-fit: cover; }
 .hero-photo-placeholder { width: 100%; height: 100%; background: linear-gradient(135deg, #e9eaf5, #c7cae3); }
-.hero-orbit { position: absolute; inset: 0; animation: orbit-revolve var(--orbit-duration) linear infinite; }
+.hero-orbit {
+  position: absolute; inset: 0;
+  animation: orbit-revolve var(--orbit-duration) linear infinite;
+  transition: opacity 0.45s ease;
+}
 /* Anchor each item's centre onto the dashed ring at its --angle. */
 .orbit-item {
   position: absolute; top: 50%; left: 50%;
@@ -366,6 +400,10 @@ img { max-width: 100%; display: block; }
 .orbit-badge svg { width: 30px; height: 30px; }
 .orbit-badge-sm { width: 40px; height: 40px; }
 .orbit-badge-sm svg { width: 22px; height: 22px; }
+.orbit-badge, .orbit-badge svg, .orbit-plane svg {
+  transition: width 0.6s cubic-bezier(0.22, 0.9, 0.28, 1),
+              height 0.6s cubic-bezier(0.22, 0.9, 0.28, 1);
+}
 /* Planes skip the counter-rotation so they stay tangent to the circle —
    nose-first along the flight path as the ring revolves. */
 .orbit-item.orbit-plane {
@@ -376,6 +414,42 @@ img { max-width: 100%; display: block; }
 @keyframes orbit-revolve {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
+}
+/* The hover bloom. Gated to real pointers with room to spare: a phone has no
+   hover to speak of, and a narrow window has nowhere to put the extra size.
+   Below this, the hit target is switched off entirely and the circle behaves
+   exactly as it always did. */
+@media not all and (hover: hover) and (pointer: fine) and (min-width: 1024px) {
+  .hero-orbit-hit { display: none; }
+}
+@media (hover: hover) and (pointer: fine) and (min-width: 1024px) {
+  .hero-orbit-wrap.is-big { z-index: 3; }
+  /* How far it blooms is limited by the viewport's HEIGHT, not its width:
+     the circle grows from a centre that sits a fixed distance down the page,
+     so a short window runs out of room below the fold long before a narrow
+     one runs out beside it. On a 1440x900 screen the top tier lands the
+     circle at almost exactly half the screen width. Anything above the
+     navbar simply passes behind it — it is opaque and sits at z-index 50. */
+  .hero-orbit-wrap.is-big .hero-orbit-stage { --orbit-zoom: 1.7; }
+  @media (min-height: 780px) { .hero-orbit-wrap.is-big .hero-orbit-stage { --orbit-zoom: 1.85; } }
+  @media (min-height: 860px) { .hero-orbit-wrap.is-big .hero-orbit-stage { --orbit-zoom: 2; } }
+  @media (min-height: 1000px) { .hero-orbit-wrap.is-big .hero-orbit-stage { --orbit-zoom: 2.2; } }
+  /* Badges and planes shrink as the stage grows, so they end up a little
+     larger than they started rather than 1.55x chunkier. */
+  .hero-orbit-wrap.is-big .orbit-badge { width: 40px; height: 40px; }
+  .hero-orbit-wrap.is-big .orbit-badge svg { width: 23px; height: 23px; }
+  .hero-orbit-wrap.is-big .orbit-badge-sm { width: 31px; height: 31px; }
+  .hero-orbit-wrap.is-big .orbit-badge-sm svg { width: 17px; height: 17px; }
+  .hero-orbit-wrap.is-big .orbit-plane svg { width: 18px; height: 18px; }
+  /* The badges ride a ring that grows with everything else, so at full bloom
+     they would be flung out across the headline and off the edges of the
+     screen. They fade out instead and the video is left to fill the circle —
+     the dashed ring stays on faintly as a halo, and both come straight back
+     when the pointer leaves. */
+  .hero-orbit-wrap.is-big .hero-orbit { opacity: 0; }
+  .hero-orbit-wrap.is-big .hero-orbit-ring { opacity: 0.3; }
+  /* The photo lifts off the page, so it plainly sits above the section. */
+  .hero-orbit-wrap.is-big .hero-photo { box-shadow: 0 44px 90px rgba(23, 39, 92, 0.3); }
 }
 
 /* ============================================================
@@ -1557,4 +1631,486 @@ a.greview-author:hover { text-decoration: underline; }
   /* No transition means the entrance never runs — show the cards outright */
   .help-card { opacity: 1; transform: none; }
   .testimonial-story { opacity: 1; transform: none; }
+  /* Without a transition the hover growth would be an instant jump — so for
+     anyone asking for less motion the circle simply does not grow. */
+  .hero-orbit-stage { transform: none !important; }
+}
+
+/* ============================================================
+   Destination pages — Study in Australia, Study in Canada, and
+   whichever country comes next. One set of section styles serves
+   them all, so a new destination is a new content file rather
+   than another 250 lines of near-identical CSS.
+
+   Everything is scoped under .dpage so these pages cannot reach
+   into any other section: they are the part of the site most
+   likely to be edited by whoever handles marketing, and they
+   should not be able to break the home page by accident.
+   ============================================================ */
+.dpage { color: var(--color-text); }
+.dpage-section { padding: var(--section-y) 0; }
+.dpage-tint { background: #f4f7fb; }
+.dpage-title {
+  color: var(--color-hero-ink); font-size: clamp(2rem, 3.4vw, 3rem);
+  line-height: 1.12; margin-bottom: 1rem; max-width: 22ch;
+}
+.dpage-section-lead {
+  color: var(--color-muted); max-width: 68ch; margin-bottom: 2rem;
+}
+.dpage p { max-width: 68ch; }
+
+/* --- hero ---
+   The photograph is the whole first screen rather than a shape beside the
+   text. Three layers: the image, a scrim, then the copy. */
+.dpage-hero {
+  position: relative;
+  display: grid; align-items: center;
+  min-height: clamp(520px, 68vh, 700px);
+  padding: 4rem 0;
+  overflow: hidden;
+}
+.dpage-hero-bg { position: absolute; inset: 0; z-index: 0; }
+.dpage-hero-bg img, .dpage-hero-bg .dpage-shot-empty {
+  width: 100%; height: 100%; object-fit: cover;
+}
+/* A hero with no photo yet becomes a deliberate navy field rather than the
+   pale placeholder used further down the page — white text has to stay
+   readable whether the file has landed or not. */
+.dpage-hero-bg .dpage-shot-empty {
+  background: linear-gradient(135deg, #1d3070, #0a1128);
+}
+/* The scrim is what makes this safe to hand over. We cannot know how bright
+   or how busy the photograph someone drops in will be, so the text brings
+   its own darkness with it. Angled, so the far side of the image still
+   reads as a photograph rather than a flat wash. */
+.dpage-hero::after {
+  content: ""; position: absolute; inset: 0; z-index: 1;
+  background: linear-gradient(
+    100deg,
+    rgba(9, 16, 38, 0.94) 0%,
+    rgba(9, 16, 38, 0.86) 34%,
+    rgba(9, 16, 38, 0.55) 66%,
+    rgba(9, 16, 38, 0.34) 100%
+  );
+}
+.dpage-hero-inner { position: relative; z-index: 2; }
+.dpage-hero-copy { max-width: 44rem; }
+.dpage-hero h1 {
+  color: #fff; font-size: clamp(2.4rem, 4.4vw, 3.9rem);
+  line-height: 1.1; letter-spacing: -0.03em; margin-bottom: 1.25rem;
+}
+/* The eyebrow is small text on a photograph, so it goes white rather than
+   keeping the red it wears on a white page — red on this scrim does not
+   clear the contrast bar at that size. The headline accent is display-sized
+   and keeps it. */
+.dpage-hero .hero-eyebrow { color: rgba(255, 255, 255, 0.88); }
+.dpage-hero .dpage-lead {
+  font-size: 1.1rem; margin-bottom: 1rem; color: rgba(255, 255, 255, 0.94);
+}
+.dpage-hero-copy p { color: rgba(255, 255, 255, 0.82); }
+.dpage-hero-actions {
+  display: flex; align-items: center; gap: 1.5rem;
+  flex-wrap: wrap; margin-top: 2rem;
+}
+/* Outlined in white on the photo, solid white on hover.
+   The border is set with the shorthand on purpose: `.btn { border: none }`
+   is declared later in this file than `.btn-outline`, so it wins on equal
+   specificity and the outline never renders anywhere on the site. Against a
+   photograph the primary call to action has to read as a button, so this
+   rule puts the width and style back rather than only the colour. */
+.dpage-hero .btn-outline {
+  background: transparent; color: #fff;
+  border: 1.5px solid rgba(255, 255, 255, 0.8);
+}
+.dpage-hero .btn-outline:hover {
+  background: #fff; border-color: #fff; color: var(--color-hero-ink);
+}
+.dpage-hero .dpage-jump { color: #fff; }
+/* A text link that carries weight without competing with the button */
+.dpage-jump {
+  display: inline-flex; align-items: center; gap: 0.45rem;
+  color: var(--color-hero-red); font-weight: 600;
+}
+.dpage-jump svg { transition: transform 0.2s ease; }
+.dpage-jump:hover svg { transform: translateX(3px); }
+
+/* --- why study here --- */
+.dpage-reasons { display: grid; grid-template-columns: 1fr; gap: 1.5rem; }
+.dpage-reason {
+  background: #fff; border: 1px solid var(--color-border);
+  border-radius: 16px; padding: 1.75rem;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+.dpage-reason:hover {
+  transform: translateY(-4px); border-color: transparent;
+  box-shadow: 0 18px 40px rgba(23, 39, 92, 0.12);
+}
+.dpage-reason-icon { font-size: 1.9rem; line-height: 1; display: block; margin-bottom: 0.9rem; }
+.dpage-reason h3 { color: var(--color-hero-ink); font-size: 1.2rem; margin-bottom: 0.5rem; }
+.dpage-reason p { color: var(--color-muted); font-size: 0.97rem; margin: 0; }
+@media (min-width: 861px) {
+  /* Six columns, so five cards can fill two rows without a ragged edge:
+     the first two run half-width, the last three a third each. */
+  .dpage-reasons { grid-template-columns: repeat(6, 1fr); }
+  .dpage-reason:nth-child(-n + 2) { grid-column: span 3; }
+  .dpage-reason:nth-child(n + 3) { grid-column: span 2; }
+}
+
+/* --- field / life chips --- */
+.dpage-fields {
+  list-style: none; display: flex; flex-wrap: wrap; gap: 0.7rem;
+  margin-bottom: 1.75rem;
+}
+.dpage-fields li {
+  background: #fff; border: 1px solid var(--color-border);
+  border-radius: 999px; padding: 0.6rem 1.15rem;
+  color: var(--color-hero-ink); font-weight: 500; font-size: 0.95rem;
+  transition: border-color 0.2s ease, color 0.2s ease;
+}
+.dpage-fields li:hover { border-color: var(--color-hero-red); color: var(--color-hero-red); }
+.dpage-fields-sm li { font-size: 0.9rem; padding: 0.45rem 0.95rem; }
+.dpage-note { color: var(--color-muted); }
+.dpage-note a {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  color: var(--color-hero-red); font-weight: 600;
+}
+.dpage-note a:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+/* --- pathways --- */
+.dpage-paths { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
+.dpage-path {
+  position: relative; padding: 1.9rem 1.75rem 1.75rem;
+  border-radius: 16px; background: #f4f7fb; overflow: hidden;
+}
+/* Outlined numeral — the same device the steps band on the home page uses */
+.dpage-path-n {
+  position: absolute; top: 0.5rem; right: 1rem;
+  font-family: var(--font-display); font-weight: 800; font-size: 4.25rem;
+  line-height: 1; color: transparent; letter-spacing: 0;
+  -webkit-text-stroke: 2px rgba(23, 39, 92, 0.16);
+}
+.dpage-path h3 { color: var(--color-hero-ink); font-size: 1.25rem; position: relative; }
+.dpage-path p { color: var(--color-muted); margin: 0; position: relative; }
+
+/* --- cities --- */
+.dpage-cities {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.25rem;
+  margin-bottom: 1.75rem;
+}
+.dpage-city {
+  background: #fff; border-radius: 14px; padding: 1.4rem;
+  border-left: 3px solid var(--color-hero-red);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.dpage-city:hover { transform: translateY(-3px); box-shadow: 0 16px 34px rgba(23, 39, 92, 0.12); }
+.dpage-city h3 {
+  display: flex; align-items: center; gap: 0.5rem;
+  color: var(--color-hero-ink); font-size: 1.1rem; margin-bottom: 0.4rem;
+}
+.dpage-city-pin { display: inline-flex; color: var(--color-hero-red); }
+.dpage-city p { color: var(--color-muted); font-size: 0.92rem; margin: 0; }
+
+/* --- two-column blocks --- */
+.dpage-split { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 3rem; align-items: start; }
+.dpage-eyebrow-sm {
+  color: var(--color-hero-red); font-size: 0.8rem; font-weight: 600;
+  letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 1rem;
+}
+.dpage-checks { list-style: none; display: grid; gap: 0.85rem; margin-bottom: 1.75rem; }
+.dpage-checks li { display: flex; align-items: flex-start; gap: 0.7rem; color: var(--color-text); }
+.dpage-checks li > span { display: inline-flex; flex: none; margin-top: 0.15rem; color: var(--color-hero-red); }
+.dpage-fineprint { color: var(--color-muted); font-size: 0.9rem; line-height: 1.7; }
+
+/* --- budget callout --- */
+.dpage-callout {
+  background: var(--color-hero-ink); color: #fff;
+  border-radius: 18px; padding: 2rem; position: sticky; top: 6rem;
+}
+.dpage-callout h3 { color: #fff; font-size: 1.35rem; }
+.dpage-callout p { color: rgba(255, 255, 255, 0.85); margin-bottom: 1.5rem; }
+.dpage-callout-btn {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  background: #fff; color: var(--color-hero-ink);
+  font-weight: 600; border-radius: 999px; padding: 0.7rem 1.4rem;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+.dpage-callout-btn:hover { background: var(--color-hero-red); color: #fff; }
+
+/* --- the dated requirements panel --- */
+.dpage-req {
+  border: 2px solid var(--color-hero-ink); border-radius: 18px;
+  padding: 1.75rem; margin-bottom: 2.5rem; background: #fff;
+}
+.dpage-req-head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem;
+}
+.dpage-req-head h3 { color: var(--color-hero-ink); font-size: 1.3rem; margin: 0; }
+.dpage-req-stamp {
+  background: #f4f7fb; border-radius: 999px; padding: 0.35rem 0.85rem;
+  color: var(--color-muted); font-size: 0.82rem; font-weight: 600;
+}
+.dpage-req-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; }
+.dpage-req-grid dt {
+  color: var(--color-muted); font-size: 0.78rem; font-weight: 600;
+  letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.4rem;
+}
+.dpage-req-grid dd {
+  color: var(--color-hero-ink); font-weight: 700; font-size: 1.05rem;
+  line-height: 1.35; margin: 0;
+}
+.dpage-req-note {
+  display: block; color: var(--color-muted);
+  font-weight: 500; font-size: 0.85rem; margin-top: 0.25rem;
+}
+/* Needs the extra .dpage to outrank `.dpage p`'s 68ch measure — this line runs
+   the full width of the panel, not the width of a paragraph. */
+.dpage .dpage-req-source {
+  margin: 1.5rem 0 0; padding-top: 1.25rem;
+  border-top: 1px solid var(--color-border);
+  color: var(--color-muted); font-size: 0.88rem; max-width: none;
+}
+.dpage-req-source a { color: var(--color-hero-red); font-weight: 600; }
+.dpage-req-source a:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+/* --- visa steps --- */
+.dpage-sub { color: var(--color-hero-ink); font-size: 1.4rem; margin-bottom: 1.5rem; }
+.dpage-steps {
+  list-style: none; display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.25rem; margin-bottom: 2rem;
+}
+.dpage-steps li {
+  display: flex; gap: 1rem; align-items: flex-start;
+  background: #f4f7fb; border-radius: 14px; padding: 1.4rem;
+}
+.dpage-step-n {
+  font-family: var(--font-display); font-weight: 800; font-size: 1.5rem;
+  line-height: 1; color: var(--color-hero-red); flex: none;
+}
+.dpage-steps h4 { color: var(--color-hero-ink); font-size: 1.02rem; margin-bottom: 0.3rem; }
+.dpage-steps p { color: var(--color-muted); font-size: 0.92rem; margin: 0; }
+
+/* --- journey chain --- */
+.dpage-journey {
+  list-style: none; display: flex; flex-wrap: wrap; align-items: center;
+  gap: 0.75rem 1.9rem;
+}
+.dpage-journey li {
+  position: relative; display: flex; align-items: center;
+  background: #f4f7fb; border-radius: 999px; padding: 0.7rem 1.3rem;
+  color: var(--color-hero-ink); font-weight: 600;
+}
+/* The arrow belongs between stages, so the last one goes without */
+.dpage-journey li:not(:last-child)::after {
+  content: "\2192"; position: absolute; right: -1.3rem; top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-hero-red); font-weight: 700;
+}
+
+/* --- closing call to action --- */
+.dpage-cta { background: var(--color-hero-red); color: #fff; padding: 3.5rem 0; }
+.dpage-cta-inner {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 2rem; flex-wrap: wrap;
+}
+.dpage-cta h2 { color: #fff; font-size: clamp(1.8rem, 3vw, 2.6rem); margin-bottom: 0.5rem; }
+.dpage-cta p { color: rgba(255, 255, 255, 0.9); margin: 0; }
+.dpage-cta-btn {
+  display: inline-flex; align-items: center; gap: 0.6rem; flex: none;
+  background: #fff; color: var(--color-hero-red);
+  font-weight: 700; font-size: 1.05rem;
+  border-radius: 999px; padding: 0.95rem 2rem;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+.dpage-cta-btn:hover { background: var(--color-hero-ink); color: #fff; transform: translateY(-2px); }
+.dpage-cta-btn svg { transition: transform 0.2s ease; }
+.dpage-cta-btn:hover svg { transform: translateX(3px); }
+
+@media (max-width: 1024px) {
+  .dpage-cities { grid-template-columns: repeat(2, 1fr); }
+  .dpage-req-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 860px) {
+  /* Narrow enough that the copy spans the full width, so the scrim has to
+     come from below rather than from the side. */
+  .dpage-hero { min-height: clamp(460px, 76vh, 620px); padding: 3rem 0; }
+  .dpage-hero::after {
+    background: linear-gradient(
+      to top,
+      rgba(9, 16, 38, 0.95) 32%,
+      rgba(9, 16, 38, 0.78) 68%,
+      rgba(9, 16, 38, 0.55) 100%
+    );
+  }
+  .dpage-paths { grid-template-columns: 1fr; }
+  .dpage-split { grid-template-columns: 1fr; gap: 2rem; }
+  /* Sticking to the viewport only makes sense beside a tall column */
+  .dpage-callout { position: static; }
+  .dpage-cta-inner { flex-direction: column; align-items: flex-start; }
+}
+@media (max-width: 520px) {
+  .dpage-cities { grid-template-columns: 1fr; }
+  .dpage-req-grid { grid-template-columns: 1fr; gap: 1.15rem; }
+  .dpage-req { padding: 1.35rem; }
+  .dpage-journey { gap: 1.9rem 0.75rem; }
+  .dpage-journey li { width: 100%; justify-content: center; }
+  .dpage-journey li:not(:last-child)::after {
+    right: 50%; top: auto; bottom: -1.45rem;
+    transform: translateX(50%) rotate(90deg);
+  }
+}
+
+/* ---- destination pages: photography ----
+   These pages are laid out around their photography before the photography
+   exists. Shot() in destinationBits.tsx swaps a missing file for the tinted
+   panel below, so a page referencing an image nobody has uploaded still
+   looks finished — and fills itself in the moment the file lands. */
+.dpage-shot-empty {
+  width: 100%; height: 100%; min-height: 220px;
+  background: linear-gradient(135deg, #e9eaf5, #c7cae3);
+}
+
+/* Full-width band: a breath between the argument and the detail */
+.dpage-band {
+  position: relative; margin: 0; height: clamp(260px, 34vw, 420px);
+  overflow: hidden; background: var(--color-hero-ink);
+}
+.dpage-band img, .dpage-band .dpage-shot-empty {
+  width: 100%; height: 100%; object-fit: cover;
+}
+/* The scrim only exists so the caption stays legible over an unknown photo —
+   we cannot know how bright the image someone drops in will be. */
+.dpage-band figcaption {
+  position: absolute; inset: auto 0 0 0; padding: 2.5rem 1.5rem 2rem;
+  background: linear-gradient(to top, rgba(11, 19, 46, 0.85), rgba(11, 19, 46, 0));
+  color: #fff; text-align: center;
+}
+.dpage-band figcaption p {
+  font-family: var(--font-display); font-weight: 700; line-height: 1.18;
+  font-size: clamp(1.3rem, 2.6vw, 2rem); margin: 0 auto 0.5rem; max-width: 24ch;
+}
+.dpage-band figcaption span {
+  display: block; color: rgba(255, 255, 255, 0.82);
+  font-size: 0.95rem; max-width: 52ch; margin-inline: auto;
+}
+
+/* Two shots side by side */
+.dpage-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+.dpage-pair figure { margin: 0; height: clamp(220px, 26vw, 340px); overflow: hidden; }
+.dpage-pair img, .dpage-pair .dpage-shot-empty {
+  width: 100%; height: 100%; object-fit: cover;
+}
+
+/* Closing gallery */
+.dpage-gallery {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 1rem; margin-top: 2.5rem;
+}
+.dpage-gallery figure {
+  margin: 0; border-radius: 14px; overflow: hidden;
+  aspect-ratio: 4 / 3; box-shadow: 0 14px 30px rgba(23, 39, 92, 0.12);
+}
+.dpage-gallery img, .dpage-gallery .dpage-shot-empty {
+  width: 100%; height: 100%; object-fit: cover;
+  transition: transform 0.45s cubic-bezier(0.22, 0.9, 0.28, 1);
+}
+.dpage-gallery figure:hover img { transform: scale(1.06); }
+
+/* ---- course groups ---- */
+.dpage-courses {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 2rem; margin: 2.5rem 0 1.5rem;
+}
+.dpage-course-group h3 {
+  color: var(--color-hero-ink); font-size: 1.1rem; margin-bottom: 1.1rem;
+  padding-bottom: 0.75rem; border-bottom: 2px solid var(--color-hero-red);
+}
+.dpage-course-group .dpage-checks { margin-bottom: 0; }
+.dpage-checks-2 { grid-template-columns: repeat(2, 1fr); gap: 0.85rem 2rem; }
+
+/* ---- the living-cost table ----
+   Stamped and captioned the same way as the requirements panel, because it
+   dates for the same reason: these are rents, and rents move. */
+.dpage-table-wrap {
+  background: #fff; border-radius: 18px; padding: 1.75rem; margin-bottom: 3rem;
+}
+/* A table is the one thing on these pages that legitimately needs to scroll
+   sideways on a phone — but only inside its own box, never the page. */
+.dpage-table-scroll { overflow-x: auto; }
+.dpage-table { width: 100%; border-collapse: collapse; min-width: 320px; }
+.dpage-table th, .dpage-table td {
+  text-align: left; padding: 0.7rem 0.9rem; font-size: 0.95rem;
+}
+.dpage-table thead th {
+  color: var(--color-muted); font-size: 0.78rem; font-weight: 600;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  border-bottom: 2px solid var(--color-border);
+}
+.dpage-table tbody th { color: var(--color-hero-ink); font-weight: 600; }
+.dpage-table tbody td { color: var(--color-hero-ink); font-weight: 700; text-align: right; }
+.dpage-table tbody tr + tr th, .dpage-table tbody tr + tr td {
+  border-top: 1px solid var(--color-border);
+}
+.dpage-table tbody tr:hover th, .dpage-table tbody tr:hover td { background: #f4f7fb; }
+.dpage .dpage-table-note {
+  margin: 1.25rem 0 0; padding-top: 1rem;
+  border-top: 1px solid var(--color-border);
+  color: var(--color-muted); font-size: 0.88rem; max-width: none;
+}
+/* Available to screen readers, out of the way of everyone else */
+.dpage-visually-hidden {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+/* The UK panel carries five facts rather than four; below the wide
+   breakpoint it falls back to the shared two- and one-column rules. */
+@media (min-width: 1025px) {
+  .dpage-req-grid-5 { grid-template-columns: repeat(5, 1fr); gap: 1.25rem; }
+}
+/* Continues the tinted section above it rather than starting a new one:
+   two adjacent tinted blocks would otherwise double their padding at the
+   seam and read as a gap rather than one section. */
+/* Four even cards, where the set is four rather than five */
+@media (min-width: 861px) {
+  .dpage-reasons-4 { grid-template-columns: repeat(4, 1fr); }
+  .dpage-reasons-4 .dpage-reason:nth-child(-n + 2),
+  .dpage-reasons-4 .dpage-reason:nth-child(n + 3) { grid-column: auto; }
+}
+/* A table that carries prose rather than figures: the second column reads as
+   text, so it stays left-aligned and unbolded. */
+.dpage-table-plain { padding-bottom: 0.5rem; }
+.dpage-table tbody td.dpage-table-text {
+  text-align: left; font-weight: 400; color: var(--color-muted);
+}
+/* Three across rather than two, where the content comes in threes */
+@media (min-width: 861px) {
+  .dpage-paths-3 { grid-template-columns: repeat(3, 1fr); }
+}
+.dpage-section-tight { padding-top: 0; }
+/* With no top padding on the section, the gallery's own top margin collapses
+   straight through it and pushes the whole section down — which showed up as
+   an untinted 40px seam between two tinted blocks. Leading the section, it
+   does not need the margin at all. */
+.dpage-section-tight .dpage-gallery { margin-top: 0; }
+/* The callout is normally the narrow half of a split. Standing on its own it
+   needs to stop short of a full-width line of text. */
+.dpage-callout-wide {
+  position: static; display: block; max-width: 46rem; margin-top: 2.5rem;
+}
+/* Five regions sit evenly across the row instead of leaving one stranded */
+.dpage-cities-auto { grid-template-columns: repeat(auto-fit, minmax(215px, 1fr)); }
+
+@media (max-width: 1024px) {
+  .dpage-gallery { grid-template-columns: repeat(2, 1fr); }
+  .dpage-courses { grid-template-columns: 1fr; gap: 1.75rem; }
+}
+@media (max-width: 860px) {
+  .dpage-checks-2 { grid-template-columns: 1fr; gap: 0.85rem; }
+  .dpage-table-wrap { padding: 1.35rem; }
+}
+@media (max-width: 520px) {
+  .dpage-pair { grid-template-columns: 1fr; }
+  .dpage-gallery { grid-template-columns: 1fr; gap: 0.85rem; }
+  .dpage-band figcaption { padding: 2rem 1.25rem 1.5rem; }
 }

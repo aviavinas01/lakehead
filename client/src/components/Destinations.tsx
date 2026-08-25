@@ -9,10 +9,10 @@ import Globe from "./Globe";
  *
  * The globe drives the cards, not a timer: whichever country is facing the
  * viewer is the one whose photo shows. So they arrive in the order the globe
- * actually brings them round — Canada, the USA, the UK, Denmark, India,
- * South Korea, Australia, New Zealand — and each gets a spell as long as the
- * gap to its neighbour, which is why close pairs like Canada and the USA
- * each get a short one. Dragging the globe or picking a pin moves the cards
+ * actually brings them round — Canada, the USA, the UK, South Korea,
+ * Australia, New Zealand — and each gets a spell as long as the gap to its
+ * neighbour, which is why close pairs like Canada and the USA each get a
+ * short one. Dragging the globe or picking a pin moves the cards
  * the same way, because it moves what is facing.
  *
  * Below the width in the stylesheet where the layout stacks, the globe is
@@ -23,20 +23,26 @@ import Globe from "./Globe";
  * `at` is the country's real longitude and latitude; the globe projects it.
  */
 
+/* The single source of truth for what the globe shows. countryShapes.ts
+   still carries outlines for a few countries that are not listed here —
+   leaving them costs nothing and means a country can be restored by adding
+   one line back to this array. Keep the list in longitude order: the deck
+   follows whatever the globe brings round next. */
 const DESTINATIONS: {
   name: string;
   blurb: string;
   image: string;
   at: [number, number];
+  /* Where "Know more" goes. Countries without a page of their own yet fall
+     back to the services page — give one a `to` as its page is built. */
+  to?: string;
 }[] = [
-  { name: "Canada", blurb: "Affordable tuition and a clear path to residency.", image: "/canada.jpg", at: [-106, 56] },
-  { name: "USA", blurb: "World-ranked universities and OPT work rights after you graduate.", image: "/usa.jpg", at: [-98, 39.5] },
-  { name: "UK", blurb: "One-year master's degrees and a two-year graduate visa.", image: "/uk.jpg", at: [-1.5, 53] },
-  { name: "Denmark", blurb: "Tuition-free public universities and paid internships.", image: "/denmark.jpg", at: [10, 56] },
-  { name: "India", blurb: "Globally recognised degrees close to home.", image: "/india.jpg", at: [79, 22] },
-  { name: "South Korea", blurb: "Scholarship-rich programmes taught in English.", image: "/southkorea.jpg", at: [127.8, 36.5] },
-  { name: "Australia", blurb: "Strong post-study work rights in every state.", image: "/australia.jpg", at: [134, -25] },
-  { name: "New Zealand", blurb: "Small class sizes and a welcoming visa system.", image: "/newzealand.jpg", at: [172, -41] },
+  { name: "Canada", blurb: "Affordable tuition and a clear path to residency.", image: "/canada.jpg", at: [-106, 56], to: "/study-in-canada" },
+  { name: "USA", blurb: "World-ranked universities and OPT work rights after you graduate.", image: "/usa.jpg", at: [-98, 39.5], to: "/study-in-usa" },
+  { name: "UK", blurb: "One-year master's degrees and a two-year graduate visa.", image: "/uk.jpg", at: [-1.5, 53], to: "/study-in-uk" },
+  { name: "South Korea", blurb: "Scholarship-rich programmes taught in English.", image: "/southkorea.jpg", at: [127.8, 36.5], to: "/study-in-south-korea" },
+  { name: "Australia", blurb: "Strong post-study work rights in every state.", image: "/australia.jpg", at: [134, -25], to: "/study-in-australia" },
+  { name: "New Zealand", blurb: "Small class sizes and a welcoming visa system.", image: "/newzealand.jpg", at: [172, -41], to: "/study-in-new-zealand" },
 ];
 
 
@@ -126,7 +132,7 @@ export default function Destinations() {
             <div className="dest-info" aria-live="polite">
               <h3>{current.name}</h3>
               <p>{current.blurb}</p>
-              <Link className="dest-more" to="/services">
+              <Link className="dest-more" to={current.to ?? "/services"}>
                 Know more
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none"
                   stroke="currentColor" strokeWidth="2" strokeLinecap="round"

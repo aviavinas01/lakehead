@@ -25,14 +25,12 @@ const COLUMNS: { title: string; links: FooterLink[] }[] = [
   {
     title: "Destinations",
     links: [
-      { label: "United Kingdom", to: "/services" },
-      { label: "United States", to: "/services" },
-      { label: "Australia", to: "/services" },
-      { label: "Canada", to: "/services" },
-      { label: "New Zealand", to: "/services" },
-      { label: "Denmark", to: "/services" },
-      { label: "India", to: "/services" },
-      { label: "South Korea", to: "/services" },
+      { label: "United Kingdom", to: "/study-in-uk" },
+      { label: "United States", to: "/study-in-usa" },
+      { label: "Australia", to: "/study-in-australia" },
+      { label: "Canada", to: "/study-in-canada" },
+      { label: "New Zealand", to: "/study-in-new-zealand" },
+      { label: "South Korea", to: "/study-in-south-korea" },
     ],
   },
   {

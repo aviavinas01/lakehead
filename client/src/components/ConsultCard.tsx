@@ -9,7 +9,7 @@ import api, { getErrorMessage } from "../api/client";
  */
 
 const DESTINATION_OPTIONS = [
-  "USA", "UK", "Australia", "Germany", "Ireland", "New Zealand", "Dubai", "Canada",
+  "USA", "UK", "Australia", "Canada", "New Zealand", "South Korea", "Ireland", "Dubai",
 ];
 const YEAR_OPTIONS = ["2026", "2027", "2028"];
 const INTAKE_OPTIONS = [

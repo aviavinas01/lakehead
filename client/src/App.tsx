@@ -4,6 +4,12 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Home from "./pages/Home";
 import About from "./pages/About";
 import Services from "./pages/Services";
+import StudyInAustralia from "./pages/StudyInAustralia";
+import StudyInCanada from "./pages/StudyInCanada";
+import StudyInUK from "./pages/StudyInUK";
+import StudyInUSA from "./pages/StudyInUSA";
+import StudyInNewZealand from "./pages/StudyInNewZealand";
+import StudyInSouthKorea from "./pages/StudyInSouthKorea";
 import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
 import Contact from "./pages/Contact";
@@ -21,6 +27,12 @@ export default function App() {
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
         <Route path="/services" element={<Services />} />
+        <Route path="/study-in-australia" element={<StudyInAustralia />} />
+        <Route path="/study-in-canada" element={<StudyInCanada />} />
+        <Route path="/study-in-uk" element={<StudyInUK />} />
+        <Route path="/study-in-usa" element={<StudyInUSA />} />
+        <Route path="/study-in-new-zealand" element={<StudyInNewZealand />} />
+        <Route path="/study-in-south-korea" element={<StudyInSouthKorea />} />
         <Route path="/blog" element={<Blog />} />
         <Route path="/blog/:slug" element={<BlogPost />} />
         <Route path="/contact" element={<Contact />} />
