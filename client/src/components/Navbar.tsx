@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { NavLink, Link, useLocation } from "react-router-dom";
 import { SERVICES } from "../data/services";
+import { TESTS } from "../data/tests";
 
 interface NavItem {
   label: string;
@@ -14,7 +15,14 @@ interface NavMenu {
   title: string;
   titleAccent: string;
   lead: string;
-  links: { label: string; to: string }[];
+  links: MegaLink[];
+}
+
+interface MegaLink {
+  label: string;
+  to: string;
+  /** Present on an entry that opens a second panel beside the first. */
+  children?: { label: string; to: string }[];
 }
 
 /* Nav links — repoint each `to` as dedicated pages are added. Add a `menu`
@@ -46,7 +54,22 @@ const links: NavItem[] = [
       titleAccent: "Services",
       lead: "From your first counselling session to the day you land, our qualified consultants handle the paperwork, the preparation, and everything in between.",
       links: [
-        ...SERVICES.map((s) => ({ label: s.title, to: `/services/${s.slug}` })),
+        ...SERVICES.filter((s) => s.inNav !== false).map((s) => ({
+          label: s.title,
+          to: `/services/${s.slug}`,
+          /* Test Preparation is the one service with a second level: the
+             individual tests hang off it rather than cluttering this list. */
+          children:
+            s.slug === "test-preparation"
+              ? [
+                  { label: "All Tests", to: "/services/test-preparation" },
+                  ...TESTS.map((t) => ({
+                    label: t.name,
+                    to: `/services/test-preparation/${t.slug}`,
+                  })),
+                ]
+              : undefined,
+        })),
       ],
     },
   },
@@ -117,6 +140,9 @@ export default function Navbar() {
   const [open, setOpen] = useState(false);
   /* Label of the nav item whose dropdown panel is open, or null for none */
   const [openMenu, setOpenMenu] = useState<string | null>(null);
+  /* Label of the second-level panel that is open, or null. Only one entry
+     has children today (Test Preparation), but nothing here assumes that. */
+  const [openSub, setOpenSub] = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   /* Held open, in its outgoing state, until the slide-out has played */
   const [drawerClosing, setDrawerClosing] = useState(false);
@@ -247,12 +273,23 @@ export default function Navbar() {
   const activeMenu = links.find(
     (l): l is NavItem & { menu: NavMenu } => l.label === openMenu && !!l.menu
   );
+  /* ...and the entry inside it whose children are showing, if any */
+  const activeSub = activeMenu?.menu.links.find(
+    (l) => l.label === openSub && !!l.children?.length
+  );
 
   /* A navigation always dismisses the menus */
   useEffect(() => {
     setOpenMenu(null);
+    setOpenSub(null);
     setOpen(false);
   }, [pathname]);
+
+  /* A second-level panel belongs to its parent — when the parent closes or
+     changes, it goes with it rather than hanging over the next one. */
+  useEffect(() => {
+    setOpenSub(null);
+  }, [openMenu]);
 
   /* The destination pages open on a full-bleed photograph and the bar sits
      over it rather than on a white strip above it. It goes solid again as
@@ -356,7 +393,19 @@ export default function Navbar() {
               <ul className="mega-list">
                 {activeMenu.menu.links.map((l) => (
                   <li key={l.label}>
-                    <Link to={l.to} onClick={() => setOpenMenu(null)}>
+                    <Link
+                      to={l.to}
+                      className={openSub === l.label ? "is-open" : undefined}
+                      /* Hovering any entry opens its children and closes
+                         whatever else was open, so the second panel never
+                         sits under an unrelated label. Focus does the same,
+                         so this is reachable without a mouse. */
+                      onMouseEnter={() => setOpenSub(l.children ? l.label : null)}
+                      onFocus={() => setOpenSub(l.children ? l.label : null)}
+                      onClick={() => setOpenMenu(null)}
+                      aria-haspopup={l.children ? "true" : undefined}
+                      aria-expanded={l.children ? openSub === l.label : undefined}
+                    >
                       <svg viewBox="0 0 24 24" width="15" height="15" fill="none"
                         stroke="currentColor" strokeWidth="2" strokeLinecap="round"
                         strokeLinejoin="round" aria-hidden="true">
@@ -367,6 +416,21 @@ export default function Navbar() {
                   </li>
                 ))}
               </ul>
+              {/* The second level, rendered beside the first rather than
+                  floating over it — the panel is already full width, so
+                  there is room, and a column cannot be knocked off screen
+                  the way an absolutely positioned flyout can. */}
+              {activeSub && (
+                <ul className="mega-sub">
+                  {activeSub.children?.map((s) => (
+                    <li key={s.label}>
+                      <Link to={s.to} onClick={() => setOpenMenu(null)}>
+                        {s.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
           </div>
         )}
