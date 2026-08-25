@@ -30,7 +30,23 @@ export interface YouTubeVideo {
 
 const CACHE_MS = 30 * 60 * 1000;
 
-let cache: { value: YouTubeVideo[]; at: number } | null = null;
+/* A lookup that did NOT come back with videos is retried within the minute
+   rather than being locked in for half an hour.
+ *
+ * This is the bug that used to put the placeholder videos back after every
+ * deploy. The cache lives in memory, so a new container starts empty; if
+ * that very first fetch hiccupped — a cold DNS lookup, a slow start, any
+ * blip — the empty result was cached for the full CACHE_MS, and every
+ * visitor for the next thirty minutes got an empty list and fell through to
+ * the fallback. Nothing was wrong with the playlist; the server had simply
+ * cached one bad moment. */
+const RETRY_MS = 60 * 1000;
+
+/* YouTube does not get to hold a request open indefinitely. */
+const TIMEOUT_MS = 8000;
+
+/** `live` marks a list that actually came back with videos in it. */
+let cache: { value: YouTubeVideo[]; at: number; live: boolean } | null = null;
 
 /** Where to read from: a playlist if one is configured, else the channel. */
 function feedUrl(): string | null {
@@ -94,7 +110,7 @@ async function fetchFromYouTube(): Promise<YouTubeVideo[]> {
   const url = feedUrl();
   if (!url) return [];
 
-  const res = await fetch(url);
+  const res = await fetch(url, { signal: AbortSignal.timeout(TIMEOUT_MS) });
   if (!res.ok) {
     throw new Error(`YouTube feed responded ${res.status}: ${await res.text()}`);
   }
@@ -103,19 +119,36 @@ async function fetchFromYouTube(): Promise<YouTubeVideo[]> {
 
 export const youtubeService = {
   async list(): Promise<YouTubeVideo[]> {
-    if (cache && Date.now() - cache.at < CACHE_MS) return cache.value;
+    /* A good list is trusted for CACHE_MS; anything else is re-checked
+       within RETRY_MS, so a bad moment costs a minute rather than an hour. */
+    const ttl = cache?.live ? CACHE_MS : RETRY_MS;
+    if (cache && Date.now() - cache.at < ttl) return cache.value;
 
     try {
       const value = await fetchFromYouTube();
-      cache = { value, at: Date.now() };
-      return value;
+      if (value.length > 0) {
+        cache = { value, at: Date.now(), live: true };
+        return value;
+      }
+      /* Parsed cleanly but yielded nothing: an unset id, an empty playlist,
+         or a feed whose shape has moved. Not something to publish. */
+      console.warn("YouTube feed returned no usable videos");
     } catch (err) {
       console.error("YouTube feed lookup failed:", err);
-      /* Serve the last good list if there is one — a blip at YouTube's end
-         should not empty the row on the site. */
-      const value = cache?.value ?? [];
-      cache = { value, at: Date.now() };
-      return value;
     }
+
+    /* Once a good list has been seen it keeps being served for as long as it
+       takes to get another one — the row is never emptied by a blip, only
+       ever replaced by a newer list. */
+    const value = cache?.value ?? [];
+    cache = { value, at: Date.now(), live: false };
+    return value;
+  },
+
+  /** Fetches once at boot so the first visitor after a deploy never pays for
+      the first lookup, and a fresh container is already warm before anyone
+      loads the page. Failure here is not fatal: list() will retry. */
+  warm(): void {
+    void this.list();
   },
 };

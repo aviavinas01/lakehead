@@ -126,6 +126,12 @@ img { max-width: 100%; display: block; }
 :is(.navbar.is-over, body.hero-film .navbar) .brand-wordmark span { color: rgba(255, 255, 255, 0.85); }
 :is(.navbar.is-over, body.hero-film .navbar) .nav-item > a { color: #fff; }
 :is(.navbar.is-over, body.hero-film .navbar) .nav-toggle { color: #fff; }
+/* The drawer's grid icon sits at the far right of the bar and is drawn in
+   the nav colour, so it disappears into the film unless it inverts too. */
+:is(.navbar.is-over, body.hero-film .navbar) .drawer-toggle { color: #fff; }
+:is(.navbar.is-over, body.hero-film .navbar) .drawer-toggle:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
 /* The progress track is a pale tint meant to sit under a white bar; over the
    photo it reads as a rule ruling off the hero, which is the one thing this
    whole change is trying to get rid of. At the top of the page the fill is
@@ -248,6 +254,7 @@ img { max-width: 100%; display: block; }
   color: var(--color-nav-bg); cursor: pointer; transition: background 0.15s;
 }
 .drawer-toggle:hover { background: var(--color-surface); }
+.drawer-toggle { transition: color 0.3s ease, background-color 0.3s ease; }
 /* Full-height side drawer, sliding in from the right over a dim overlay */
 /* Dims and blurs the page behind the drawer. Clicking it closes the drawer
    (Navbar.tsx checks the click landed on the overlay itself, not the panel). */

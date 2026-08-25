@@ -1,74 +1,38 @@
 import { useEffect, useRef, useState } from "react";
 import api from "../api/client";
-import { mediaSrc } from "../api/media";
-import type { Album, Media, YouTubeVideo } from "../types/api";
+import type { YouTubeVideo } from "../types/api";
 
 /**
- * Where the videos in this row come from, in order of preference:
+ * The videos in the "Your Success Story Starts Here" row.
  *
- *   1. YouTube — set YOUTUBE_PLAYLIST_ID (or YOUTUBE_CHANNEL_ID) on the
- *      server and the videos in that playlist appear here. Adding one to
- *      the playlist publishes it: no upload, no deploy. The server reads
- *      YouTube's public feed and caches it (server/src/services/youtube).
- *   2. The Media Library — a published album titled "Student Reviews";
- *      each video in it becomes a card, its Title shown as the name.
- *   3. The sample clips below, so the row is never empty in development.
+ * YouTube is the ONLY source. Set YOUTUBE_PLAYLIST_ID on the server and the
+ * videos in that playlist appear here — adding one to the playlist publishes
+ * it to the site, with no upload and no deploy.
  *
- * YouTube cards stay as a thumbnail and a play button until they are
- * clicked. That is on purpose: an embedded player pulls in around a
- * megabyte of YouTube's own code, and loading four of those on a page
- * nobody has clicked yet is the quickest way to ruin the home page.
+ * There is deliberately no fallback content. Placeholder clips used to sit
+ * behind this row, and every redeploy that caught the feed at a bad moment
+ * put them back on the live site; a row that is briefly empty is far better
+ * than a row that confidently shows the wrong thing. If the feed is
+ * unreachable the section renders nothing at all and the page simply closes
+ * up around it.
+ *
+ * Between them, three things make an empty row very unlikely:
+ *   - the server keeps serving the last good list for as long as it takes to
+ *     get a new one, and re-checks a failure within the minute rather than
+ *     caching it for half an hour (services/youtube.service.ts);
+ *   - it fetches once at boot, so a fresh container is warm before the first
+ *     visitor arrives;
+ *   - and this component retries a few times with a widening gap, which
+ *     covers the seconds around a redeploy when the API is not up yet.
+ *
+ * Cards stay as a thumbnail and a play button until they are clicked. That
+ * is on purpose: an embedded player pulls in around a megabyte of YouTube's
+ * own code, and loading several of those on a page nobody has clicked yet is
+ * the quickest way to ruin the home page.
  */
-const REVIEWS_ALBUM_TITLE = "student reviews";
-
-/**
- * Dummy videos shown until the "Student Reviews" album has real uploads —
- * once it does, the fetched videos replace these automatically. Swap the
- * urls for files in client/public (e.g. "/videos/review1.mp4") if you want
- * local placeholders instead of these public sample clips.
- */
-const DUMMY_VIDEOS: Media[] = [
-  {
-    _id: "dummy-1",
-    type: "video",
-    url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4",
-    title: "Aarav Sharma",
-    mimeType: "video/mp4",
-    size: 0,
-    order: 0,
-    createdAt: "",
-  },
-  {
-    _id: "dummy-2",
-    type: "video",
-    url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4",
-    title: "Priya Koirala",
-    mimeType: "video/mp4",
-    size: 0,
-    order: 1,
-    createdAt: "",
-  },
-  {
-    _id: "dummy-3",
-    type: "video",
-    url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
-    title: "Bibek Thapa",
-    mimeType: "video/mp4",
-    size: 0,
-    order: 2,
-    createdAt: "",
-  },
-  {
-    _id: "dummy-4",
-    type: "video",
-    url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
-    title: "Sneha Gurung",
-    mimeType: "video/mp4",
-    size: 0,
-    order: 3,
-    createdAt: "",
-  },
-];
+/* Widening gaps, in ms. Covers the window around a redeploy where the API
+   is reachable but not yet answering. */
+const RETRY_DELAYS = [1200, 3500, 9000];
 
 const PlayIcon = () => (
   <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -140,96 +104,40 @@ function YouTubeCard({
   );
 }
 
-function VideoCard({
-  media,
-  active,
-  onPlay,
-}: {
-  media: Media;
-  active: boolean;
-  onPlay: () => void;
-}) {
-  const videoRef = useRef<HTMLVideoElement>(null);
-
-  /* Only one card plays at a time — pause when another card takes over. */
-  useEffect(() => {
-    if (!active) videoRef.current?.pause();
-  }, [active]);
-
-  const start = () => {
-    onPlay();
-    videoRef.current?.play();
-  };
-
-  return (
-    <figure className="video-card">
-      <video
-        ref={videoRef}
-        src={mediaSrc(media.url)}
-        preload="metadata"
-        playsInline
-        controls={active}
-      />
-      {media.title && (
-        <figcaption className="video-card-name">{media.title}</figcaption>
-      )}
-      {!active && (
-        <button
-          type="button"
-          className="video-card-play"
-          onClick={start}
-          aria-label={`Play video${media.title ? ` from ${media.title}` : ""}`}
-        >
-          <PlayIcon />
-        </button>
-      )}
-    </figure>
-  );
-}
-
 export default function VideoTestimonials() {
-  const [videos, setVideos] = useState<Media[]>(DUMMY_VIDEOS);
   const [tube, setTube] = useState<YouTubeVideo[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const track = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let cancelled = false;
-    (async () => {
-      /* A configured YouTube source wins outright — when there is one, the
-         album lookup below is skipped entirely. */
+    let timer: number | undefined;
+
+    /* Retries rather than giving up on the first failure. The seconds around
+       a redeploy are exactly when the API is reachable but not yet ready,
+       and without this the row would stay empty until someone reloaded. */
+    const load = async (attempt = 0) => {
       try {
         const { data } = await api.get<{ videos: YouTubeVideo[] }>(
           "/youtube/videos",
           { quiet: true }
         );
-        if (!cancelled && data.videos.length > 0) {
+        if (cancelled) return;
+        if (data.videos.length > 0) {
           setTube(data.videos);
           return;
         }
       } catch {
-        /* No YouTube configured, or the feed is unreachable — fall through
-           to the album, exactly as before. */
+        /* falls through to the retry below */
       }
+      if (cancelled || attempt >= RETRY_DELAYS.length) return;
+      timer = window.setTimeout(() => void load(attempt + 1), RETRY_DELAYS[attempt]);
+    };
 
-      try {
-        const { data } = await api.get<{ albums: Album[] }>("/albums", { quiet: true });
-        const album = data.albums.find(
-          (a) => a.title.trim().toLowerCase() === REVIEWS_ALBUM_TITLE
-        );
-        if (!album) return;
-        const res = await api.get<{ album: Album; media: Media[] }>(
-          `/albums/slug/${album.slug}`,
-          { quiet: true }
-        );
-        const items = res.data.media.filter((m) => m.type === "video");
-        if (!cancelled && items.length > 0) setVideos(items);
-      } catch {
-        /* no reviews album yet — the dummy videos stay on screen */
-      }
-    })();
+    void load();
     return () => {
       cancelled = true;
+      window.clearTimeout(timer);
     };
   }, []);
 
@@ -248,8 +156,9 @@ export default function VideoTestimonials() {
     el.scrollBy({ left: dir * step * perView, behavior: "smooth" });
   };
 
-  const showing = tube.length > 0 ? tube.length : videos.length;
-  if (showing === 0) return null;
+  /* No videos, no section — the page closes up around it rather than
+     showing a heading over an empty shelf. */
+  if (tube.length === 0) return null;
 
   return (
     <section className="success-stories">
@@ -294,23 +203,14 @@ export default function VideoTestimonials() {
         </div>
         <div className="video-track-wrap">
           <div className="video-track" ref={track}>
-            {tube.length > 0
-              ? tube.map((v) => (
-                  <YouTubeCard
-                    key={v.id}
-                    video={v}
-                    active={activeId === v.id}
-                    onPlay={() => setActiveId(v.id)}
-                  />
-                ))
-              : videos.map((m) => (
-                  <VideoCard
-                    key={m._id}
-                    media={m}
-                    active={activeId === m._id}
-                    onPlay={() => setActiveId(m._id)}
-                  />
-                ))}
+            {tube.map((v) => (
+              <YouTubeCard
+                key={v.id}
+                video={v}
+                active={activeId === v.id}
+                onPlay={() => setActiveId(v.id)}
+              />
+            ))}
           </div>
         </div>
       </div>
