@@ -4,6 +4,8 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Home from "./pages/Home";
 import About from "./pages/About";
 import Services from "./pages/Services";
+import ServiceDetail from "./pages/ServiceDetail";
+import StudyAbroad from "./pages/StudyAbroad";
 import StudyInAustralia from "./pages/StudyInAustralia";
 import StudyInCanada from "./pages/StudyInCanada";
 import StudyInUK from "./pages/StudyInUK";
@@ -27,6 +29,8 @@ export default function App() {
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
         <Route path="/services" element={<Services />} />
+        <Route path="/services/:slug" element={<ServiceDetail />} />
+        <Route path="/study-abroad" element={<StudyAbroad />} />
         <Route path="/study-in-australia" element={<StudyInAustralia />} />
         <Route path="/study-in-canada" element={<StudyInCanada />} />
         <Route path="/study-in-uk" element={<StudyInUK />} />

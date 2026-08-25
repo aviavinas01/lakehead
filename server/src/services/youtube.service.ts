@@ -45,15 +45,38 @@ const RETRY_MS = 60 * 1000;
 /* YouTube does not get to hold a request open indefinitely. */
 const TIMEOUT_MS = 8000;
 
-/** `live` marks a list that actually came back with videos in it. */
-let cache: { value: YouTubeVideo[]; at: number; live: boolean } | null = null;
+/** The named feeds this service can serve. Each is cached independently. */
+export const FEEDS = ["stories", "testimonials"] as const;
+export type Feed = (typeof FEEDS)[number];
 
-/** Where to read from: a playlist if one is configured, else the channel. */
-function feedUrl(): string | null {
-  const { YOUTUBE_PLAYLIST_ID: playlist, YOUTUBE_CHANNEL_ID: channel } = env;
-  if (playlist) {
-    return `https://www.youtube.com/feeds/videos.xml?playlist_id=${encodeURIComponent(playlist)}`;
+/** `live` marks a list that actually came back with videos in it. */
+interface Entry {
+  value: YouTubeVideo[];
+  at: number;
+  live: boolean;
+}
+const caches = new Map<Feed, Entry>();
+
+const byPlaylist = (id: string) =>
+  `https://www.youtube.com/feeds/videos.xml?playlist_id=${encodeURIComponent(id)}`;
+
+/**
+ * Where each feed reads from. "stories" prefers its playlist and falls back
+ * to the channel's uploads; "testimonials" is playlist-only, because an
+ * unset testimonials playlist should render nothing rather than quietly
+ * showing the same videos as the row above it.
+ */
+function feedUrl(feed: Feed): string | null {
+  const {
+    YOUTUBE_PLAYLIST_ID: playlist,
+    YOUTUBE_CHANNEL_ID: channel,
+    YOUTUBE_TESTIMONIALS_PLAYLIST_ID: testimonials,
+  } = env;
+
+  if (feed === "testimonials") {
+    return testimonials ? byPlaylist(testimonials) : null;
   }
+  if (playlist) return byPlaylist(playlist);
   if (channel) {
     return `https://www.youtube.com/feeds/videos.xml?channel_id=${encodeURIComponent(channel)}`;
   }
@@ -106,8 +129,8 @@ function parseFeed(xml: string): YouTubeVideo[] {
   });
 }
 
-async function fetchFromYouTube(): Promise<YouTubeVideo[]> {
-  const url = feedUrl();
+async function fetchFromYouTube(feed: Feed): Promise<YouTubeVideo[]> {
+  const url = feedUrl(feed);
   if (!url) return [];
 
   const res = await fetch(url, { signal: AbortSignal.timeout(TIMEOUT_MS) });
@@ -118,30 +141,33 @@ async function fetchFromYouTube(): Promise<YouTubeVideo[]> {
 }
 
 export const youtubeService = {
-  async list(): Promise<YouTubeVideo[]> {
+  async list(feed: Feed = "stories"): Promise<YouTubeVideo[]> {
+    const cache = caches.get(feed);
     /* A good list is trusted for CACHE_MS; anything else is re-checked
        within RETRY_MS, so a bad moment costs a minute rather than an hour. */
     const ttl = cache?.live ? CACHE_MS : RETRY_MS;
     if (cache && Date.now() - cache.at < ttl) return cache.value;
 
     try {
-      const value = await fetchFromYouTube();
+      const value = await fetchFromYouTube(feed);
       if (value.length > 0) {
-        cache = { value, at: Date.now(), live: true };
+        caches.set(feed, { value, at: Date.now(), live: true });
         return value;
       }
       /* Parsed cleanly but yielded nothing: an unset id, an empty playlist,
          or a feed whose shape has moved. Not something to publish. */
-      console.warn("YouTube feed returned no usable videos");
+      if (feedUrl(feed)) {
+        console.warn(`YouTube feed "${feed}" returned no usable videos`);
+      }
     } catch (err) {
-      console.error("YouTube feed lookup failed:", err);
+      console.error(`YouTube feed "${feed}" lookup failed:`, err);
     }
 
     /* Once a good list has been seen it keeps being served for as long as it
        takes to get another one — the row is never emptied by a blip, only
        ever replaced by a newer list. */
     const value = cache?.value ?? [];
-    cache = { value, at: Date.now(), live: false };
+    caches.set(feed, { value, at: Date.now(), live: false });
     return value;
   },
 
@@ -149,6 +175,6 @@ export const youtubeService = {
       the first lookup, and a fresh container is already warm before anyone
       loads the page. Failure here is not fatal: list() will retry. */
   warm(): void {
-    void this.list();
+    for (const feed of FEEDS) void this.list(feed);
   },
 };

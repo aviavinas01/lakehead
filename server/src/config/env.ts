@@ -22,6 +22,9 @@ const envSchema = z.object({
        YOUTUBE_CHANNEL_ID   the channel's latest uploads, id starts "UC" */
   YOUTUBE_PLAYLIST_ID: z.string().optional(),
   YOUTUBE_CHANNEL_ID: z.string().optional(),
+  /* A second, separate playlist for the student testimonial row on the
+     Study Abroad page. Leave it unset and that row simply does not render. */
+  YOUTUBE_TESTIMONIALS_PLAYLIST_ID: z.string().optional(),
 });
 
 const parsed = envSchema.safeParse(process.env);

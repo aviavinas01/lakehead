@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { NavLink, Link, useLocation } from "react-router-dom";
+import { SERVICES } from "../data/services";
 
 interface NavItem {
   label: string;
@@ -22,7 +23,7 @@ interface NavMenu {
 const links: NavItem[] = [
   {
     label: "Study Abroad",
-    to: "/services",
+    to: "/study-abroad",
     menu: {
       title: "Study",
       titleAccent: "Abroad",
@@ -45,12 +46,7 @@ const links: NavItem[] = [
       titleAccent: "Services",
       lead: "From your first counselling session to the day you land, our qualified consultants handle the paperwork, the preparation, and everything in between.",
       links: [
-        { label: "Study Abroad Counselling", to: "/services" },
-        { label: "Test Preparation", to: "/services" },
-        { label: "Visa Guidance", to: "/services" },
-        { label: "Career Counselling", to: "/services" },
-        { label: "Student Accommodation", to: "/services" },
-        { label: "Interview Preparation", to: "/services" },
+        ...SERVICES.map((s) => ({ label: s.title, to: `/services/${s.slug}` })),
       ],
     },
   },
@@ -267,7 +263,7 @@ export default function Navbar() {
      setAtTop is called on every scroll event but passes the same boolean
      almost every time, and React bails on an unchanged value — so this
      re-renders only when the threshold is actually crossed. */
-  const overHero = /^\/study-in-/.test(pathname);
+  const overHero = /^\/(study-(abroad|in-)|services)/.test(pathname);
   const [atTop, setAtTop] = useState(true);
   useEffect(() => {
     const onScroll = () => setAtTop(window.scrollY < 100);

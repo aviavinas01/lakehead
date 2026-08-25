@@ -2206,3 +2206,172 @@ a.greview-author:hover { text-decoration: underline; }
   .dpage-gallery { grid-template-columns: 1fr; gap: 0.85rem; }
   .dpage-band figcaption { padding: 2rem 1.25rem 1.5rem; }
 }
+
+/* ============================================================
+   Study Abroad landing page (pages/StudyAbroad.tsx). Shares the
+   .dpage section styles with the six country pages; only what is
+   unique to this page lives here, under .sa-.
+   ============================================================ */
+
+/* ---- credentials ---- */
+.sa-credentials {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.25rem;
+}
+.sa-credential {
+  background: #f4f7fb; border-radius: 16px; padding: 1.75rem 1.5rem;
+  border-bottom: 3px solid var(--color-hero-red);
+}
+.sa-credential strong {
+  display: block; font-family: var(--font-display); font-weight: 800;
+  font-size: clamp(2rem, 3.2vw, 2.8rem); line-height: 1;
+  color: var(--color-hero-ink); letter-spacing: -0.03em; margin-bottom: 0.6rem;
+}
+.sa-credential-label {
+  display: block; color: var(--color-hero-ink);
+  font-weight: 700; font-size: 1.02rem; margin-bottom: 0.3rem;
+}
+.sa-credential-note { display: block; color: var(--color-muted); font-size: 0.88rem; line-height: 1.5; }
+
+/* ---- picture cards ----
+   Shared by the destination grid on /study-abroad and the service grid on
+   /services: same shape, same hover, different content. */
+.dpage-cards {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem;
+}
+.dpage-card {
+  display: flex; flex-direction: column; overflow: hidden;
+  background: #fff; border-radius: 18px; color: inherit;
+  box-shadow: 0 10px 26px rgba(23, 39, 92, 0.08);
+  transition: transform 0.28s ease, box-shadow 0.28s ease;
+}
+.dpage-card:hover { transform: translateY(-5px); box-shadow: 0 22px 46px rgba(23, 39, 92, 0.16); }
+.dpage-card-shot { aspect-ratio: 16 / 10; overflow: hidden; }
+.dpage-card-shot img, .dpage-card-shot .dpage-shot-empty {
+  width: 100%; height: 100%; object-fit: cover;
+  transition: transform 0.5s cubic-bezier(0.22, 0.9, 0.28, 1);
+}
+.dpage-card:hover .dpage-card-shot img { transform: scale(1.06); }
+.dpage-card-body { padding: 1.4rem 1.5rem 1.6rem; display: flex; flex-direction: column; flex: 1; }
+.dpage-card-body h3 { color: var(--color-hero-ink); font-size: 1.2rem; margin-bottom: 0.4rem; }
+.dpage-card-body p { color: var(--color-muted); font-size: 0.94rem; margin: 0 0 1.1rem; flex: 1; }
+.dpage-card-more {
+  display: inline-flex; align-items: center; gap: 0.45rem;
+  color: var(--color-hero-red); font-weight: 600; font-size: 0.95rem;
+}
+.dpage-card-more svg { transition: transform 0.2s ease; }
+.dpage-card:hover .dpage-card-more svg { transform: translateX(4px); }
+
+/* The breadcrumb sits in the eyebrow slot on a service page, over the photo */
+.svc-crumb { color: inherit; }
+.svc-crumb:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+/* ---- what we cover ---- */
+.sa-support {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.75rem 3rem;
+}
+.sa-support-item { display: flex; gap: 1.1rem; align-items: flex-start; }
+.sa-support-n {
+  font-family: var(--font-display); font-weight: 800; font-size: 1.35rem;
+  line-height: 1.2; color: transparent; flex: none; letter-spacing: 0;
+  -webkit-text-stroke: 1.5px var(--color-hero-red);
+}
+.sa-support-item h3 { color: var(--color-hero-ink); font-size: 1.08rem; margin-bottom: 0.3rem; }
+.sa-support-item p { color: var(--color-muted); font-size: 0.94rem; margin: 0; }
+
+/* ---- enquiry form ---- */
+.sa-form-section { background: var(--color-hero-ink); }
+.sa-form-wrap {
+  display: grid; grid-template-columns: 0.9fr 1.1fr; gap: 3.5rem; align-items: start;
+}
+.sa-form-intro .dpage-title, .sa-form-intro .dpage-eyebrow-sm { color: #fff; }
+.sa-form-intro .dpage-section-lead { color: rgba(255, 255, 255, 0.82); }
+.sa-form-intro .dpage-eyebrow-sm { color: rgba(255, 255, 255, 0.7); }
+.sa-form-intro .dpage-checks li { color: rgba(255, 255, 255, 0.9); }
+.sa-form-intro .dpage-checks li > span { color: #fff; }
+/* The outlined heading treatment is drawn in navy; on navy it would vanish */
+.sa-form-intro .h-outline { -webkit-text-stroke-color: #fff; }
+
+.sa-form {
+  background: #fff; border-radius: 20px; padding: 2rem;
+  display: grid; gap: 1.15rem;
+}
+.sa-field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.15rem; }
+.sa-field { display: grid; gap: 0.45rem; border: none; padding: 0; margin: 0; min-width: 0; }
+.sa-field > span, .sa-field legend {
+  color: var(--color-hero-ink); font-weight: 600; font-size: 0.88rem; padding: 0;
+}
+.sa-field input, .sa-field select {
+  width: 100%; font: inherit; font-size: 0.95rem; color: var(--color-text);
+  background: #f4f7fb; border: 1px solid transparent; border-radius: 10px;
+  padding: 0.7rem 0.9rem;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+.sa-field input:focus, .sa-field select:focus {
+  outline: none; background: #fff; border-color: var(--color-hero-red);
+}
+/* The country code is fixed, so it is furniture rather than an input */
+.sa-phone {
+  display: flex; align-items: center; gap: 0.55rem;
+  background: #f4f7fb; border: 1px solid transparent; border-radius: 10px;
+  padding-left: 0.9rem; transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+.sa-phone:focus-within { background: #fff; border-color: var(--color-hero-red); }
+.sa-phone > span { color: var(--color-muted); font-size: 0.95rem; }
+.sa-phone input { background: transparent; border: none; padding-left: 0; }
+.sa-phone input:focus { background: transparent; }
+.sa-hint { color: var(--color-muted); font-size: 0.82rem; margin: -0.2rem 0 0.15rem; }
+
+/* Checkboxes styled as chips — a multi-select listbox is miserable on a
+   phone, and there are only six options. The real input stays in the DOM
+   for keyboard and screen-reader users; it is just moved out of sight. */
+.sa-chips { display: flex; flex-wrap: wrap; gap: 0.55rem; }
+.sa-chips label {
+  display: inline-flex; align-items: center; cursor: pointer;
+  border: 1px solid var(--color-border); border-radius: 999px;
+  padding: 0.5rem 1rem; font-size: 0.9rem; color: var(--color-hero-ink);
+  transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+}
+.sa-chips label:hover { border-color: var(--color-hero-red); }
+.sa-chips label.is-on {
+  background: var(--color-hero-red); border-color: var(--color-hero-red); color: #fff;
+}
+.sa-chips input {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+.sa-chips label:focus-within {
+  outline: 2px solid var(--color-hero-red); outline-offset: 2px;
+}
+
+.sa-submit {
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.6rem;
+  margin-top: 0.35rem; padding: 0.9rem 1.6rem;
+  background: var(--color-hero-red); color: #fff;
+  font: inherit; font-weight: 700; font-size: 1rem;
+  border: none; border-radius: 999px; cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+.sa-submit:hover:not(:disabled) { background: var(--color-hero-ink); transform: translateY(-2px); }
+.sa-submit:disabled { opacity: 0.65; cursor: not-allowed; }
+.sa-submit svg { transition: transform 0.2s ease; }
+.sa-submit:hover:not(:disabled) svg { transform: translateX(3px); }
+/* Holds its line whether or not there is a message, so submitting does not
+   shunt the form around underneath the pointer. */
+.sa-status { min-height: 1.4rem; margin: 0; font-size: 0.9rem; }
+.sa-status .is-good { color: var(--color-success); font-weight: 600; }
+.sa-status .is-bad { color: var(--color-danger); font-weight: 600; }
+
+@media (max-width: 1024px) {
+  .sa-credentials { grid-template-columns: repeat(2, 1fr); }
+  .dpage-cards { grid-template-columns: repeat(2, 1fr); }
+  .sa-form-wrap { grid-template-columns: 1fr; gap: 2.5rem; }
+}
+@media (max-width: 860px) {
+  .sa-support { grid-template-columns: 1fr; gap: 1.5rem; }
+}
+@media (max-width: 560px) {
+  .sa-credentials { grid-template-columns: 1fr; }
+  .dpage-cards { grid-template-columns: 1fr; }
+  .sa-field-row { grid-template-columns: 1fr; }
+  .sa-form { padding: 1.35rem; }
+}

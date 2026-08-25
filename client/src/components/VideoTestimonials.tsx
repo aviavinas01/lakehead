@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from "react";
-import api from "../api/client";
+import { useRef, useState } from "react";
 import type { YouTubeVideo } from "../types/api";
+import { useYouTubeFeed } from "../hooks/useYouTubeFeed";
 
 /**
  * The videos in the "Your Success Story Starts Here" row.
@@ -30,10 +30,6 @@ import type { YouTubeVideo } from "../types/api";
  * own code, and loading several of those on a page nobody has clicked yet is
  * the quickest way to ruin the home page.
  */
-/* Widening gaps, in ms. Covers the window around a redeploy where the API
-   is reachable but not yet answering. */
-const RETRY_DELAYS = [1200, 3500, 9000];
-
 const PlayIcon = () => (
   <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
     <path d="M8 5.5v13l11-6.5z" />
@@ -105,41 +101,11 @@ function YouTubeCard({
 }
 
 export default function VideoTestimonials() {
-  const [tube, setTube] = useState<YouTubeVideo[]>([]);
+  /* Shared with the testimonial row on the Study Abroad page — same
+     retry behaviour, same no-fallback rule. */
+  const tube = useYouTubeFeed("stories");
   const [activeId, setActiveId] = useState<string | null>(null);
   const track = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    let timer: number | undefined;
-
-    /* Retries rather than giving up on the first failure. The seconds around
-       a redeploy are exactly when the API is reachable but not yet ready,
-       and without this the row would stay empty until someone reloaded. */
-    const load = async (attempt = 0) => {
-      try {
-        const { data } = await api.get<{ videos: YouTubeVideo[] }>(
-          "/youtube/videos",
-          { quiet: true }
-        );
-        if (cancelled) return;
-        if (data.videos.length > 0) {
-          setTube(data.videos);
-          return;
-        }
-      } catch {
-        /* falls through to the retry below */
-      }
-      if (cancelled || attempt >= RETRY_DELAYS.length) return;
-      timer = window.setTimeout(() => void load(attempt + 1), RETRY_DELAYS[attempt]);
-    };
-
-    void load();
-    return () => {
-      cancelled = true;
-      window.clearTimeout(timer);
-    };
-  }, []);
 
   /* The arrows turn the shelf over a page at a time — however many cards
      are on screen at this width — rather than nudging along by one. */
