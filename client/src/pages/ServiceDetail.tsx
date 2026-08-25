@@ -26,13 +26,6 @@ export default function ServiceDetail() {
     };
   }, [service]);
 
-  /* Scrolled to the top on every change, because moving between two of these
-     pages swaps the content underneath a scroll position that no longer
-     means anything. */
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [slug]);
-
   if (!service) return <Navigate to="/services" replace />;
 
   const others = SERVICES.filter((s) => s.slug !== service.slug);

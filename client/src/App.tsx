@@ -1,5 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 import Layout from "./components/Layout";
+import ScrollManager from "./components/ScrollManager";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Home from "./pages/Home";
 import About from "./pages/About";
@@ -24,42 +25,46 @@ import MediaLibrary from "./pages/admin/MediaLibrary";
 
 export default function App() {
   return (
-    <Routes>
-      <Route element={<Layout />}>
-        <Route path="/" element={<Home />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/services" element={<Services />} />
-        <Route path="/services/:slug" element={<ServiceDetail />} />
-        <Route path="/study-abroad" element={<StudyAbroad />} />
-        <Route path="/study-in-australia" element={<StudyInAustralia />} />
-        <Route path="/study-in-canada" element={<StudyInCanada />} />
-        <Route path="/study-in-uk" element={<StudyInUK />} />
-        <Route path="/study-in-usa" element={<StudyInUSA />} />
-        <Route path="/study-in-new-zealand" element={<StudyInNewZealand />} />
-        <Route path="/study-in-south-korea" element={<StudyInSouthKorea />} />
-        <Route path="/blog" element={<Blog />} />
-        <Route path="/blog/:slug" element={<BlogPost />} />
-        <Route path="/contact" element={<Contact />} />
-      </Route>
+    <>
+      {/* Owns scroll position across every route — see the component */}
+      <ScrollManager />
+      <Routes>
+        <Route element={<Layout />}>
+          <Route path="/" element={<Home />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/services" element={<Services />} />
+          <Route path="/services/:slug" element={<ServiceDetail />} />
+          <Route path="/study-abroad" element={<StudyAbroad />} />
+          <Route path="/study-in-australia" element={<StudyInAustralia />} />
+          <Route path="/study-in-canada" element={<StudyInCanada />} />
+          <Route path="/study-in-uk" element={<StudyInUK />} />
+          <Route path="/study-in-usa" element={<StudyInUSA />} />
+          <Route path="/study-in-new-zealand" element={<StudyInNewZealand />} />
+          <Route path="/study-in-south-korea" element={<StudyInSouthKorea />} />
+          <Route path="/blog" element={<Blog />} />
+          <Route path="/blog/:slug" element={<BlogPost />} />
+          <Route path="/contact" element={<Contact />} />
+        </Route>
 
-      <Route path="/admin/login" element={<Login />} />
-      <Route element={<ProtectedRoute />}>
-        <Route path="/admin" element={<Dashboard />} />
-        <Route path="/admin/posts/new" element={<PostEditor />} />
-        <Route path="/admin/posts/:id/edit" element={<PostEditor />} />
-        <Route path="/admin/media" element={<MediaLibrary />} />
-        <Route path="/admin/inquiries" element={<Inquiries />} />
-        <Route path="/admin/users" element={<Users />} />
-      </Route>
+        <Route path="/admin/login" element={<Login />} />
+        <Route element={<ProtectedRoute />}>
+          <Route path="/admin" element={<Dashboard />} />
+          <Route path="/admin/posts/new" element={<PostEditor />} />
+          <Route path="/admin/posts/:id/edit" element={<PostEditor />} />
+          <Route path="/admin/media" element={<MediaLibrary />} />
+          <Route path="/admin/inquiries" element={<Inquiries />} />
+          <Route path="/admin/users" element={<Users />} />
+        </Route>
 
-      <Route
-        path="*"
-        element={
-          <div className="container section">
-            <h1>404 — Page not found</h1>
-          </div>
-        }
-      />
-    </Routes>
+        <Route
+          path="*"
+          element={
+            <div className="container section">
+              <h1>404 — Page not found</h1>
+            </div>
+          }
+        />
+      </Routes>
+    </>
   );
 }
