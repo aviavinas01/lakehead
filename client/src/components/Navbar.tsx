@@ -277,6 +277,11 @@ export default function Navbar() {
   const activeSub = activeMenu?.menu.links.find(
     (l) => l.label === openSub && !!l.children?.length
   );
+  /* Whether this panel has a second level AT ALL — not whether one is open.
+     The column it needs is reserved from the moment the panel appears, so
+     the list beside it never shifts when the second level comes and goes.
+     Panels with no children keep the original two-column layout. */
+  const canSub = !!activeMenu?.menu.links.some((l) => l.children?.length);
 
   /* A navigation always dismisses the menus */
   useEffect(() => {
@@ -380,7 +385,7 @@ export default function Navbar() {
             open item's heading and blurb beside its list of sections. */}
         {activeMenu && (
           <div className="mega-panel" id={`menu-${slug(activeMenu.label)}`}>
-            <div className="container mega-inner">
+            <div className={`container mega-inner${canSub ? " can-sub" : ""}`}>
               <div className="mega-copy">
                 <h3 className="mega-title">
                   {activeMenu.menu.title}{" "}

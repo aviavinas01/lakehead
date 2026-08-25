@@ -5,7 +5,7 @@ import { Check, Arrow, Shot } from "../components/destinationBits";
 import { SERVICES, findService } from "../data/services";
 
 /**
- * One page, six services. The route is /services/:slug and everything on the
+ * One page, every service. The route is /services/:slug and everything on the
  * page comes from data/services.ts — so a new service needs an entry there
  * and nothing else.
  *

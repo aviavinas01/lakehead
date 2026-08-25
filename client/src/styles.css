@@ -219,6 +219,13 @@ img { max-width: 100%; display: block; }
   display: grid; grid-template-columns: 1fr 1fr; gap: 3rem;
   padding-top: 2.75rem; padding-bottom: 2.75rem;
 }
+/* A panel that HAS a second level reserves the column for it permanently —
+   whether or not anything is open in it. Switching the track count on hover
+   is what made the services list jump sideways under the pointer: three
+   columns share the same fixed width differently from two, so every column
+   after the first moves. Holding the layout still and simply filling the
+   third track later costs an empty column and nothing else. */
+.mega-inner.can-sub { grid-template-columns: 1fr 0.85fr 1.05fr; gap: 2.5rem; }
 .mega-title {
   font-size: clamp(1.6rem, 2.4vw, 2.2rem); font-weight: 800;
   color: var(--color-text); margin-bottom: 0.9rem;
@@ -1634,9 +1641,15 @@ a.greview-author:hover { text-decoration: underline; }
   .nav-links.open { display: flex; }
   .nav-item { width: 100%; }
   /* Dropdown stacks: blurb above the links, no divider rule */
-  .mega-inner { grid-template-columns: 1fr; gap: 1.5rem;
+  .mega-inner, .mega-inner.can-sub { grid-template-columns: 1fr; gap: 1.5rem;
     padding-top: 1.75rem; padding-bottom: 1.75rem; }
   .mega-list { padding-left: 0; border-left: none; }
+  /* Stacked, the second level reads as an indented continuation of its
+     parent rather than a column beside it. */
+  .mega-sub {
+    padding-left: 1.1rem; border-left: 2px solid var(--color-hero-red);
+    margin-left: 0.6rem;
+  }
   .mega-panel { max-height: 70vh; overflow-y: auto; }
   /* Hero stacks: copy on top, orbit visual below */
   .hero-inner { grid-template-columns: 1fr; gap: 2rem; padding-top: 2.5rem; }
@@ -2261,6 +2274,42 @@ a.greview-author:hover { text-decoration: underline; }
 .dpage-card-more svg { transition: transform 0.2s ease; }
 .dpage-card:hover .dpage-card-more svg { transform: translateX(4px); }
 
+/* The expanded name under a test's short one — small, quiet, and not
+   competing with the blurb below it. */
+.test-full {
+  color: var(--color-muted); font-size: 0.78rem; font-weight: 600;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  margin: -0.15rem 0 0.6rem !important;
+}
+.dpage-hero .test-full-hero {
+  color: rgba(255, 255, 255, 0.72); font-size: 0.85rem; font-weight: 600;
+  letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 1.1rem;
+}
+
+/* The second level of the Student Services dropdown. It sits as a third
+   column inside the panel rather than floating over it: the panel already
+   spans the page, so there is room, and a column cannot be pushed off the
+   screen edge the way an absolutely positioned flyout can. */
+/* Two columns, so nine tests come to five rows rather than nine and the
+   panel never grows taller than the menu it hangs from. */
+.mega-sub {
+  list-style: none; margin: 0; padding: 0 0 0 2rem;
+  border-left: 1px solid var(--color-border);
+  display: grid; grid-template-columns: 1fr 1fr;
+  align-content: start; gap: 0.15rem 0.5rem;
+}
+.mega-sub a {
+  display: block; padding: 0.5rem 0.75rem; border-radius: 8px;
+  color: var(--color-text); font-size: 0.94rem;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+.mega-sub a:hover { background: var(--color-surface); color: var(--color-hero-red); }
+/* The parent entry stays lit while its children are showing, so it is clear
+   which of them the second column belongs to. */
+.mega-list a.is-open { color: var(--color-hero-red); }
+.mega-list a.is-open svg { transform: translateX(2px); }
+.mega-list a svg { transition: transform 0.15s ease; }
+
 /* The breadcrumb sits in the eyebrow slot on a service page, over the photo */
 .svc-crumb { color: inherit; }
 .svc-crumb:hover { text-decoration: underline; text-underline-offset: 3px; }
@@ -2374,4 +2423,319 @@ a.greview-author:hover { text-decoration: underline; }
   .dpage-cards { grid-template-columns: 1fr; }
   .sa-field-row { grid-template-columns: 1fr; }
   .sa-form { padding: 1.35rem; }
+}
+
+/* ============================================================
+   Visa Guidance (pages/VisaGuidance.tsx) — four stages that
+   reveal one at a time as you scroll, with a dashed connector
+   drawn between them.
+   ============================================================ */
+.vg-steps { margin-top: 3rem; }
+
+.vg-step {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 3.5rem; align-items: center;
+  /* Where each stage starts before it arrives. `is-in` is added by the
+     observer in the component and never removed, so scrolling back up does
+     not replay the page. */
+  opacity: 0;
+  transition:
+    opacity 0.7s ease,
+    transform 0.7s cubic-bezier(0.22, 0.9, 0.28, 1);
+}
+.vg-step .vg-shot { transform: translateX(-40px); }
+.vg-step .vg-copy { transform: translateY(28px); }
+.vg-shot, .vg-copy {
+  transition: transform 0.75s cubic-bezier(0.22, 0.9, 0.28, 1);
+}
+/* The copy follows the image in by a beat, so the eye lands on the picture
+   and then reads — rather than both sliding at once and competing. */
+.vg-step .vg-copy { transition-delay: 0.12s; }
+.vg-step.is-in { opacity: 1; }
+.vg-step.is-in .vg-shot, .vg-step.is-in .vg-copy { transform: none; }
+
+/* Alternating sides, so the sequence zig-zags down the page instead of
+   marching straight.
+ *
+ * Counted on the WRAPPER, never on .vg-step itself. Every stage after the
+ * first has a connector rendered before it, which makes .vg-step the second
+ * child of its wrapper from stage two onward — so `.vg-step:nth-child(even)`
+ * matches stages 2, 3 AND 4 and the alternation dies after the first swap.
+ * The wrapper's own index is the one that actually tracks the stage. */
+.vg-steps > div:nth-child(even) .vg-shot {
+  order: 2; transform: translateX(40px);
+}
+.vg-steps > div:nth-child(even) .vg-step.is-in .vg-shot { transform: none; }
+
+.vg-shot {
+  margin: 0; border-radius: 20px; overflow: hidden;
+  aspect-ratio: 4 / 3;
+  box-shadow: 0 22px 50px rgba(23, 39, 92, 0.16);
+}
+.vg-shot img, .vg-shot .dpage-shot-empty {
+  width: 100%; height: 100%; object-fit: cover;
+}
+.vg-n {
+  display: block; font-family: var(--font-display); font-weight: 800;
+  font-size: 2.6rem; line-height: 1; letter-spacing: 0;
+  color: transparent; -webkit-text-stroke: 2px rgba(23, 39, 92, 0.2);
+  margin-bottom: 0.75rem;
+}
+.vg-copy h3 {
+  color: var(--color-hero-ink); font-size: clamp(1.4rem, 2.2vw, 1.9rem);
+  margin-bottom: 0.8rem;
+}
+.vg-copy p { color: var(--color-muted); font-size: 1.02rem; line-height: 1.75; }
+
+/* The join between one stage and the next. Decorative, and the first stage
+   does not get one — see the `i > 0` guard in the component. */
+.vg-connector { height: clamp(70px, 9vw, 120px); }
+.vg-connector svg { width: 100%; height: 100%; display: block; }
+.vg-connector path {
+  fill: none; stroke: var(--color-hero-red); stroke-width: 2;
+  stroke-dasharray: 7 9; stroke-linecap: round; opacity: 0.45;
+  vector-effect: non-scaling-stroke;
+}
+/* Mirrored on alternate joins, so the line always runs toward the side the
+   next image is on. */
+.vg-steps > div:nth-child(even) .vg-connector svg { transform: scaleX(-1); }
+
+@media (max-width: 860px) {
+  /* Stacked, the image leads and the copy follows underneath; everything
+     rises from below rather than in from the side, because there is no
+     side to come in from. */
+  .vg-step { grid-template-columns: 1fr; gap: 1.5rem; }
+  .vg-steps > div:nth-child(even) .vg-step .vg-shot,
+  .vg-step .vg-shot { order: 0; transform: translateY(28px); }
+  .vg-steps > div:nth-child(even) .vg-step.is-in .vg-shot { transform: none; }
+  .vg-connector { height: 56px; }
+  .vg-connector svg { width: 60%; margin-inline: auto; }
+}
+
+/* ============================================================
+   Career Counselling (pages/CareerCounselling.tsx).
+   The typography does more work here than anywhere else on the
+   site, deliberately — this is the page for students who have
+   not decided anything, and it should read as an invitation.
+   Only one typeface is loaded, so the play comes from weight,
+   size, colour and stroke rather than from mixing families.
+   ============================================================ */
+
+/* ---- hero headline: three treatments, one line ---- */
+.cc-title { display: grid; gap: 0.1em; margin-bottom: 1.4rem; }
+.cc-title span { display: block; line-height: 1.02; }
+.cc-thin {
+  font-weight: 300; font-size: clamp(1.8rem, 3.2vw, 2.9rem);
+  letter-spacing: -0.01em; color: rgba(255, 255, 255, 0.86);
+}
+.cc-fat {
+  font-weight: 800; font-size: clamp(3rem, 6.4vw, 5.4rem);
+  letter-spacing: -0.045em; color: #fff;
+}
+.cc-accent {
+  font-weight: 800; font-size: clamp(2.2rem, 4.2vw, 3.6rem);
+  letter-spacing: -0.03em; color: var(--color-hero-red);
+  /* Nudged in so the three lines step across rather than stacking flush —
+     the eye follows the indent down instead of reading a block. */
+  padding-left: clamp(0.5rem, 4vw, 3.5rem);
+}
+
+/* Section headings on this page mix a filled word, an outlined word and an
+   accent word, so they need the tracking the outline treatment wants. */
+.cc-h2 { letter-spacing: -0.02em; max-width: 26ch; }
+.cc-h2 .h-outline { letter-spacing: 0; }
+
+/* ---- the five steps ---- */
+.cc-steps { margin-top: 3.5rem; display: grid; gap: clamp(3rem, 6vw, 5rem); }
+.cc-step {
+  position: relative;
+  display: grid; grid-template-columns: 0.85fr 1fr;
+  gap: clamp(2rem, 4vw, 3.5rem); align-items: center;
+  opacity: 0; transform: translateY(34px);
+  transition:
+    opacity 0.7s ease,
+    transform 0.7s cubic-bezier(0.22, 0.9, 0.28, 1);
+}
+.cc-step.is-in { opacity: 1; transform: none; }
+/* Staggered rather than aligned: each step sits a little further in than the
+   last, then comes back out. Keeps a long column from marching.
+
+   Counted on a repeating four-step cycle rather than on fixed positions, so
+   the rhythm holds however many steps the page ends up with — adding one to
+   the array in the component needs nothing here. */
+.cc-step:nth-child(4n + 2),
+.cc-step:nth-child(4n + 4) { margin-left: clamp(0rem, 4vw, 3.5rem); }
+.cc-step:nth-child(4n + 3) { margin-left: clamp(0rem, 7vw, 6rem); }
+
+.cc-shot {
+  margin: 0; border-radius: 22px; overflow: hidden; aspect-ratio: 5 / 4;
+  box-shadow: 0 20px 46px rgba(23, 39, 92, 0.15);
+}
+.cc-shot img, .cc-shot .dpage-shot-empty {
+  width: 100%; height: 100%; object-fit: cover;
+  transition: transform 0.6s cubic-bezier(0.22, 0.9, 0.28, 1);
+}
+.cc-step:hover .cc-shot img { transform: scale(1.04); }
+
+/* The numeral sits behind the image, half off its corner — big enough to be
+   a graphic rather than a label, and outlined so it never fights the copy. */
+.cc-step-n {
+  position: absolute; left: -0.35em; top: -0.5em; z-index: -1;
+  font-family: var(--font-display); font-weight: 800;
+  font-size: clamp(5rem, 11vw, 9.5rem); line-height: 1;
+  letter-spacing: 0; color: transparent;
+  -webkit-text-stroke: 2px rgba(23, 39, 92, 0.14);
+}
+.cc-kicker {
+  color: var(--color-hero-red); font-size: 0.78rem; font-weight: 700;
+  letter-spacing: 0.16em; text-transform: uppercase; margin-bottom: 0.7rem;
+}
+.cc-body h3 {
+  color: var(--color-hero-ink);
+  font-size: clamp(1.5rem, 2.6vw, 2.1rem); letter-spacing: -0.025em;
+  line-height: 1.15; margin-bottom: 0.85rem;
+}
+.cc-body p { color: var(--color-muted); font-size: 1.02rem; line-height: 1.75; }
+
+/* ---- the nine reasons ----
+   Titles only, so the numeral carries the weight and the phrase sits under
+   it. Auto-fit rather than a fixed count: nine into three at desktop, two at
+   tablet, one on a phone, without a breakpoint for each. */
+.cc-why {
+  list-style: none; margin: 2.5rem 0 0; padding: 0;
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.75rem 2rem;
+}
+.cc-why li {
+  padding-top: 1.1rem; border-top: 2px solid var(--color-border);
+  transition: border-color 0.25s ease;
+}
+.cc-why li:hover { border-top-color: var(--color-hero-red); }
+.cc-why-n {
+  display: block; font-family: var(--font-display); font-weight: 800;
+  font-size: 2.1rem; line-height: 1; letter-spacing: 0;
+  color: transparent; -webkit-text-stroke: 1.5px var(--color-hero-red);
+  margin-bottom: 0.5rem;
+}
+.cc-why h3 {
+  color: var(--color-hero-ink); font-size: 1.05rem;
+  line-height: 1.35; margin: 0;
+}
+
+/* ---- the testing process ---- */
+.cc-process {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 1.5rem; margin: 2.5rem 0 3.5rem;
+}
+.cc-process-item {
+  background: #fff; border-radius: 16px; padding: 1.6rem 1.5rem;
+  border-bottom: 3px solid var(--color-hero-red);
+}
+.cc-process-n {
+  display: block; font-family: var(--font-display); font-weight: 800;
+  font-size: 1.5rem; line-height: 1; color: var(--color-hero-red);
+  margin-bottom: 0.6rem;
+}
+.cc-process-item h3 {
+  color: var(--color-hero-ink); font-size: 1.1rem; margin-bottom: 0.4rem;
+}
+.cc-process-item p { color: var(--color-muted); font-size: 0.94rem; margin: 0; }
+.cc-report { align-items: start; }
+
+/* ---- the pull quote ---- */
+.cc-quote {
+  background: var(--color-hero-ink); color: #fff;
+  padding: clamp(3.5rem, 8vw, 6rem) 0; text-align: center;
+}
+.cc-quote p {
+  font-family: var(--font-display); font-weight: 800;
+  font-size: clamp(1.9rem, 5vw, 3.6rem); line-height: 1.12;
+  letter-spacing: -0.035em; max-width: 22ch;
+  margin: 0 auto 1rem;
+}
+/* No italic is loaded for this family, so emphasis is drawn rather than
+   slanted — an underline the width of the words, in the accent colour. */
+.cc-quote em {
+  font-style: normal; color: var(--color-hero-red);
+  box-shadow: inset 0 -0.14em 0 rgba(224, 35, 78, 0.35);
+}
+.cc-quote span {
+  display: block; color: rgba(255, 255, 255, 0.68);
+  font-size: 1rem; letter-spacing: 0.02em;
+}
+
+@media (max-width: 860px) {
+  .cc-step {
+    grid-template-columns: 1fr; gap: 1.5rem;
+    /* The stagger is a wide-screen device; stacked, it would just look like
+       inconsistent margins. */
+    margin-left: 0 !important;
+  }
+  .cc-step-n { font-size: 4.5rem; left: -0.1em; top: -0.35em; }
+  .cc-title { gap: 0.15em; }
+  .cc-accent { padding-left: 0; }
+}
+
+/* ============================================================
+   Student Accommodation (pages/StudentAccommodation.tsx).
+   Four housing cards that reveal on scroll, then two numbered
+   columns. Deliberately a different shape from the visa page's
+   alternating rows and the career page's staggered steps — the
+   service pages share components, not layouts.
+   ============================================================ */
+
+.acc-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr);
+  gap: 2rem; margin-top: 3rem;
+}
+.acc-card {
+  display: grid; grid-template-rows: auto 1fr;
+  background: #fff; border-radius: 20px; overflow: hidden;
+  box-shadow: 0 14px 34px rgba(23, 39, 92, 0.1);
+  opacity: 0; transform: translateY(30px);
+  transition:
+    opacity 0.65s ease,
+    transform 0.65s cubic-bezier(0.22, 0.9, 0.28, 1),
+    box-shadow 0.3s ease;
+}
+.acc-card.is-in { opacity: 1; transform: none; }
+/* The second of each pair follows the first in, so a row arrives as a
+   sentence rather than a slab. */
+.acc-card:nth-child(even) { transition-delay: 0.1s; }
+.acc-card:hover { box-shadow: 0 26px 56px rgba(23, 39, 92, 0.18); }
+.acc-card-shot { aspect-ratio: 16 / 9; overflow: hidden; }
+.acc-card-shot img, .acc-card-shot .dpage-shot-empty {
+  width: 100%; height: 100%; object-fit: cover;
+  transition: transform 0.6s cubic-bezier(0.22, 0.9, 0.28, 1);
+}
+.acc-card:hover .acc-card-shot img { transform: scale(1.05); }
+.acc-card-body { padding: 1.75rem; }
+.acc-card-body h3 {
+  color: var(--color-hero-ink); font-size: 1.3rem;
+  letter-spacing: -0.02em; margin-bottom: 0.6rem;
+}
+.acc-card-body p { color: var(--color-muted); font-size: 0.97rem; line-height: 1.7; margin: 0; }
+
+/* ---- the two numbered columns ---- */
+.acc-two { display: grid; grid-template-columns: 1fr 1fr; gap: 3.5rem; align-items: start; }
+.acc-list { list-style: none; margin: 1.5rem 0 0; padding: 0; display: grid; gap: 1.6rem; }
+.acc-list li { display: grid; grid-template-columns: auto 1fr; gap: 1rem; align-items: start; }
+.acc-n {
+  font-family: var(--font-display); font-weight: 800; font-size: 1.4rem;
+  line-height: 1.2; letter-spacing: 0; color: transparent;
+  -webkit-text-stroke: 1.5px var(--color-hero-red);
+}
+.acc-list h3 {
+  color: var(--color-hero-ink); font-size: 1.08rem; margin-bottom: 0.3rem;
+}
+.acc-list p { color: var(--color-muted); font-size: 0.95rem; line-height: 1.7; margin: 0; }
+
+@media (max-width: 1024px) {
+  .acc-two { grid-template-columns: 1fr; gap: 2.5rem; }
+}
+@media (max-width: 720px) {
+  .acc-grid { grid-template-columns: 1fr; gap: 1.5rem; }
+  /* Stacked, a delay on alternate cards just looks like lag. */
+  .acc-card:nth-child(even) { transition-delay: 0s; }
+  .acc-card-body { padding: 1.35rem; }
 }

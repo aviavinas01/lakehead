@@ -80,9 +80,9 @@ export default function Services() {
             What we <span className="h-outline">do</span>
           </h2>
           <p className="dpage-section-lead">
-            Six services, each with a page of its own. Take them in sequence or
+            Each of these has a page of its own. Take them in sequence, or
             come to us for the one part you are stuck on — most students do
-            both at different stages.
+            both, at different stages.
           </p>
           <div className="dpage-cards">
             {SERVICES.map((s) => (

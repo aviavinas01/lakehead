@@ -1,5 +1,5 @@
 /**
- * The six student services, and the single source of truth for them.
+ * The student services, and the single source of truth for them.
  *
  * Everything reads from here: the hub page at /services, each detail page at
  * /services/<slug>, and the navbar's Student Services dropdown. Adding a
@@ -31,12 +31,20 @@ export interface Service {
   includes: string[];
   /** Sits above the closing call to action */
   closing: string;
+  /** Set false to keep a service out of the navbar dropdown. The page and
+      its card on the hub stay — this only affects the nav. */
+  inNav?: boolean;
 }
 
 export const SERVICES: Service[] = [
   {
     slug: "study-abroad-counselling",
     title: "Study Abroad Counselling",
+    /* Kept out of the dropdown: the Study Abroad section covers this ground
+       already, and listing it twice in the nav invites the question of how
+       the two differ. The page itself still exists and is still linked from
+       the services hub. */
+    inNav: false,
     summary: "Where to go, what to study, and whether it fits the life you want after.",
     image: "/services/counselling.jpg",
     intro:
@@ -69,8 +77,29 @@ export const SERVICES: Service[] = [
       "Sit the test roughly three months before your deadline. That single decision leaves room for everything else to go slightly wrong.",
   },
   {
+    slug: "test-booking",
+    title: "Test Booking",
+    summary: "Getting you a seat, on the right date, at the right centre.",
+    image: "/services/test-booking.jpg",
+    intro:
+      "Preparing is one job; actually getting a seat is another. Slots at the Kathmandu centres go quickly in the run-up to the big intakes, and students who wait until they feel ready often find the next available date is well past their application deadline. We book it for you, and we book it early.",
+    includes: [
+      "Choosing a test date that works backwards from your application deadline",
+      "Finding an available slot at a centre you can reach",
+      "Completing the registration and confirming your booking",
+      "Checking your ID details match the booking exactly, character for character",
+      "Sending your results to the institutions that need them",
+      "Rescheduling or transferring a booking when plans change",
+    ],
+    closing:
+      "One detail catches more students than anything else here: the name on your booking has to match your passport exactly. Get that wrong and you can be turned away at the door on the morning of the test, with the fee gone.",
+  },
+  {
     slug: "visa-guidance",
     title: "Visa Guidance",
+    /* Has a page of its own (pages/VisaGuidance.tsx) that outranks the
+       generic route, so only `title`, `summary` and `image` are read from
+       here — the fields below feed the hub card, not the page. */
     summary: "Documentation, financial evidence and preparation — handled carefully.",
     image: "/services/visa.jpg",
     intro:
@@ -88,6 +117,9 @@ export const SERVICES: Service[] = [
   {
     slug: "career-counselling",
     title: "Career Counselling",
+    /* Has a page of its own (pages/CareerCounselling.tsx) that outranks the
+       generic route, so only `title`, `summary` and `image` are read from
+       here — the fields below feed the hub card, not the page. */
     summary: "Choosing a course with the ten years after it in view, not just the three.",
     image: "/services/career.jpg",
     intro:
@@ -105,6 +137,9 @@ export const SERVICES: Service[] = [
   {
     slug: "student-accommodation",
     title: "Student Accommodation",
+    /* Has a page of its own (pages/StudentAccommodation.tsx) that outranks
+       the generic route, so only `title`, `summary` and `image` are read
+       from here — the fields below feed the hub card, not the page. */
     summary: "Somewhere to live from day one, arranged before you fly.",
     image: "/services/accommodation.jpg",
     intro:

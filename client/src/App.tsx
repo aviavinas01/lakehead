@@ -6,6 +6,11 @@ import Home from "./pages/Home";
 import About from "./pages/About";
 import Services from "./pages/Services";
 import ServiceDetail from "./pages/ServiceDetail";
+import TestPreparation from "./pages/TestPreparation";
+import TestDetail from "./pages/TestDetail";
+import VisaGuidance from "./pages/VisaGuidance";
+import CareerCounselling from "./pages/CareerCounselling";
+import StudentAccommodation from "./pages/StudentAccommodation";
 import StudyAbroad from "./pages/StudyAbroad";
 import StudyInAustralia from "./pages/StudyInAustralia";
 import StudyInCanada from "./pages/StudyInCanada";
@@ -33,6 +38,13 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
           <Route path="/services" element={<Services />} />
+          {/* Static paths outrank /services/:slug in React Router's ranking,
+              so these win for test-preparation regardless of order here. */}
+          <Route path="/services/test-preparation" element={<TestPreparation />} />
+          <Route path="/services/test-preparation/:test" element={<TestDetail />} />
+          <Route path="/services/visa-guidance" element={<VisaGuidance />} />
+          <Route path="/services/career-counselling" element={<CareerCounselling />} />
+          <Route path="/services/student-accommodation" element={<StudentAccommodation />} />
           <Route path="/services/:slug" element={<ServiceDetail />} />
           <Route path="/study-abroad" element={<StudyAbroad />} />
           <Route path="/study-in-australia" element={<StudyInAustralia />} />
