@@ -994,37 +994,62 @@ a.greview-author:hover { text-decoration: underline; }
   color: var(--color-hero-ink); font-size: clamp(2rem, 3.3vw, 2.9rem);
   letter-spacing: -0.02em; margin-bottom: 2.25rem;
 }
-.uni-marquee { overflow: hidden; }
-.uni-track {
-  display: flex; width: max-content;
-  animation: uni-scroll 40s linear infinite;
+/* Partner logos as a staggered grid of tiles that hold their position and
+   flip to a different logo now and then. Replaced a marquee — see the
+   component for why.
+
+   Each row is stepped further right than the one above, which is what stops
+   three equal rows reading as a spreadsheet. The offsets are percentages of
+   the container, so the cascade holds its shape at every width. */
+.uni-grid { display: grid; gap: clamp(0.5rem, 1.2vw, 1rem); overflow: hidden; }
+.uni-row {
+  display: flex; gap: clamp(0.5rem, 1.2vw, 1rem);
+  justify-content: center;
 }
-@keyframes uni-scroll {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
+.uni-row:nth-child(1) { transform: translateX(-6%); }
+.uni-row:nth-child(3) { transform: translateX(6%); }
+
+/* No card chrome beyond a hairline. Each logo file is a white canvas, and
+   `multiply` drops that white to nothing against the pale band, so only the
+   mark itself shows. (This relies on .universities staying pale; on a dark
+   background the logos would vanish.) */
+.uni-tile {
+  flex: 0 0 auto;
+  width: clamp(74px, 9.5vw, 132px); aspect-ratio: 1 / 1;
+  display: grid; place-items: center; padding: 0.55rem;
+  background: #fff; border: 1px solid var(--color-border); border-radius: 12px;
+  overflow: hidden;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
 }
-/* No card chrome — the logos sit straight on the band. Each file is a white
-   canvas, and `multiply` drops white to nothing against a lighter backdrop,
-   so only the mark itself shows. (This relies on .universities staying pale;
-   on a dark background the logos would disappear.) */
-.uni-card {
-  position: relative; flex: 0 0 205px; height: 165px; margin-right: 1rem;
-  display: grid; place-items: center; overflow: hidden;
+.uni-tile:hover {
+  transform: translateY(-4px); border-color: transparent;
+  box-shadow: 0 14px 28px rgba(23, 39, 92, 0.14);
 }
-/* Every logo file is pre-trimmed and centred on a canvas of the card's own
-   proportions, with its breathing room baked in — so the image fills the
-   card exactly and each mark reads at a consistent size. */
-.uni-card > img { width: 100%; height: 100%; object-fit: contain; mix-blend-mode: multiply; }
-.uni-fallback { color: var(--color-muted); font-size: 0.82rem; text-align: center; padding: 0.6rem; }
-/* Campus-photo overlay shown on the other cards while one is hovered */
-.uni-photo {
-  position: absolute; inset: 0; z-index: 2; overflow: hidden;
-  border-radius: 12px; pointer-events: none; animation: uni-photo-in 0.35s ease;
+.uni-tile > img {
+  width: 100%; height: 100%; object-fit: contain; mix-blend-mode: multiply;
+  /* Replays whenever the tile's logo changes: the image is keyed on the
+     logo, so React remounts it and the animation runs again. */
+  animation: uni-flip 0.55s cubic-bezier(0.22, 0.9, 0.28, 1);
+  backface-visibility: hidden;
 }
-.uni-photo img { width: 100%; height: 100%; object-fit: cover; }
-@keyframes uni-photo-in {
-  from { opacity: 0; transform: scale(0.94); }
-  to { opacity: 1; transform: scale(1); }
+@keyframes uni-flip {
+  from { opacity: 0; transform: rotateX(-82deg) scale(0.9); }
+  60%  { opacity: 1; }
+  to   { opacity: 1; transform: rotateX(0) scale(1); }
+}
+.uni-fallback {
+  color: var(--color-muted); font-size: 0.7rem; line-height: 1.3;
+  text-align: center; padding: 0.3rem;
+}
+.uni-count {
+  text-align: center; color: var(--color-muted);
+  font-size: 0.9rem; margin-top: 1.75rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* The rotation is already switched off in the component; this stops the
+     initial mount from flipping every tile at once. */
+  .uni-tile > img { animation: none; }
 }
 
 /* ============================================================
@@ -1587,8 +1612,9 @@ a.greview-author:hover { text-decoration: underline; }
   .video-card { flex-basis: 88%; }
   .success-head { flex-direction: column; gap: 1rem; }
   .success-nav { padding-top: 0; }
-  /* University marquee: slightly smaller cards on mobile */
-  .uni-card { flex-basis: 160px; height: 130px; margin-right: 0.75rem; }
+  /* The cascade needs room to step; below this the rows sit square, and the
+     tile count drops instead (columnsFor in the component). */
+  .uni-row:nth-child(1), .uni-row:nth-child(3) { transform: none; }
   .testimonials-head { margin-bottom: 1.75rem; }
   /* Reviews: heading and score stack, cards go one-up */
   .greviews-head { flex-direction: column; gap: 1rem; }
