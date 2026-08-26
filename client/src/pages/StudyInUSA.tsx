@@ -1,188 +1,333 @@
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
+import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { PlaneIcon } from "../components/HeroOrbit";
-import { Check, Pin, Arrow, Shot } from "../components/destinationBits";
+import { Check, Arrow, Shot } from "../components/destinationBits";
 
 /**
- * Study in the USA — the fourth destination page. Section styles are shared
- * with the others under .dpage; only the content lives here.
+ * Study in the USA — the long-form guide, built from Lakehead's own master
+ * draft rather than from a competitor page.
  *
- * Same editorial rules as the rest: describe options and process, never
- * promise an outcome, and keep anything with a shelf life out of the prose.
+ * It is deliberately long: twenty-one sections, because the argument the
+ * copy makes is that choosing an American university is not one decision but
+ * eight. What makes that readable rather than punishing is the furniture —
+ * a sticky contents rail that tracks where you are, sections that arrive as
+ * you reach them, and recurring callouts that give the eye somewhere to
+ * rest. Take those away and this becomes a wall.
  *
- * The visa panel below was written from scratch rather than from the source
- * copy, which talked about "the USA student visa process" repeatedly without
- * once naming F-1, the I-20 or SEVIS. Those are the three things a student
- * actually has to understand, so they lead.
+ * Two prompts in the source are written as things to DO ("circle your top
+ * three priorities"), so they are actually interactive here. The shortlist
+ * check even keeps the joke: pick all eight and it tells you that you have
+ * invented a wish list.
+ *
+ * The copy hedges carefully throughout — "can", "may", "often", "check the
+ * current official requirements" — and that is not padding. Admission and
+ * visa rules differ by institution and change yearly, and this page names no
+ * fee, no score threshold and no success rate anywhere. Keep it that way.
  */
 
-/* ------------------------------------------------------------------
-   VOLATILE FACTS. US visa fees, SEVIS charges and interview requirements are
-   set federally and change; institutional insurance requirements change per
-   school. None of it is stated in the prose — it lives here, stamped and
-   sourced, so the page is corrected in one place.
+/* ---- section index, used for the contents rail and the anchors ---- */
+const SECTIONS = [
+  { id: "start", label: "Thinking about the USA?" },
+  { id: "young", label: "A young country" },
+  { id: "big", label: "America is big" },
+  { id: "culture", label: "American culture" },
+  { id: "types", label: "Types of university" },
+  { id: "ivy", label: "Ivy League?" },
+  { id: "choose", label: "How to choose" },
+  { id: "subjects", label: "Popular study areas" },
+  { id: "admissions", label: "Admissions" },
+  { id: "timing", label: "When to start" },
+  { id: "money", label: "Tuition" },
+  { id: "scholarships", label: "Scholarships" },
+  { id: "visa", label: "Student visa" },
+  { id: "work", label: "Working while studying" },
+  { id: "life", label: "Student life" },
+  { id: "housing", label: "Accommodation" },
+  { id: "safety", label: "Safety & health" },
+  { id: "career", label: "Careers" },
+  { id: "myths", label: "Myths" },
+  { id: "faq", label: "Questions we get" },
+  { id: "roadmap", label: "Your roadmap" },
+];
 
-   Re-check against the State Department and move `lastReviewed` when you do.
-   ------------------------------------------------------------------ */
-const REQUIREMENTS = {
-  lastReviewed: "August 2026",
-  source: {
-    label: "U.S. Department of State",
-    href: "https://travel.state.gov/content/travel/en/us-visas/study/student-visa.html",
-  },
-  items: [
-    { label: "Visa", value: "F-1 student visa", note: "M-1 for vocational and technical study" },
-    { label: "You need an I-20", value: "From an SEVP-certified school", note: "Issued once you accept your place" },
-    { label: "SEVIS fee", value: "Paid before your interview", note: "Separate from the visa fee" },
-    { label: "Application", value: "DS-160, then an interview", note: "In person at an embassy or consulate" },
-    { label: "Health insurance", value: "Required by most institutions", note: "Often a condition of enrolment" },
-  ],
-};
+const CULTURE = [
+  { title: "Speak up", text: "At many U.S. universities, students are encouraged to ask questions, share opinions and participate in discussions." },
+  { title: "Talk to professors", text: "Office hours are a normal way to ask questions, discuss assignments or seek academic guidance." },
+  { title: "Meet the world", text: "American campuses can be highly multicultural. Your classmates may come from many countries and backgrounds." },
+  { title: "Manage your time", text: "You may have more independence than you are used to. Freedom comes with responsibility for deadlines and coursework." },
+  { title: "Take academic integrity seriously", text: "Understand plagiarism, citations, collaboration rules and exam policies before you start." },
+  { title: "Ask for help", text: "Academic advisers, tutoring centres, writing centres and international student offices are there to support students." },
+];
 
-/* Living costs are given as ranges because they genuinely are ranges — the
-   gap between a shared dorm in the Midwest and a studio in Boston is the
-   whole point. Tuition is left out deliberately: see the note in the cost
-   section for why. */
-const LIVING = {
-  lastReviewed: "August 2026",
-  note: "Indicative annual costs, excluding tuition. Location moves every one of these lines considerably, so use them to compare options rather than as a budget.",
-  rows: [
-    { item: "General living — food, utilities, books, essentials", cost: "10,000 – 12,000 / year" },
-    { item: "On-campus accommodation (dorm)", cost: "5,000 – 8,000 / year" },
-    { item: "Off-campus accommodation", cost: "6,000 – 15,000 / year" },
-    { item: "Transport pass — bus and train", cost: "30 – 50 / month" },
-    { item: "Transport in total, all types", cost: "100 – 300 / month" },
-    { item: "Student health insurance", cost: "30 – 140 / month" },
-  ],
-};
-
-const REASONS = [
+const UNI_TYPES = [
   {
-    icon: "\u{1F3C6}",
-    title: "Universities near the top of every list",
-    text: "The US is home to a great many of the world's leading institutions, and a degree from one tends to set you apart from people who came up the same way you did. Highly accredited faculty, advanced technology and research facilities that are genuinely open to students.",
+    name: "Public Research Universities",
+    lead: "Think: big campus. Lots of programs. Lots of students. Lots happening.",
+    text: "These universities often have extensive research facilities, libraries, laboratories, graduate programs, athletics and huge student communities. They can be a great fit if you enjoy variety and want that classic big-campus experience.",
+    best: "Students who like plenty of choices and a busy campus.",
+    examples: [
+      "University of Texas at Arlington (UTA)", "University of South Florida (USF)",
+      "Arizona State University (ASU)", "University of Texas at Austin (UT Austin)",
+      "University of Illinois Urbana-Champaign (UIUC)", "Kent State University",
+      "St. Cloud State University", "University of Nebraska at Kearney (UNK)",
+      "University of Mississippi (Ole Miss)",
+    ],
+    image: "/usa/public-research.jpg",
   },
   {
-    icon: "\u{1F3DF}\u{FE0F}",
-    title: "Campus life is a place, not a timetable",
-    text: "American campuses run like small student towns — socialising and skill-building under the same roof as the teaching. It is not about burying yourself in books; appreciating the life outside the classroom is treated as part of the education.",
+    name: "Private Universities",
+    lead: "From colleges where your professor might actually know your name to massive research universities.",
+    text: "Some have smaller student populations, while others are very large. They may also offer institutional scholarships or financial aid, but prices can vary widely. So don't assume: private = expensive, public = cheap. Reality is a little more complicated.",
+    examples: [
+      "Northeastern University", "New York University (NYU)", "University of Southern California (USC)",
+      "Amherst College", "Harvard University", "Massachusetts Institute of Technology (MIT)",
+      "Stanford University", "Yale University", "Princeton University",
+      "University of Pennsylvania (UPenn)", "Columbia University", "Dartmouth College",
+      "Drexel University", "Rochester Institute of Technology (RIT)", "Caldwell University",
+      "Arkansas State University", "Chadron State College", "Youngstown State University",
+      "University of Central Missouri", "South Dakota State University",
+    ],
+    image: "/usa/private.jpg",
   },
   {
-    icon: "\u{1F9D1}\u{200D}\u{1F3EB}",
-    title: "Professors you can actually reach",
-    text: "Faculty are generally available after class — for academic help, for advice, or simply to take the weight off a course that has started to feel heavy. That accessibility surprises most international students.",
+    name: "Liberal Arts Colleges",
+    lead: "Think: fewer students, more interaction.",
+    text: "These institutions often focus heavily on undergraduate education, broad learning and close interaction with faculty. They can be excellent for students who prefer smaller classes and a more personal academic environment.",
+    examples: ["Williams College", "Amherst College", "Swarthmore College", "Pomona College", "Bowdoin College"],
+    image: "/usa/liberal-arts.jpg",
   },
   {
-    icon: "\u{1F6DF}",
-    title: "Support built into the campus",
-    text: "Student mentoring programmes, free shuttle services, team sports, health centres, career advisory services and accommodation officers. The infrastructure for settling in is already there, which makes integrating far less daunting.",
+    name: "Regional Universities",
+    lead: "It doesn't need to be famous on Instagram to be great for your course.",
+    text: "These universities often have strong undergraduate and professional programs and can offer a more community-focused campus experience. A university being less famous does not automatically mean it is less valuable for you.",
+    examples: [
+      "Rowan University", "Arcadia University", "Youngstown State University",
+      "University of Central Missouri", "Arkansas State University", "Minot State University",
+      "Eastern New Mexico University (ENMU)", "University of Wisconsin–Superior",
+      "Bemidji State University", "Chadron State College", "Northwest Missouri State University",
+      "West Texas A&M University", "Delta State University", "Morehead State University",
+      "Boise State University", "Idaho State University", "Lewis-Clark State College",
+    ],
+    image: "/usa/regional.jpg",
   },
   {
-    icon: "\u{1F3AC}",
-    title: "A culture you already know",
-    text: "American fashion, music and film have shaped a good deal of the world, and living inside that vibrant, active lifestyle is a large part of why students choose it. You will generally find Americans curious, friendly and funny.",
+    name: "Community Colleges",
+    lead: "Two-year programs, and a pathway toward a bachelor's degree.",
+    text: "Students considering this route should understand transfer agreements, academic requirements and total costs before enrolling.",
+    examples: ["Foothill College", "De Anza College", "Green River College", "Santa Monica College"],
+    image: "/usa/community.jpg",
   },
 ];
 
-const UNIVERSITIES = [
-  "University of Southern California",
-  "New York University",
-  "Boston University",
-  "Michigan State University",
-  "Ohio State University",
-  "Purdue University",
-  "Northwood University",
-  "Strayer University",
-  "National University",
+const IVY = [
+  "Brown University", "Columbia University", "Cornell University", "Dartmouth College",
+  "Harvard University", "Princeton University", "University of Pennsylvania", "Yale University",
 ];
 
-const COURSES = [
-  "Computer Science & IT",
-  "Engineering",
-  "Medicine",
-  "Business Management",
-  "Social Science",
-  "Life Science",
-  "Liberal Arts",
-  "Biotechnology",
-  "Architecture",
+const NEPALI_PICKS = [
+  "University of Texas at Arlington (UTA)", "St. Cloud State University",
+  "Minnesota State University, Mankato", "Arizona State University (ASU)",
+  "University of Texas at Dallas (UT Dallas)", "University of Idaho",
+  "University of Kansas", "Northern Arizona University",
 ];
 
-const INSTITUTION_TYPES = [
-  {
-    title: "Public universities",
-    text: "State-funded institutions, generally the larger campuses. Fees differ for international students and vary a great deal between states.",
-  },
-  {
-    title: "Private colleges",
-    text: "Independently funded, often smaller, and typically the most expensive option — though also the ones with the deepest financial-aid budgets.",
-  },
-  {
-    title: "Community colleges",
-    text: "Two-year institutions awarding certificates and associate degrees rather than bachelor's degrees. Substantially cheaper, and a serious option worth understanding properly.",
-  },
-  {
-    title: "The transfer route",
-    text: "An associate degree from a community college can count as the first half of a bachelor's degree, which you finish at a university — and go on to a master's from there. It is the single most effective way to cut the cost of a US degree.",
-  },
+const WHY_THESE = [
+  "Existing Nepali or South Asian student communities can make the first few months feel less unfamiliar.",
+  "Many students compare scholarships and overall cost, not just rankings.",
+  "STEM, business, engineering, computing and other career-focused programs attract a lot of interest.",
+  "Location matters too — some students prefer Texas or Arizona; others like quieter college towns or Midwestern campuses.",
 ];
 
-const SCHOLARSHIPS = [
-  "Fulbright Foreign Student Program",
-  "QS Undergraduate Scholarship",
-  "QS Leadership Scholarship",
-  "QS Leadership Scholarship for Excellence",
-  "Golden Key Graduate Scholar Award",
-  "IEFA Non-Government Scholarship",
+const CHOOSE_QUESTIONS = [
+  "What exactly do I want to study?",
+  "Do I need a specific specialisation?",
+  "Do I prefer a huge campus or a smaller community?",
+  "Do I want a big city, suburb, or college town?",
+  "What weather can I realistically handle?",
+  "What is my maximum realistic annual budget?",
+  "How much scholarship support would I need?",
+  "How strong is the university in my intended subject?",
+  "What internships, research, co-op or practical-learning opportunities are available?",
+  "What support does the university provide to international students?",
+  "What are the admission requirements and deadlines?",
+  "Does the university's location make sense for my career goals?",
 ];
 
-const APPLICATION_TYPES = [
-  {
-    title: "Early Decision",
-    text: "Binding. Deadlines usually fall between 1 and 15 November, roughly ten months before the course starts. It can improve your chances at some universities — but if you are accepted, you withdraw every other application.",
-  },
-  {
-    title: "Early Action",
-    text: "Not binding. The same early-November window, and you may apply to several colleges this way. You get an answer sooner without committing to anything.",
-  },
-  {
-    title: "Common Application",
-    text: "One online application submitted to hundreds of US colleges. It opens on 1 August, with deadlines running through January and sometimes as late as March.",
-  },
-  {
-    title: "Regular Application",
-    text: "Each university sets its own dates and you can apply to as many as you like within them. Decisions typically arrive between 1 January and 1 March.",
-  },
+const PRIORITIES = [
+  "Program strength", "Total cost", "Scholarship", "City/location",
+  "Campus size", "Research", "Internship opportunities", "International-student support",
 ];
 
-const CHOOSING = [
-  "Talk to admissions representatives, tour guides and faculty",
-  "Reach out to current students and ask what it is really like",
-  "Take a virtual campus tour where one is offered",
-  "Sit in on a class if you can, and see if the teaching style suits you",
-  "Read the student newspaper — activities, and what is being argued about",
-  "Check what health insurance the institution requires",
+const ADMISSIONS = [
+  "Academic transcripts and qualifications.",
+  "English-language proficiency evidence when required.",
+  "Standardised tests when required or considered.",
+  "Personal statements or essays for many applications.",
+  "Letters of recommendation for many programs.",
+  "Résumé/CV, portfolio or additional materials for certain programs.",
+  "Application fees where applicable.",
+];
+
+const SCHOLARSHIP_KINDS = [
+  { name: "Merit-based scholarships", text: "Often based on your academic performance. A strong GPA can help, and some universities may also consider scores such as the SAT or other standardised tests, where applicable." },
+  { name: "Need-based financial aid", text: "Some universities provide financial support based on a student's or family's financial situation. These can have specific eligibility rules and documentation requirements." },
+  { name: "Talent & achievement scholarships", text: "Good at sports, music, art, leadership, or something else that makes your application stand out? Some universities offer scholarships based on specific talents and achievements." },
+  { name: "The scholarship essay", text: "Sometimes your numbers get you noticed — but your essay helps tell your story. Achievements, goals, experiences, leadership and how well you present yourself can all play a role, depending on the scholarship." },
+];
+
+const WORK = [
+  { name: "On-campus jobs", text: "Eligible F-1 students can generally work up to 20 hours per week while classes are in session, and may be allowed to work more during official school breaks, subject to applicable rules. Think library, dining hall, campus office or other university facilities." },
+  { name: "CPT — Curricular Practical Training", text: "Allows eligible students to gain practical experience related to their course through qualifying internships, cooperative education or similar training while studying. A Computer Science student might use CPT for an eligible internship in their field." },
+  { name: "OPT — Optional Practical Training", text: "Allows eligible F-1 students to gain work experience related to their field of study. Eligible students can generally receive up to 12 months of OPT per qualifying education level, subject to the applicable rules." },
+  { name: "STEM OPT extension", text: "Graduates with eligible STEM degrees may qualify for an additional 24-month extension — potentially up to 36 months of post-completion OPT in total." },
 ];
 
 const LIFE = [
-  "The Grand Canyon",
-  "Great Smoky Mountains",
-  "Times Square",
-  "The Statue of Liberty",
-  "The Eastern Seaboard",
-  "The West Coast",
-  "The Southwest",
-  "The Hawaiian Islands",
+  "Student clubs and organisations", "Sports and fitness", "Cultural and international groups",
+  "Research projects", "Volunteer work", "Career fairs and professional events",
+  "Campus jobs where permitted", "Academic tutoring and support", "Community activities",
 ];
 
-const GALLERY = [
-  { src: "/usa/campus-life.jpg", alt: "Students on a US university campus" },
-  { src: "/usa/new-york.jpg", alt: "The New York City skyline" },
-  { src: "/usa/grand-canyon.jpg", alt: "The Grand Canyon at sunset" },
-  { src: "/usa/west-coast.jpg", alt: "The Pacific coastline in California" },
+const MYTHS = [
+  { myth: "I must attend an Ivy League university.", truth: "No. There are many excellent U.S. universities outside the Ivy League." },
+  { myth: "A higher ranking automatically means a better university for me.", truth: "No. Subject strength, cost, location, support and career opportunities may matter more." },
+  { myth: "The cheapest tuition means the cheapest university.", truth: "Not necessarily. Compare the total cost of attendance." },
+  { myth: "I can work as much as I want on an F-1 visa.", truth: "No. Employment and authorisation rules apply." },
+  { myth: "All American universities are basically the same.", truth: "Definitely not. A rural college town and a major-city campus can feel like different worlds." },
+  { myth: "If I get admission, my visa is guaranteed.", truth: "No. Admission and visa decisions are separate." },
+  { myth: "I must know exactly what I will do for the rest of my life before applying.", truth: "Not necessarily. Many students refine their interests — although you should still have a sensible academic direction." },
 ];
+
+const FAQ = [
+  { q: "Is the USA good for undergraduate study?", a: "It can be. The USA offers a huge range of undergraduate pathways. The key is comparing academic fit, cost, location, admission requirements and support." },
+  { q: "Can I get a scholarship?", a: "Possibly. Scholarship availability and eligibility vary widely. Start early and check the exact rules and deadlines." },
+  { q: "Do I need the SAT or ACT?", a: "It depends on the university and program. Some are test-optional; others may require or consider scores. Check each university's current policy." },
+  { q: "Is an English test required?", a: "Many universities require or accept proof of English proficiency, while some students may qualify for exemptions. Policies vary." },
+  { q: "Big city or college town?", a: "That depends on your budget and personality. Big cities may offer more transport, activities and employers but can cost more. College towns can offer a more campus-centred experience." },
+  { q: "Can I work while studying?", a: "There may be permitted employment or practical-training options for eligible F-1 students, but authorisation rules apply." },
+  { q: "How much money do I need to show?", a: "There is no single figure for every student. Financial-document requirements depend on the school and visa circumstances. Follow current university and official U.S. government instructions." },
+  { q: "What if I don't know which university is right for me?", a: "That is completely normal. Start with your subject, budget, preferred location and career direction. Then compare a balanced shortlist." },
+];
+
+const ROADMAP = [
+  "Know your goal: degree level, subject, intake and budget.",
+  "Research universities and locations.",
+  "Build a shortlist based on fit — not fame alone.",
+  "Check current admission requirements and deadlines.",
+  "Prepare English tests or other required exams.",
+  "Prepare transcripts, recommendations, essays, résumé and any program-specific materials.",
+  "Research scholarships and financial aid.",
+  "Submit applications carefully and on time.",
+  "Compare offers and total costs.",
+  "Complete the university's international-student process.",
+  "Follow the current student-visa process.",
+  "Prepare housing, travel, finances and arrival documents.",
+  "Arrive, settle in and actually use the support your university provides.",
+];
+
+/* ---- small pieces used throughout ---- */
+
+const DidYouKnow = ({ children }: { children: ReactNode }) => (
+  <aside className="dyk" data-reveal>
+    <p className="dyk-tag">Did you know?</p>
+    {children}
+  </aside>
+);
+
+/** The asides and jokes the draft uses to break up a long read. */
+const Quip = ({ children }: { children: ReactNode }) => (
+  <p className="quip" data-reveal>{children}</p>
+);
+
+const Band = ({ src, caption }: { src: string; caption?: string }) => (
+  <figure className="usa-band" data-reveal>
+    <Shot src={src} alt="" />
+    {caption && <figcaption>{caption}</figcaption>}
+  </figure>
+);
+
+/** Section 3's prompt — written as something to do, so it does something. */
+function QuickChoice() {
+  const OPTIONS = [
+    { key: "A", label: "Big city, public transport, lots happening", reply: "Then weigh transport and rent early — city campuses often cost more but put employers and internships on your doorstep." },
+    { key: "B", label: "Quieter college town, campus-centred life", reply: "Costs are often lower and the campus becomes your social world. Check how you would travel out when you want to." },
+    { key: "C", label: "Somewhere warm, please — my jacket has suffered enough", reply: "Entirely fair. Climate shapes four years of your life; the south and southwest are worth a look." },
+    { key: "D", label: "I honestly have no idea yet", reply: "Which is completely fine, and more common than the other three put together. It is exactly what a first counselling session is for." },
+  ];
+  const [picked, setPicked] = useState<string | null>(null);
+  const chosen = OPTIONS.find((o) => o.key === picked);
+
+  return (
+    <div className="prompt" data-reveal>
+      <p className="prompt-tag">Quick choice</p>
+      <h3>Which sounds more like you?</h3>
+      <div className="prompt-options">
+        {OPTIONS.map((o) => (
+          <button
+            key={o.key}
+            type="button"
+            className={picked === o.key ? "is-on" : undefined}
+            onClick={() => setPicked(picked === o.key ? null : o.key)}
+            aria-pressed={picked === o.key}
+          >
+            <span aria-hidden="true">{o.key}</span>
+            {o.label}
+          </button>
+        ))}
+      </div>
+      <p className="prompt-reply" role="status" aria-live="polite">
+        {chosen
+          ? chosen.reply
+          : "Your answer does not choose a university for you, but it gives you a useful filter for location, cost and lifestyle."}
+      </p>
+    </div>
+  );
+}
+
+/** Section 7's prompt, joke intact: pick all eight and it says so. */
+function ShortlistCheck() {
+  const [picked, setPicked] = useState<string[]>([]);
+  const toggle = (p: string) =>
+    setPicked((cur) => (cur.includes(p) ? cur.filter((x) => x !== p) : [...cur, p]));
+
+  const reply =
+    picked.length === 0
+      ? "Circle your top three priorities."
+      : picked.length === PRIORITIES.length
+        ? "Congratulations — you have invented a wish list, not a shortlist."
+        : picked.length > 3
+          ? `That is ${picked.length}. A shortlist means giving something up; try narrowing it to three.`
+          : picked.length === 3
+            ? "Three. That is a shortlist you can actually filter universities with."
+            : `${picked.length} so far — keep going.`;
+
+  return (
+    <div className="prompt" data-reveal>
+      <p className="prompt-tag">60-second shortlist check</p>
+      <h3>What actually matters to you?</h3>
+      <div className="prompt-chips">
+        {PRIORITIES.map((p) => (
+          <button
+            key={p}
+            type="button"
+            className={picked.includes(p) ? "is-on" : undefined}
+            onClick={() => toggle(p)}
+            aria-pressed={picked.includes(p)}
+          >
+            {p}
+          </button>
+        ))}
+      </div>
+      <p className="prompt-reply" role="status" aria-live="polite">{reply}</p>
+    </div>
+  );
+}
 
 export default function StudyInUSA() {
+  const [active, setActive] = useState(SECTIONS[0].id);
+  const root = useRef<HTMLElement>(null);
+
   useEffect(() => {
     const previous = document.title;
     document.title = "Study in the USA | Lakehead Education";
@@ -191,8 +336,51 @@ export default function StudyInUSA() {
     };
   }, []);
 
+  /* Everything marked data-reveal arrives as it reaches the viewport, then
+     stops being watched — a page this long would otherwise be replaying
+     animations at someone scrolling back for something they half-read. */
+  useEffect(() => {
+    const nodes = root.current?.querySelectorAll<HTMLElement>("[data-reveal]");
+    if (!nodes?.length) return;
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      nodes.forEach((n) => n.classList.add("is-in"));
+      return;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (!e.isIntersecting) continue;
+          e.target.classList.add("is-in");
+          io.unobserve(e.target);
+        }
+      },
+      { threshold: 0.12, rootMargin: "0px 0px -6% 0px" }
+    );
+    nodes.forEach((n) => io.observe(n));
+    return () => io.disconnect();
+  }, []);
+
+  /* Which section the contents rail should highlight. A generous negative
+     bottom margin means the active entry changes when a heading reaches the
+     upper third, which is where people actually read from. */
+  useEffect(() => {
+    const io = new IntersectionObserver(
+      (entries) => {
+        const visible = entries.filter((e) => e.isIntersecting);
+        if (visible.length) setActive(visible[0].target.id);
+      },
+      { rootMargin: "-20% 0px -70% 0px" }
+    );
+    SECTIONS.forEach((s) => {
+      const el = document.getElementById(s.id);
+      if (el) io.observe(el);
+    });
+    return () => io.disconnect();
+  }, []);
+
   return (
-    <article className="dpage">
+    <article className="dpage usa" ref={root}>
       <header className="dpage-hero">
         <div className="dpage-hero-bg">
           <Shot src="/usa.jpg" alt="" />
@@ -204,352 +392,798 @@ export default function StudyInUSA() {
               Study in the USA
             </p>
             <h1>
-              Academic prowess, and{" "}
-              <span className="h-accent">a life outside the classroom</span>
+              Hey — you&rsquo;re thinking about{" "}
+              <span className="h-accent">the USA?</span>
             </h1>
             <p className="dpage-lead">
-              The USA is home to a great many of the world&rsquo;s leading
-              universities — highly accredited faculty, advanced technology and
-              research facilities that students actually get their hands on. A
-              degree from one tends to distinguish you from people who came up
-              the same way you did.
-            </p>
-            <p>
-              What most students end up describing, though, is the campus.
-              American universities run like small student towns, with
-              socialising and skill-building under the same roof as the
-              teaching. At Lakehead Education we help you through the
-              applications, the documentation and the F-1 process — the part
-              that looks most overwhelming from the outside.
+              You&rsquo;ve probably seen America in movies, on YouTube, in
+              sports, on Instagram or in the news. But the USA is much more
+              than New York, Hollywood and Silicon Valley.
             </p>
             <div className="dpage-hero-actions">
               <Link className="btn btn-outline" to="/contact">Talk to Our Counsellors →</Link>
-              <a className="dpage-jump" href="#costs">
-                See what it costs <Arrow />
+              <a className="dpage-jump" href="#types">
+                Types of university <Arrow />
               </a>
             </div>
           </div>
         </div>
       </header>
 
-      <section className="dpage-section">
-        <div className="container">
-          <h2 className="dpage-title">
-            Why study in the <span className="h-outline">USA?</span>
-          </h2>
-          <div className="dpage-reasons">
-            {REASONS.map((r) => (
-              <div className="dpage-reason" key={r.title}>
-                <span className="dpage-reason-icon" aria-hidden="true">{r.icon}</span>
-                <h3>{r.title}</h3>
-                <p>{r.text}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <figure className="dpage-band">
-        <Shot src="/usa/campus.jpg" alt="A US university campus in the afternoon" />
-        <figcaption>
-          <p>Small student towns, with the learning built in.</p>
-          <span>Mentoring programmes, shuttle services, team sports, health centres and career advisors — the infrastructure for settling in is already there.</span>
-        </figcaption>
-      </figure>
-
-      <section className="dpage-section">
-        <div className="container">
-          <h2 className="dpage-title">
-            Universities &amp; <span className="h-accent">courses</span>
-          </h2>
-          <p className="dpage-section-lead">
-            A short list of institutions we work with — there are a great many
-            more, across every state:
-          </p>
-          <ul className="dpage-fields">
-            {UNIVERSITIES.map((u) => (
-              <li key={u}>{u}</li>
-            ))}
-          </ul>
-          <h3 className="dpage-sub">Popular courses</h3>
-          <ul className="dpage-fields dpage-fields-sm">
-            {COURSES.map((c) => (
-              <li key={c}>{c}</li>
-            ))}
-          </ul>
-          <p className="dpage-note">
-            The list of programmes is genuinely vast.{" "}
-            <Link to="/contact">
-              Let us help you narrow it to a realistic shortlist <Arrow />
-            </Link>
-          </p>
-        </div>
-      </section>
-
-      <div className="dpage-pair">
-        <figure><Shot src="/usa/city.jpg" alt="A downtown street in an American city" /></figure>
-        <figure><Shot src="/usa/library.jpg" alt="Students studying in a university library" /></figure>
-      </div>
-
-      <section className="dpage-section" id="costs">
-        <div className="container">
-          <h2 className="dpage-title">
-            The cost of <span className="h-accent">studying here</span>
-          </h2>
-          <p className="dpage-section-lead">
-            There is no standardised government fee system in the US — what you
-            pay depends on the institution and the course, and the spread is
-            enormous. Understanding the four kinds of institution is what
-            actually lets you compare, and it is where the real savings are.
-          </p>
-          <div className="dpage-paths">
-            {INSTITUTION_TYPES.map((t, i) => (
-              <div className="dpage-path" key={t.title}>
-                <span className="dpage-path-n" aria-hidden="true">
-                  {String(i + 1).padStart(2, "0")}
-                </span>
-                <h3>{t.title}</h3>
-                <p>{t.text}</p>
-              </div>
-            ))}
-          </div>
-          <p className="dpage-fineprint">
-            We have deliberately not printed tuition ranges. US fees differ by
-            institution, state, course and residency status, they are revised
-            every year, and a single range wide enough to be accurate would be
-            too wide to be useful. Read the figure published for your specific
-            programme — it is the only number that will be right.
-          </p>
-        </div>
-      </section>
-
-      <section className="dpage-section dpage-tint">
-        <div className="container">
-          <h2 className="dpage-title">
-            What it costs to <span className="h-accent">live there</span>
-          </h2>
-          <p className="dpage-section-lead">
-            Living costs shift considerably from one location to another, so
-            securing savings against your day-to-day needs matters as much as
-            the tuition. Most colleges offer on-campus dorms — usually a room
-            shared with two or three others, with utilities and internet
-            included — and going off campus generally costs more.
-          </p>
-
-          <div className="dpage-table-wrap">
-            <div className="dpage-req-head">
-              <h3>Indicative living costs (US$)</h3>
-              <span className="dpage-req-stamp">
-                Indicative &middot; reviewed {LIVING.lastReviewed}
-              </span>
-            </div>
-            <div className="dpage-table-scroll">
-              <table className="dpage-table">
-                <caption className="dpage-visually-hidden">
-                  Approximate living costs in US dollars for international students
-                </caption>
-                <thead>
-                  <tr>
-                    <th scope="col">Expense</th>
-                    <th scope="col">Approx. (US$)</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {LIVING.rows.map((r) => (
-                    <tr key={r.item}>
-                      <th scope="row">{r.item}</th>
-                      <td>{r.cost}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <p className="dpage-table-note">{LIVING.note}</p>
-          </div>
-
-          <aside className="dpage-callout dpage-callout-wide">
-            <h3>Health insurance is not optional</h3>
-            <p>
-              Most US institutions require international students to hold
-              student health insurance as a condition of enrolment, and the
-              cover they accept differs from one to the next. Budget for it
-              from the start rather than discovering it at registration — we
-              will tell you what your shortlist actually requires.
-            </p>
-            <Link className="dpage-callout-btn" to="/contact">
-              Check what I&rsquo;ll need <Arrow />
-            </Link>
-          </aside>
-        </div>
-      </section>
-
-      <section className="dpage-section">
-        <div className="container">
-          <h2 className="dpage-title">
-            Scholarships to{" "}
-            <span className="h-accent">study in the US</span>
-          </h2>
-          <p className="dpage-section-lead">
-            A scholarship can make a real difference to a US degree. Be aware
-            that they are competitive and slow — approvals take time, so this
-            is something to start early rather than alongside your application.
-            Strong grades help; so does being athletically inclined, and awards
-            exist for art, dance and music too.
-          </p>
-          <ul className="dpage-fields">
-            {SCHOLARSHIPS.map((s) => (
-              <li key={s}>{s}</li>
-            ))}
-          </ul>
-          <p className="dpage-note">
-            Which of these you could realistically win depends on your profile.{" "}
-            <Link to="/contact">
-              Let&rsquo;s work out where to put your effort <Arrow />
-            </Link>
-          </p>
-        </div>
-      </section>
-
-      <figure className="dpage-band">
-        <Shot src="/usa/student-life.jpg" alt="Students together outside on a US campus" />
-        <figcaption>
-          <p>They want you to go beyond the book.</p>
-          <span>American universities look at the last four years of your schooling — extracurriculars, leadership and character alongside the grades.</span>
-        </figcaption>
-      </figure>
-
-      <section className="dpage-section">
-        <div className="container">
-          <h2 className="dpage-title">
-            The admission <span className="h-accent">process</span>
-          </h2>
-          <p className="dpage-section-lead">
-            American universities do not believe in a one-track academic focus.
-            They assess your past academic record across the last four years of
-            schooling, alongside extracurricular activities, leadership
-            positions and personal characteristics — so plan early and gather
-            more than your transcripts. Which cycle you apply in is a real
-            strategic choice:
-          </p>
-          <div className="dpage-paths">
-            {APPLICATION_TYPES.map((a, i) => (
-              <div className="dpage-path" key={a.title}>
-                <span className="dpage-path-n" aria-hidden="true">
-                  {String(i + 1).padStart(2, "0")}
-                </span>
-                <h3>{a.title}</h3>
-                <p>{a.text}</p>
-              </div>
-            ))}
-          </div>
-          <p className="dpage-fineprint">
-            Other cycles exist beyond these four — rolling admissions among
-            them — and which are available depends on the course and whether
-            you are applying to a college or a university. Check the specific
-            institution, or ask us.
-          </p>
-
-          <h3 className="dpage-sub">Choosing where to apply</h3>
-          <ul className="dpage-checks dpage-checks-2">
-            {CHOOSING.map((c) => (
-              <li key={c}>
-                <span aria-hidden="true"><Check /></span>
-                {c}
+      <div className="usa-shell container">
+        {/* Contents rail. A twenty-one section page without one is a wall. */}
+        <nav className="usa-toc" aria-label="On this page">
+          <p className="usa-toc-tag">On this page</p>
+          <ol>
+            {SECTIONS.map((s) => (
+              <li key={s.id}>
+                <a href={`#${s.id}`} className={active === s.id ? "is-here" : undefined}>
+                  {s.label}
+                </a>
               </li>
             ))}
-          </ul>
-        </div>
-      </section>
+          </ol>
+        </nav>
 
-      <section className="dpage-section dpage-tint">
-        <div className="container">
-          <h2 className="dpage-title">
-            Your <span className="h-outline">student visa</span>
-          </h2>
-          <p className="dpage-section-lead">
-            Most international students study on an F-1 visa. The sequence runs:
-            accept your place, receive an I-20 from your SEVP-certified school,
-            pay the SEVIS fee, complete the DS-160, and attend an interview at
-            a US embassy or consulate. Each step depends on the one before it,
-            which is why starting late is the most common way this goes wrong.
-          </p>
+        <div className="usa-body">
+          {/* 1 */}
+          <section id="start" className="usa-sec">
+            <h2 className="usa-h2" data-reveal>
+              There is no single <span className="h-accent">American university experience</span>
+            </h2>
+            <p data-reveal>
+              The country has thousands of higher-education institutions,
+              ranging from huge public universities to small private colleges.
+              That means you are not simply choosing a university. You&rsquo;re
+              choosing a course, a campus, a city, a climate, a budget and a
+              lifestyle.
+            </p>
+            <p className="usa-pull" data-reveal>
+              The better question is not &ldquo;What is the most famous
+              university?&rdquo; It is &ldquo;Which U.S. university is right
+              for me?&rdquo;
+            </p>
+            <Quip>
+              Tiny warning: researching U.S. universities has a mysterious
+              ability to turn 3 browser tabs into 37. That is why having a
+              clear shortlist matters.
+            </Quip>
+            <DidYouKnow>
+              <p>
+                In Nepal, when someone asks &ldquo;Which university should I
+                join?&rdquo;, names like Tribhuvan University and Kathmandu
+                University may come to mind pretty quickly. In the U.S., you
+                can spend an afternoon researching universities and still
+                discover several you&rsquo;ve never heard of — and honestly,
+                that can be a good thing.
+              </p>
+              <p>
+                You get to compare your course, budget, city, scholarships,
+                career goals, campus and student life — not just the university
+                name.
+              </p>
+            </DidYouKnow>
+          </section>
 
-          {/* Its own panel on purpose: fees and interview requirements are set
-              federally and revised, and a figure buried in prose is one nobody
-              thinks to re-check. */}
-          <div className="dpage-req">
-            <div className="dpage-req-head">
-              <h3>Latest requirements at a glance</h3>
-              <span className="dpage-req-stamp">
-                Last reviewed {REQUIREMENTS.lastReviewed}
-              </span>
+          <Band src="/usa/campus-life.jpg" caption="Thousands of institutions. No two the same." />
+
+          {/* 2 */}
+          <section id="young" className="usa-sec">
+            <h2 className="usa-h2" data-reveal>
+              A young country, a{" "}
+              <span className="h-outline">huge</span> education system
+            </h2>
+            <DidYouKnow>
+              <p>
+                Here&rsquo;s a fun way to put America&rsquo;s age into
+                perspective: the United States declared independence in 1776,
+                while Oxford had already been teaching students for roughly
+                680 years.
+              </p>
+            </DidYouKnow>
+            <p data-reveal>
+              Think about that for a moment. When Oxford was already a
+              centuries-old centre of learning, the country we now know as the
+              United States didn&rsquo;t even exist yet. And yet, in less than
+              250 years, the U.S. developed one of the world&rsquo;s largest
+              and most influential higher-education systems. Pretty incredible
+              for such a young country, right?
+            </p>
+          </section>
+
+          {/* 3 */}
+          <section id="big" className="usa-sec">
+            <h2 className="usa-h2" data-reveal>
+              America is <span className="usa-shout">BIG</span>. Seriously.
+            </h2>
+            <p data-reveal>
+              Coming from Nepal, it can be difficult to picture the scale of
+              the United States. So let&rsquo;s make it simple.
+            </p>
+
+            <div className="usa-compare" data-reveal>
+              <div>
+                <span className="usa-compare-label">Nepal</span>
+                <strong>147,516 km²</strong>
+              </div>
+              <div className="usa-compare-x" aria-hidden="true">×67</div>
+              <div>
+                <span className="usa-compare-label">United States</span>
+                <strong>~9.87 million km²</strong>
+              </div>
             </div>
-            <dl className="dpage-req-grid dpage-req-grid-5">
-              {REQUIREMENTS.items.map((it) => (
-                <div key={it.label}>
-                  <dt>{it.label}</dt>
-                  <dd>
-                    {it.value}
-                    {it.note && <span className="dpage-req-note">{it.note}</span>}
-                  </dd>
+            <p className="usa-compare-note" data-reveal>
+              The United States is roughly 67 times larger than Nepal by total
+              area. And here&rsquo;s a comparison that is easier to imagine:
+              Texas alone is roughly five times the size of Nepal. Suddenly
+              &ldquo;a little far from campus&rdquo; can mean something very
+              different.
+            </p>
+
+            <p data-reveal>
+              The size of the country matters because your location can change
+              your entire student experience. A university in a major city can
+              feel completely different from one in a small college town.
+              Weather, rent, public transport, part-time opportunities,
+              internships and even your weekend plans can depend heavily on
+              where you study.
+            </p>
+            <p className="usa-pull" data-reveal>
+              So don&rsquo;t just ask &ldquo;Which university?&rdquo; Ask
+              &ldquo;Which university <em>and which place</em>?&rdquo;
+            </p>
+
+            <QuickChoice />
+          </section>
+
+          {/* 4 */}
+          <section id="culture" className="usa-sec">
+            <h2 className="usa-h2" data-reveal>
+              What should a Nepali student expect in{" "}
+              <span className="h-accent">American culture?</span>
+            </h2>
+            <p data-reveal>
+              One of the biggest adjustments may not happen in your lecture
+              hall. It may happen in the way people communicate, study and
+              manage everyday life.
+            </p>
+            <Quip>
+              A little independence feels great. A deadline at 11:59 PM still
+              remains a deadline at 11:59 PM.
+            </Quip>
+
+            <div className="usa-cards" data-reveal>
+              {CULTURE.map((c) => (
+                <div className="usa-card" key={c.title}>
+                  <h3>{c.title}</h3>
+                  <p>{c.text}</p>
                 </div>
               ))}
-            </dl>
-            <p className="dpage-req-source">
-              Fees, processing times and interview requirements change, and
-              appointment waits vary considerably by post. Always confirm the
-              current position with the{" "}
-              <a href={REQUIREMENTS.source.href} target="_blank" rel="noopener noreferrer">
-                {REQUIREMENTS.source.label}
-              </a>{" "}
-              before you apply.
+            </div>
+
+            <p className="usa-pull" data-reveal>
+              The goal is not to become &ldquo;American.&rdquo; The goal is to
+              understand the environment well enough to feel confident in it.
             </p>
-          </div>
+            <DidYouKnow>
+              <p>
+                <strong>Office hours are not detention.</strong> If a professor
+                says &ldquo;Come see me during office hours,&rdquo; that is
+                usually an invitation to ask questions — not a sign that you
+                are in trouble.
+              </p>
+            </DidYouKnow>
+            <p data-reveal>
+              But &lsquo;USA&rsquo; is not automatically the best choice for
+              everyone. A strong decision starts with your course, budget,
+              academic profile, career goals and preferred lifestyle.
+            </p>
+            <div className="prompt prompt-quiet" data-reveal>
+              <p className="prompt-tag">Try this</p>
+              <h3>Finish this sentence before you continue</h3>
+              <p className="usa-fill">
+                &ldquo;I am considering the USA because
+                <span className="usa-blank" aria-hidden="true" />.&rdquo;
+              </p>
+              <p className="prompt-reply">
+                If your only answer is &ldquo;because everyone is going,&rdquo;
+                keep reading. We can do better than that.
+              </p>
+            </div>
+          </section>
 
-          <p className="dpage-fineprint">
-            Visa decisions are made by the US government. Our role is to help
-            you understand what is being asked for and to prepare your
-            application accurately — not to predict the outcome.
-          </p>
-        </div>
-      </section>
+          <Band src="/usa/classroom.jpg" caption="Ask questions. It is expected of you." />
 
-      <section className="dpage-section">
-        <div className="container">
-          <h2 className="dpage-title">
-            Life in the <span className="h-accent">US</span>
-          </h2>
-          <p className="dpage-section-lead">
-            Expect a genuine cross-section — you will meet Americans and people
-            from a great many other places, and you will develop a sense of
-            independence you did not arrive with. Americans are generally
-            friendly and helpful, which makes settling in easier than most
-            newcomers expect. Every holiday is a proper celebration, and those
-            are the best way into your new community.
-          </p>
-          <ul className="dpage-fields dpage-fields-sm">
-            {LIFE.map((l) => (
-              <li key={l}>{l}</li>
+          {/* 5 */}
+          <section id="types" className="usa-sec">
+            <h2 className="usa-h2" data-reveal>
+              Types of U.S. university —{" "}
+              <span className="h-accent">which one sounds like you?</span>
+            </h2>
+            <p data-reveal>
+              The U.S. doesn&rsquo;t have just one type of university. There are
+              huge campuses, small colleges, research powerhouses, community
+              colleges and everything in between. So before you start chasing
+              rankings, let&rsquo;s figure out what kind of university actually
+              fits you.
+            </p>
+
+            {UNI_TYPES.map((t) => (
+              <div className="usa-type" key={t.name} data-reveal>
+                <figure className="usa-type-shot">
+                  <Shot src={t.image} alt="" />
+                </figure>
+                <div>
+                  <h3>{t.name}</h3>
+                  <p className="usa-type-lead">{t.lead}</p>
+                  <p>{t.text}</p>
+                  {t.best && (
+                    <p className="usa-best">
+                      <strong>Best for:</strong> {t.best}
+                    </p>
+                  )}
+                  <details className="usa-examples">
+                    <summary>Examples you may recognise ({t.examples.length})</summary>
+                    <ul>
+                      {t.examples.map((e) => <li key={e}>{e}</li>)}
+                    </ul>
+                  </details>
+                </div>
+              </div>
             ))}
-          </ul>
-          <div className="dpage-gallery">
-            {GALLERY.map((g) => (
-              <figure key={g.src}>
-                <Shot src={g.src} alt={g.alt} />
-              </figure>
-            ))}
-          </div>
+
+            <div className="usa-nepali" data-reveal>
+              <h3>Commonly explored by Nepali students</h3>
+              <p>
+                If you&rsquo;re wondering &ldquo;Okay, but where do Nepali
+                students actually go?&rdquo; — fair question. There is no
+                single official Nepal-only popularity ranking that stays the
+                same every year. But some universities have visible Nepali
+                student communities, while others are repeatedly explored by
+                students from Nepal because of programs, scholarships, costs,
+                location or existing student networks.
+              </p>
+              <ul className="usa-chips">
+                {NEPALI_PICKS.map((n) => <li key={n}>{n}</li>)}
+              </ul>
+              <h4>Why do these names come up?</h4>
+              <ul className="dpage-checks">
+                {WHY_THESE.map((w) => (
+                  <li key={w}><span aria-hidden="true"><Check /></span>{w}</li>
+                ))}
+              </ul>
+              <Quip>
+                Tiny reality check: &ldquo;My cousin studies there&rdquo; is
+                useful information. It is not a university ranking system.
+                Compare the course, cost, scholarship, location and support
+                before you decide.
+              </Quip>
+              <p>
+                <strong>Ask yourself:</strong> would I prefer a university with
+                an established Nepali community, or a campus where I am pushed
+                to build a completely new circle? Neither answer is wrong — but
+                knowing yourself helps.
+              </p>
+              <p className="usa-note">
+                This list is illustrative — not a ranking, and not a list of
+                Lakehead partner institutions. Student flows, scholarships,
+                tuition and admission patterns change, so treat it as a
+                starting point for research rather than a shortlist.
+              </p>
+            </div>
+          </section>
+
+          {/* 6 */}
+          <section id="ivy" className="usa-sec">
+            <h2 className="usa-h2" data-reveal>
+              Ivy League? <span className="h-outline">Or maybe not.</span>
+            </h2>
+            <p data-reveal>
+              Let&rsquo;s settle this early. You do <strong>not</strong> need an
+              Ivy League university to succeed in America. The Ivy League is a
+              group of eight private universities — and the myth-buster is
+              this: it does not mean &ldquo;the eight best universities in
+              America.&rdquo; The Ivy League is actually an athletic conference.
+            </p>
+            <ul className="usa-chips usa-chips-ivy" data-reveal>
+              {IVY.map((i) => <li key={i}>{i}</li>)}
+            </ul>
+            <DidYouKnow>
+              <p>
+                <strong>MIT is not an Ivy League university.</strong> Yep. MIT
+                is one of the world&rsquo;s best-known universities —
+                especially for engineering, technology, science and innovation
+                — but it isn&rsquo;t part of the Ivy League. The U.S. has many
+                highly respected universities outside it, including MIT,
+                Stanford, Caltech and many others.
+              </p>
+            </DidYouKnow>
+            <p className="usa-pull" data-reveal>
+              Don&rsquo;t chase the label. Chase the right university for{" "}
+              <em>you</em>. If your dream university is not Ivy League, your
+              career will not collapse. Promise.
+            </p>
+          </section>
+
+          {/* 7 */}
+          <section id="choose" className="usa-sec">
+            <h2 className="usa-h2" data-reveal>
+              How to <span className="h-accent">choose</span> your university
+            </h2>
+            <p data-reveal>
+              Before you build a university list, ask yourself a few honest
+              questions.
+            </p>
+            <ol className="usa-questions" data-reveal>
+              {CHOOSE_QUESTIONS.map((q, i) => (
+                <li key={q}>
+                  <span aria-hidden="true">{String(i + 1).padStart(2, "0")}</span>
+                  {q}
+                </li>
+              ))}
+            </ol>
+            <p className="usa-pull" data-reveal>
+              A ranking can be one data point. It should not be your entire
+              decision.
+            </p>
+            <ShortlistCheck />
+          </section>
+
+          {/* 8 */}
+          <section id="subjects" className="usa-sec">
+            <h2 className="usa-h2" data-reveal>
+              Popular <span className="h-accent">study areas</span>
+            </h2>
+            <p data-reveal>
+              From Business and Engineering to Computer Science, AI, Design,
+              Health, Psychology and more, the USA offers a huge range of study
+              options.
+            </p>
+            <DidYouKnow>
+              <p>
+                A degree in Computer Science doesn&rsquo;t always mean just
+                programming. You could explore areas such as AI, Cybersecurity,
+                Data Science or Game Development.
+              </p>
+            </DidYouKnow>
+            <p data-reveal>
+              So don&rsquo;t just ask &ldquo;Which course is popular?&rdquo; Ask
+              &ldquo;Which one actually interests me?&rdquo; Check what you will
+              study, explore your options and choose wisely.
+            </p>
+            <Quip>
+              After all, changing your Netflix show is easy. Changing your
+              major? A little more complicated.
+            </Quip>
+          </section>
+
+          {/* 9 */}
+          <section id="admissions" className="usa-sec">
+            <h2 className="usa-h2" data-reveal>
+              Admissions: what will universities{" "}
+              <span className="h-accent">look at?</span>
+            </h2>
+            <p data-reveal>
+              There is no single application formula for every U.S. university.
+              Requirements can differ by university, degree level and program.
+            </p>
+            <ul className="dpage-checks dpage-checks-2" data-reveal>
+              {ADMISSIONS.map((a) => (
+                <li key={a}><span aria-hidden="true"><Check /></span>{a}</li>
+              ))}
+            </ul>
+            <p data-reveal>
+              Some universities use holistic admissions, meaning they may
+              consider multiple parts of an application rather than one score
+              alone. Policies differ, so always read the current official
+              requirements for each institution.
+            </p>
+            <div className="usa-warn" data-reveal>
+              <p className="usa-warn-tag">Golden rule</p>
+              <p>
+                Never build your application around a requirement you saw in a
+                random TikTok, Facebook post or old blog. Check the university.
+              </p>
+              <p className="usa-warn-more">
+                If a reel says &ldquo;This university needs no English test, no
+                documents, no money and basically no application&rdquo; —
+                please give your eyebrows permission to rise. Then check the
+                official university page.
+              </p>
+            </div>
+          </section>
+
+          {/* 10 */}
+          <section id="timing" className="usa-sec">
+            <h2 className="usa-h2" data-reveal>
+              How early should you <span className="h-accent">start?</span>
+            </h2>
+            <p data-reveal>
+              Earlier is better. For many students, beginning roughly{" "}
+              <strong>9–12 months</strong> or more before the intended intake
+              gives enough time to research universities, prepare tests if
+              required, gather documents, apply for scholarships, submit
+              applications, receive decisions and prepare for the visa process.
+            </p>
+            <p data-reveal>
+              Some students begin even earlier, especially when they need
+              competitive scholarships, standardised tests, portfolios or
+              additional academic preparation.
+            </p>
+            <Quip>
+              Create a simple calendar. Put every deadline in one place.
+              Future-you will be grateful.
+            </Quip>
+          </section>
+
+          <Band src="/usa/money.jpg" caption="Never look only at the tuition figure." />
+
+          {/* 11 */}
+          <section id="money" className="usa-sec">
+            <h2 className="usa-h2" data-reveal>
+              Tuition: let&rsquo;s talk <span className="h-accent">money</span>
+            </h2>
+            <p data-reveal>
+              Okay, now the part nobody wants to ignore. The cost of studying in
+              the USA can vary dramatically by university, program, location,
+              housing and lifestyle. Never look only at the tuition figure.
+            </p>
+            <p data-reveal>
+              Your budget should consider tuition and fees, housing, food,
+              health insurance, books and supplies, transportation, personal
+              expenses and travel. Some locations are much more expensive than
+              others.
+            </p>
+            <div className="dpage-callout" data-reveal>
+              <h3>Work out your real total</h3>
+              <p>
+                Tuition is one line of many. We&rsquo;ll help you build a full
+                cost-of-attendance figure for the universities on your
+                shortlist, so you are comparing like with like.
+              </p>
+              <Link className="dpage-callout-btn" to="/contact">
+                Build my budget <Arrow />
+              </Link>
+            </div>
+          </section>
+
+          {/* 12 */}
+          <section id="scholarships" className="usa-sec">
+            <h2 className="usa-h2" data-reveal>
+              Scholarships &amp; <span className="h-accent">financial aid</span>
+            </h2>
+            <p data-reveal>
+              Yes, scholarships exist. And no, they&rsquo;re not all awarded for
+              the same reason.
+            </p>
+            <div className="usa-cards" data-reveal>
+              {SCHOLARSHIP_KINDS.map((s) => (
+                <div className="usa-card" key={s.name}>
+                  <h3>{s.name}</h3>
+                  <p>{s.text}</p>
+                </div>
+              ))}
+            </div>
+            <DidYouKnow>
+              <p>
+                A high SAT score, strong GPA, excellent English test score,
+                impressive achievements or a great essay can strengthen your
+                application — but there is usually no universal score that
+                guarantees a scholarship. One university might award
+                scholarships automatically based on GPA or test scores, while
+                another may review your entire application.
+              </p>
+            </DidYouKnow>
+            <h3 className="usa-h3" data-reveal>Before you apply, ask</h3>
+            <ul className="dpage-checks dpage-checks-2" data-reveal>
+              <li><span aria-hidden="true"><Check /></span>What are the requirements?</li>
+              <li><span aria-hidden="true"><Check /></span>Is there a minimum GPA or test score?</li>
+              <li><span aria-hidden="true"><Check /></span>Do I need a separate application or essay?</li>
+              <li><span aria-hidden="true"><Check /></span>Is the scholarship renewable each year?</li>
+            </ul>
+            <div className="usa-warn" data-reveal>
+              <p className="usa-warn-tag">Read it twice</p>
+              <p>
+                &ldquo;Up to $30,000 scholarship&rdquo; does not mean you&rsquo;re
+                automatically getting $30,000. Those two little words —
+                &ldquo;up to&rdquo; — can do a lot of work. Read them twice
+                before mentally spending the scholarship.
+              </p>
+            </div>
+          </section>
+
+          {/* 13 */}
+          <section id="visa" className="usa-sec">
+            <h2 className="usa-h2" data-reveal>
+              Student visa: the <span className="h-accent">big picture</span>
+            </h2>
+            <p data-reveal>
+              For many students pursuing academic study in the United States,
+              the <strong>F-1</strong> student classification is the relevant
+              category. Visa preparation is separate from university admission.
+            </p>
+            <p data-reveal>
+              A typical journey involves choosing a school, being admitted,
+              completing the school&rsquo;s international-student process,
+              receiving the required documentation, completing the visa
+              application process, attending an interview if required, and
+              preparing for travel.
+            </p>
+            <p data-reveal>
+              Visa rules and procedures can change. Use current official U.S.
+              government instructions and guidance from your university&rsquo;s
+              international student office.
+            </p>
+            {/* The dated facts, kept out of the prose for the reason every
+                guide on this site keeps them out: fees and interview
+                requirements are set federally and revised, and a figure
+                buried in a paragraph is one nobody thinks to re-check. */}
+            <div className="dpage-req" data-reveal>
+              <div className="dpage-req-head">
+                <h3>Latest requirements at a glance</h3>
+                <span className="dpage-req-stamp">Last reviewed August 2026</span>
+              </div>
+              <dl className="dpage-req-grid dpage-req-grid-5">
+                <div><dt>Visa</dt><dd>F-1 student visa<span className="dpage-req-note">M-1 for vocational and technical study</span></dd></div>
+                <div><dt>You need an I-20</dt><dd>From an SEVP-certified school<span className="dpage-req-note">Issued once you accept your place</span></dd></div>
+                <div><dt>SEVIS fee</dt><dd>Paid before your interview<span className="dpage-req-note">Separate from the visa fee</span></dd></div>
+                <div><dt>Application</dt><dd>DS-160, then an interview<span className="dpage-req-note">In person at an embassy or consulate</span></dd></div>
+                <div><dt>Health insurance</dt><dd>Required by most institutions<span className="dpage-req-note">Often a condition of enrolment</span></dd></div>
+              </dl>
+              <p className="dpage-req-source">
+                Fees, processing times and interview requirements change, and
+                appointment waits vary considerably by post. Always confirm the
+                current position with the{" "}
+                <a href="https://travel.state.gov/content/travel/en/us-visas/study/student-visa.html"
+                  target="_blank" rel="noopener noreferrer">
+                  U.S. Department of State
+                </a>{" "}
+                before you apply.
+              </p>
+            </div>
+            <div className="usa-warn usa-warn-hard" data-reveal>
+              <p className="usa-warn-tag">Important</p>
+              <p>
+                Admission to a university and approval for a U.S. visa are
+                <strong> separate decisions</strong>. Do not treat one as a
+                guarantee of the other.
+              </p>
+            </div>
+          </section>
+
+          {/* 14 */}
+          <section id="work" className="usa-sec">
+            <h2 className="usa-h2" data-reveal>
+              Can I <span className="h-accent">work</span> while studying?
+            </h2>
+            <p data-reveal>
+              Yes — F-1 students can have certain opportunities to work and gain
+              practical experience. But there are rules.
+            </p>
+            <div className="usa-cards" data-reveal>
+              {WORK.map((w) => (
+                <div className="usa-card" key={w.name}>
+                  <h3>{w.name}</h3>
+                  <p>{w.text}</p>
+                </div>
+              ))}
+            </div>
+            <div className="usa-warn usa-warn-hard" data-reveal>
+              <p className="usa-warn-tag">Important</p>
+              <p>
+                CPT and OPT require eligibility and proper authorisation. You
+                cannot simply start working because you found an internship.
+              </p>
+              <p className="usa-warn-more">
+                Think of it this way: opportunities exist — but the paperwork
+                likes to be involved.
+              </p>
+            </div>
+          </section>
+
+          <Band src="/usa/student-life.jpg" caption="Much more than lectures and exams." />
+
+          {/* 15 */}
+          <section id="life" className="usa-sec">
+            <h2 className="usa-h2" data-reveal>
+              Student life: <span className="h-accent">beyond the classroom</span>
+            </h2>
+            <ul className="usa-chips" data-reveal>
+              {LIFE.map((l) => <li key={l}>{l}</li>)}
+            </ul>
+            <p data-reveal>
+              You may also learn practical adult skills: budgeting for
+              groceries, cooking, using public transport, communicating with
+              professors, managing deadlines, dealing with winter, making
+              friends from different cultures and asking for help when you need
+              it.
+            </p>
+            <Quip>Yes, adulthood comes with assignments too.</Quip>
+          </section>
+
+          {/* 16 */}
+          <section id="housing" className="usa-sec">
+            <h2 className="usa-h2" data-reveal>
+              Accommodation &amp; <span className="h-accent">everyday life</span>
+            </h2>
+            <p data-reveal>
+              Students may live in university residence halls, apartments,
+              shared housing or other arrangements depending on the university
+              and local market. Before choosing, compare distance to campus,
+              rent, utilities, food, transportation, lease terms, safety,
+              furniture, internet and whether you will have roommates.
+            </p>
+            <p data-reveal>
+              Do not assume the cheapest rent is the cheapest overall option. A
+              low-rent apartment far from campus can become expensive once
+              transportation and time are added.
+            </p>
+            <Quip>
+              A cheap room can become an expensive commute. Your rent and your
+              bus pass are on the same team, whether you like it or not.
+            </Quip>
+            <Quip>
+              And yes — &ldquo;five-minute walk to campus&rdquo; is a very
+              different sentence from &ldquo;five-minute drive to campus&rdquo;
+              when you do not own a car.
+            </Quip>
+            <p data-reveal>
+              Ask the university what housing support is available to
+              international students, especially for your first arrival.
+            </p>
+          </section>
+
+          {/* 17 */}
+          <section id="safety" className="usa-sec">
+            <h2 className="usa-h2" data-reveal>
+              Safety, health &amp; <span className="h-accent">insurance</span>
+            </h2>
+            <p data-reveal>
+              Understand your university&rsquo;s campus-safety resources,
+              emergency procedures and health services before arrival.
+            </p>
+            <p data-reveal>
+              Health insurance is another major part of the budget. Universities
+              may require students to enrol in a specific plan or meet defined
+              coverage standards. Requirements vary, so check your
+              institution&rsquo;s current policy.
+            </p>
+            <p data-reveal>
+              Keep important documents secure, know who to contact in an
+              emergency, and save your university&rsquo;s international student
+              office and campus safety contacts in your phone.
+            </p>
+          </section>
+
+          {/* 18 */}
+          <section id="career" className="usa-sec">
+            <h2 className="usa-h2" data-reveal>
+              Career <span className="h-accent">opportunities</span>
+            </h2>
+            <p data-reveal>
+              One of the biggest advantages of studying in the U.S. can be the
+              opportunity to build professional experience alongside your
+              education. Depending on the university and program, students may
+              find internships, research opportunities, career fairs, alumni
+              networks, projects with employers and other forms of professional
+              development.
+            </p>
+            <p data-reveal>
+              But don&rsquo;t wait until graduation. Start using career services
+              early — build a résumé, practise interviews, meet professors,
+              attend career events, explore internships and learn what employers
+              in your field actually look for.
+            </p>
+            <Quip>
+              Meeting the career office during your final week is better than
+              never meeting them — but only just. Start early.
+            </Quip>
+            <p className="usa-pull" data-reveal>
+              Your degree is important. Your experience, skills, network and
+              ability to communicate those skills matter too.
+            </p>
+            <div className="prompt prompt-quiet" data-reveal>
+              <p className="prompt-tag">Career check-in</p>
+              <h3>Ask yourself once each semester</h3>
+              <p className="usa-fill">
+                &ldquo;What did I add to my CV this term besides another
+                semester?&rdquo;
+              </p>
+              <p className="prompt-reply">
+                A project, club role, research task, volunteering, internship,
+                competition or new skill all count.
+              </p>
+            </div>
+          </section>
+
+          {/* 19 */}
+          <section id="myths" className="usa-sec">
+            <h2 className="usa-h2" data-reveal>
+              USA myths we hear <span className="h-accent">all the time</span>
+            </h2>
+            <div className="usa-myths" data-reveal>
+              {MYTHS.map((m) => (
+                <div className="usa-myth" key={m.myth}>
+                  <p className="usa-myth-claim">&ldquo;{m.myth}&rdquo;</p>
+                  <p className="usa-myth-truth">{m.truth}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* 20 */}
+          <section id="faq" className="usa-sec">
+            <h2 className="usa-h2" data-reveal>
+              Questions Nepali students{" "}
+              <span className="h-accent">often ask us</span>
+            </h2>
+            <div className="ck" data-reveal>
+              {FAQ.map((f) => (
+                <details className="ck-item" key={f.q}>
+                  <summary>
+                    <span className="ck-head">
+                      <strong>{f.q}</strong>
+                    </span>
+                    <span className="ck-chevron" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" width="18" height="18" fill="none"
+                        stroke="currentColor" strokeWidth="2" strokeLinecap="round"
+                        strokeLinejoin="round">
+                        <path d="M6 9l6 6 6-6" />
+                      </svg>
+                    </span>
+                  </summary>
+                  <p>{f.a}</p>
+                </details>
+              ))}
+            </div>
+          </section>
+
+          {/* 21 */}
+          <section id="roadmap" className="usa-sec">
+            <h2 className="usa-h2" data-reveal>
+              Your USA application <span className="h-outline">roadmap</span>
+            </h2>
+            <ol className="usa-roadmap" data-reveal>
+              {ROADMAP.map((r, i) => (
+                <li key={r}>
+                  <span aria-hidden="true">{String(i + 1).padStart(2, "0")}</span>
+                  <p>{r}</p>
+                </li>
+              ))}
+            </ol>
+          </section>
+
+          {/* Where we come in */}
+          <section className="usa-sec">
+            <h2 className="usa-h2" data-reveal>
+              Where <span className="h-accent">Lakehead</span> comes in
+            </h2>
+            <p data-reveal>
+              You can research all of this yourself — and we actually want you
+              to understand your own decisions. Our job is not to choose your
+              future for you. Our job is to help you ask better questions,
+              understand your options and move through the process with a
+              clearer plan.
+            </p>
+            <p data-reveal>
+              A Lakehead counsellor helps you look beyond a university name and
+              think about subject fit, affordability, location, admission
+              requirements, scholarships, application preparation, visa
+              documentation and pre-departure planning.
+            </p>
+            <p className="usa-pull" data-reveal>
+              Not sure where to start? Sit down with us and let&rsquo;s build
+              your USA study plan together.
+            </p>
+          </section>
         </div>
-      </section>
+      </div>
 
       <section className="dpage-cta">
         <div className="container dpage-cta-inner">
           <div>
-            <h2>Ready to explore the USA?</h2>
-            <p>
-              We&rsquo;ll take you through everything there is to do and know
-              before you go.
-            </p>
+            <h2>Let&rsquo;s build your USA plan</h2>
+            <p>Bring your questions — especially the ones you think are too basic.</p>
           </div>
           <Link className="dpage-cta-btn" to="/contact">
             Talk to Our Counsellors <Arrow />

@@ -1,6 +1,7 @@
 import { Routes, Route } from "react-router-dom";
 import Layout from "./components/Layout";
 import ScrollManager from "./components/ScrollManager";
+import HeroKnockout from "./components/HeroKnockout";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Home from "./pages/Home";
 import About from "./pages/About";
@@ -34,6 +35,8 @@ export default function App() {
     <>
       {/* Owns scroll position across every route — see the component */}
       <ScrollManager />
+      {/* Cuts the hero headline out of the hero photo on study-abroad pages */}
+      <HeroKnockout />
       <Routes>
         <Route element={<Layout />}>
           <Route path="/" element={<Home />} />

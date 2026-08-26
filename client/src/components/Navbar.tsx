@@ -85,6 +85,9 @@ const links: NavItem[] = [
         { label: "Success Stories", to: "/about" },
         { label: "Testimonials & Reviews", to: "/about" },
         { label: "University Partners", to: "/about" },
+        /* Was only ever reachable from the side drawer; kept in the nav so
+           removing that drawer lost nothing. */
+        { label: "Gallery", to: "/" },
         { label: "Contact Us", to: "/contact" },
       ],
     },
@@ -107,33 +110,8 @@ const links: NavItem[] = [
   },
 ];
 
-/* Sections listed in the side drawer opened by the dashboard icon —
-   repoint each `to` as dedicated pages are added. */
-const drawerLinks: NavItem[] = [
-  { label: "Gallery", to: "/" },
-  { label: "Testimonials & Reviews", to: "/" },
-  { label: "Success Stories", to: "/" },
-  { label: "Resources", to: "/blog" },
-  { label: "Events", to: "/blog" },
-  { label: "News", to: "/blog" },
-  { label: "Useful Documents", to: "/blog" },
-  { label: "Contact", to: "/contact" },
-];
-
-/** How long the drawer takes to slide out — matches drawer-out in styles.css */
-const DRAWER_EXIT = 300;
-
 /** Nav label → id-safe slug, for wiring aria-controls to the panel. */
 const slug = (label: string) => label.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-
-const DashboardIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    <rect x="3.5" y="3.5" width="7" height="7" rx="1.5" />
-    <rect x="13.5" y="3.5" width="7" height="7" rx="1.5" />
-    <rect x="3.5" y="13.5" width="7" height="7" rx="1.5" />
-    <rect x="13.5" y="13.5" width="7" height="7" rx="1.5" />
-  </svg>
-);
 
 export default function Navbar() {
   const { pathname } = useLocation();
@@ -143,10 +121,6 @@ export default function Navbar() {
   /* Label of the second-level panel that is open, or null. Only one entry
      has children today (Test Preparation), but nothing here assumes that. */
   const [openSub, setOpenSub] = useState<string | null>(null);
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  /* Held open, in its outgoing state, until the slide-out has played */
-  const [drawerClosing, setDrawerClosing] = useState(false);
-  const exitTimer = useRef<number>();
   const [logoMissing, setLogoMissing] = useState(false);
   const headerRef = useRef<HTMLElement>(null);
   /* The progress bars are driven straight through these refs — see below */
@@ -154,43 +128,6 @@ export default function Navbar() {
   const trackV = useRef<HTMLDivElement>(null);
   const barH = useRef<HTMLSpanElement>(null);
   const barV = useRef<HTMLSpanElement>(null);
-
-  const openDrawer = () => {
-    window.clearTimeout(exitTimer.current);
-    setDrawerClosing(false);
-    setDrawerOpen(true);
-  };
-
-  /* Closing runs the exit animation first and unmounts once it has finished,
-     so the drawer leaves the way it arrived instead of blinking out. */
-  const closeDrawer = () => {
-    if (!drawerOpen || drawerClosing) return;
-    setDrawerClosing(true);
-    exitTimer.current = window.setTimeout(() => {
-      setDrawerOpen(false);
-      setDrawerClosing(false);
-    }, DRAWER_EXIT);
-  };
-
-  useEffect(() => () => window.clearTimeout(exitTimer.current), []);
-
-  /* Lock page scroll and close on Escape while the side drawer is open.
-     The lock goes on <html>, not <body>: the page sets overflow-x on the
-     root element, and once the root has an overflow of its own the browser
-     stops taking the viewport's scrolling from <body> — so locking the body
-     would quietly do nothing. */
-  useEffect(() => {
-    if (!drawerOpen) return;
-    document.documentElement.classList.add("scroll-locked");
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") closeDrawer();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => {
-      document.documentElement.classList.remove("scroll-locked");
-      window.removeEventListener("keydown", onKey);
-    };
-  }, [drawerOpen]);
 
   /* Close an open dropdown on Escape or on a click outside the header. */
   useEffect(() => {
@@ -371,14 +308,6 @@ export default function Navbar() {
                 </NavLink>
               </div>
             ))}
-            <button
-              type="button"
-              className="drawer-toggle"
-              onClick={openDrawer}
-              aria-label="More sections"
-            >
-              <DashboardIcon />
-            </button>
           </nav>
         </div>
         {/* Dropdown panel — full-width band under the nav strip, showing the
@@ -449,44 +378,6 @@ export default function Navbar() {
         <span ref={barV} />
       </div>
 
-      {drawerOpen && (
-        <div
-          className={`side-drawer-overlay${drawerClosing ? " out" : ""}`}
-          onClick={(e) => {
-            if (e.target === e.currentTarget) closeDrawer();
-          }}
-        >
-          <aside
-            className={`side-drawer${drawerClosing ? " out" : ""}`}
-            role="dialog"
-            aria-label="More sections"
-          >
-            <button
-              type="button"
-              className="side-drawer-close"
-              onClick={closeDrawer}
-              aria-label="Close"
-            >
-              <svg viewBox="0 0 24 24" width="20" height="20" fill="none"
-                stroke="currentColor" strokeWidth="2" strokeLinecap="round"
-                aria-hidden="true">
-                <path d="M6 6l12 12M18 6L6 18" />
-              </svg>
-            </button>
-            <nav>
-              {drawerLinks.map((item) => (
-                <NavLink
-                  key={item.label}
-                  to={item.to}
-                  onClick={closeDrawer}
-                >
-                  {item.label}
-                </NavLink>
-              ))}
-            </nav>
-          </aside>
-        </div>
-      )}
     </header>
   );
 }
