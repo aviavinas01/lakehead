@@ -94,9 +94,6 @@ export default function ConsultCard() {
 
   return (
     <div className="consult-card">
-      <h3>
-        Thinking About <span className="accent">STUDYING</span> Abroad?
-      </h3>
       <p className="consult-sub">Not sure where to start? Tell us a little about your plans, and our team will help you figure out the next step.</p>
       <div className="consult-form">
         <input

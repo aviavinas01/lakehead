@@ -826,61 +826,61 @@ img { max-width: 100%; display: block; }
    colours hold still — nothing here follows the steps, so the form
    stays put visually while they take their turns beside it.
 
-   Scoped to .next-steps on purpose: the booking modal opened from
-   the consultation banner still needs the solid white card, which
-   is what gives that dialog its own background.
+   Scoped to .nsx rather than applied to .consult-card itself: the
+   base card keeps its own white background and shadow so the
+   component stays usable anywhere else it is dropped.
    ============================================================ */
-.next-steps .consult-card {
+.nsx .consult-card {
   background: transparent; box-shadow: none;
   padding: 0; border-radius: 0;
 }
 /* Set like the step numerals — outlined, and big enough to carry a
    stroke without the letters closing up. */
-.next-steps .consult-card h3 {
+.nsx .consult-card h3 {
   font-family: var(--font-display); font-weight: 800;
   font-size: clamp(1.6rem, 2.2vw, 2.05rem);
   line-height: 1.15; letter-spacing: -0.02em;
   color: var(--color-hero-ink); margin-bottom: 0.55rem;
 }
 @supports (-webkit-text-stroke: 1px red) {
-  .next-steps .consult-card h3 {
+  .nsx .consult-card h3 {
     -webkit-text-stroke: 1.4px var(--color-hero-ink); color: transparent;
   }
   /* One word stays solid, so the outline has something to play against */
-  .next-steps .consult-card h3 .accent {
+  .nsx .consult-card h3 .accent {
     -webkit-text-stroke: 0; color: var(--color-hero-red);
   }
 }
-.next-steps .consult-sub { font-size: 0.95rem; margin-bottom: 1.5rem; }
+.nsx .consult-sub { font-size: 0.95rem; margin-bottom: 1.5rem; }
 /* Glass fields, so the band and its watermark carry on behind them */
-.next-steps .consult-form input,
-.next-steps .consult-form select,
-.next-steps .consult-prefix {
+.nsx .consult-form input,
+.nsx .consult-form select,
+.nsx .consult-prefix {
   background: rgba(255, 255, 255, 0.72);
   border-color: rgba(23, 39, 92, 0.16);
 }
-.next-steps .consult-form input:focus,
-.next-steps .consult-form select:focus {
+.nsx .consult-form input:focus,
+.nsx .consult-form select:focus {
   background: #fff; outline-color: var(--color-hero-red);
 }
-.next-steps .consult-agree input { accent-color: var(--color-hero-red); }
+.nsx .consult-agree input { accent-color: var(--color-hero-red); }
 /* No panel here either — an outline in the brand crimson that fills in
    and flips its lettering to white on hover, the same move the arrows on
    the "how we help" cards make. */
-.next-steps .consult-submit {
+.nsx .consult-submit {
   background: transparent; box-shadow: none;
   border: 1.5px solid var(--color-hero-red);
   color: var(--color-hero-red);
   font-weight: 700; font-size: 0.98rem; padding: 0.9rem 1.5rem;
   transition: background-color 0.25s ease, color 0.25s ease;
 }
-.next-steps .consult-submit:hover:not(:disabled) {
+.nsx .consult-submit:hover:not(:disabled) {
   background-color: var(--color-hero-red); color: #fff;
 }
-.next-steps .consult-submit svg { transition: transform 0.2s ease; }
-.next-steps .consult-submit:hover svg { transform: translateX(3px); }
+.nsx .consult-submit svg { transition: transform 0.2s ease; }
+.nsx .consult-submit:hover svg { transform: translateX(3px); }
 /* The reassurance strip drops its green panel for the same glass */
-.next-steps .consult-trust {
+.nsx .consult-trust {
   background: rgba(255, 255, 255, 0.45);
   border-color: rgba(23, 39, 92, 0.1);
 }
@@ -1063,151 +1063,318 @@ a.greview-author:hover { text-decoration: underline; }
    it pushed ~80px past the right edge and gave the whole page a horizontal
    scrollbar. `clip` trims that without becoming a scroll container, which
    is what would break the sticky consultation form inside. */
-.next-steps {
-  background: #f9f4f1; margin-top: var(--section-y); padding: 5rem 0;
-  position: relative; overflow-x: clip;
-}
-.next-steps-inner {
-  display: grid; grid-template-columns: 1.15fr 1fr; gap: 4rem; align-items: start;
-  position: relative; z-index: 1;
-}
-/* Big logo watermark behind the consultation form on the right. The track
-   spans the section's height; the mark inside is sticky, so it stays put
-   behind the form and scrolls away with the section. Its rotation is what
-   the section's overflow-x: clip is there to contain. */
-.next-steps-logo {
-  position: absolute; z-index: 0; pointer-events: none;
-  top: 0; bottom: 0; left: 0; right: 0;
-}
-/* A large rotated bitmap that sticks as the section scrolls. Left on the
-   main layer the browser repaints it frame by frame; will-change hands it a
-   layer of its own, so scrolling past only moves it. */
-.next-steps-logo span {
-  display: block; position: sticky; top: 60px;
-  height: min(820px, 64vw);
-  background: url("/drawer-logo.png") no-repeat center center / contain;
-  /* The artwork is a red PNG. brightness(0) flattens it to black and
-     invert(1) takes that to white, keeping the alpha — so the same file
-     serves as a white mark here without a second asset. The footer uses the
-     same file the same way. */
-  filter: brightness(0) invert(1);
-  opacity: 0.9; transform: rotate(-14deg);
-  will-change: transform;
-}
-.next-steps h2 {
-  color: var(--color-hero-ink); font-size: clamp(2.2rem, 3.6vw, 3.15rem);
-  letter-spacing: -0.02em; margin-bottom: 1rem;
-}
-.next-steps-lead {
-  color: var(--color-muted); max-width: 580px;
-  line-height: 1.7; margin-bottom: 2.75rem;
-}
-/* The steps. No fill, no shadow, nothing behind the words at all — the
-   watermark shows through them untouched.
+/* ============================================================
+   "Your Journey to Global Education Starts Here"
+   (components/NextSteps.tsx).
 
-   They share one spot: the step in play sits in it, the ones still to come
-   wait low, the ones done with have risen away. Which spot is being held
-   still, and by what, is the two media queries further down — but one of
-   them always applies, so the stage below is always the arrangement. */
-.steps-stage { display: block; position: relative; }
-/* Scroll room for the small-screen pin only — see the media query below. */
-.next-steps-room { display: none; }
-.step-card {
-  /* --enter is the full climb: a step starts down at the foot of the band
-     and travels all the way up into place. --leave stays short, so the one
-     going gets out of the way without carrying its text up over the
-     paragraph above. */
-  --enter: clamp(220px, 40vh, 440px);
-  --leave: -74px;
-  position: absolute; top: 0; left: 0; right: 0; max-width: 620px;
-  opacity: 0; transform: translateY(var(--enter)); pointer-events: none;
-  transition: opacity 0.3s ease, transform 0.5s cubic-bezier(0.22, 0.68, 0.3, 1);
+   ONE pinned mechanism, not two. The previous version chose
+   between a wide pin and a narrow pin with a media query that
+   also had to be duplicated in the component — and the pair
+   disagreed on any window under 780px tall, which is where the
+   step-1-jumps-to-step-4 bug lived. Below the breakpoint here
+   there is now no pin at all, just a stacked list, so there is
+   no second measurement to keep in step with the first.
+
+   The section's height is generated from --nsx-scroll, which
+   NextSteps.tsx computes from the data's own length. Nothing
+   in this file knows how many steps there are.
+   ============================================================ */
+
+.nsx {
+  background: var(--color-bg); margin-top: var(--section-y);
+  position: relative; overflow-x: clip;
+  /* The watermark's beige. Deeper than the band's old background colour
+     was, because it now has to read AS a mark on white rather than as the
+     ground everything else sat on. */
+  --nsx-mark: #f4e8e0;
+  /* The photographs' width, declared once. The stack is pinned to the
+     window's right edge and the copy column reserves exactly this much
+     padding, so neither has to measure the other at runtime. */
+  --nsx-stack-w: clamp(360px, 46vw, 880px);
 }
-/* Arriving: fades up well before the climb ends, so it is legible for most
-   of the way rather than snapping into place at the top. */
-.step-card.is-current {
-  opacity: 1; transform: none; pointer-events: auto;
-  transition: opacity 0.4s ease, transform 0.9s cubic-bezier(0.16, 0.74, 0.22, 1);
+
+/* ---- the stage: pinned, one viewport tall ---- */
+.nsx-stage { display: none; }
+.nsx-list { display: block; padding: 3.5rem 0 4rem; }
+
+@media (min-width: 981px) {
+  /* A screen's worth to look at, plus the generated scroll room. No
+     min-height gate: the stage sizes itself to the window, so a short
+     laptop gets a shorter stage rather than a different mechanism. */
+  .nsx { height: calc(100vh + var(--nsx-scroll) * 100vh); }
+  .nsx-list { display: none; }
+  .nsx-stage {
+    display: flex; align-items: flex-start;
+    position: sticky; top: 0;
+    height: 100vh; overflow: hidden;
+  }
+  /* svh where it exists — on a phone-sized desktop window the toolbar
+     collapsing mid-scroll would otherwise resize the stage under the
+     measurement. Harmless everywhere else. */
+  @supports (height: 100svh) {
+    .nsx { height: calc(100svh + var(--nsx-scroll) * 100svh); }
+    .nsx-stage { height: 100svh; }
+  }
+  /* No grid: the stack is out of the flow against the stage's right edge,
+     so the container simply keeps its own content clear of it. Padding
+     rather than a column because the stack is measured off the WINDOW and
+     the container is centred — a grid track could not line up with both. */
+  .nsx-inner {
+    position: relative; z-index: 1; width: 100%;
+    /* Clear of the header, then a measured drop — the block sits high in the
+       frame rather than centred in it, which is what leaves the steps room
+       to rise into. */
+    padding-top: calc(var(--navbar-h, 86px) + clamp(1.5rem, 7vh, 4.5rem));
+    padding-right: calc(var(--nsx-stack-w) + clamp(1.5rem, 3vw, 3rem));
+  }
+  .nsx-copy { max-width: 46rem; }
 }
-.step-card.is-past { opacity: 0; transform: translateY(var(--leave)); }
-/* Without a card to sit on, the type carries the section on its own — so
-   it is set big. The number becomes a ghost figure behind the title
-   rather than a digit beside it: that way it can be enormous without
-   taking a single pixel of width from the words. */
-.step-num {
-  display: block; margin-bottom: 0.35rem;
-  font-family: var(--font-display); font-weight: 800; line-height: 1;
-  font-size: clamp(2.9rem, 4.4vw, 4.2rem);
-  color: var(--step-color, #3d56c5);
-  user-select: none;
-}
-/* Drawn as an outline, so the figure can be big and loud without shouting
-   over the title under it. Guarded: without text-stroke the transparent
-   fill would erase it, so the solid colour above stays the fallback. */
-@supports (-webkit-text-stroke: 1px red) {
-  .step-num {
-    -webkit-text-stroke: 2px var(--step-color, #3d56c5);
-    color: transparent;
+
+/* ---- the watermark ----
+   The logo, large and turned, sitting behind the copy. It is masked rather
+   than drawn: the source PNG is red, and a filter can flatten a red to
+   black or white but not to a beige, so the file supplies the SHAPE and the
+   colour comes from `background-color`.
+
+   Only inside the @supports block. Without mask support the element would
+   otherwise be a solid beige rectangle across the section, which is a far
+   worse outcome than no watermark at all. */
+.nsx-mark { display: none; }
+@supports ((-webkit-mask-image: url("/drawer-logo.png")) or (mask-image: url("/drawer-logo.png"))) {
+  @media (min-width: 981px) {
+    .nsx-mark {
+      display: block; position: absolute; inset: 0; z-index: 0;
+      pointer-events: none; overflow: hidden;
+    }
+    .nsx-mark span {
+      position: absolute; top: 50%; left: clamp(-14rem, -9vw, -5rem);
+      width: min(680px, 46vw); height: min(680px, 46vw);
+      transform: translateY(-50%) rotate(-14deg);
+      background-color: var(--nsx-mark);
+      -webkit-mask: url("/drawer-logo.png") no-repeat center center / contain;
+      mask: url("/drawer-logo.png") no-repeat center center / contain;
+    }
   }
 }
-.step-card h3 {
-  position: relative; z-index: 1; margin: 0;
-  color: var(--step-color, #3d56c5);
-  font-size: clamp(2.1rem, 3.6vw, 3.3rem); font-weight: 800;
-  line-height: 1.06; letter-spacing: -0.03em;
+
+/* ---- left column ---- */
+.nsx h2, .nsx-list h2 {
+  color: var(--color-hero-ink);
+  font-size: clamp(1.9rem, 3.2vw, 3rem);
+  letter-spacing: -0.03em; line-height: 1.1;
+  /* A real gap under the headline: the steps rise into the space below it,
+     and without room to rise into there is nothing to see them do. */
+  margin-bottom: clamp(1.75rem, 5vh, 3.25rem);
+  max-width: 18ch;
 }
-/* The flash: each title is filled with its own colour running down into
-   the brand navy. Guarded — where background-clip is missing, the
-   transparent fill below would leave the words invisible. */
+/* In the pinned layout the copy column is already bounded by the padding
+   that reserves the photographs' width, so a second cap here only forces
+   the headline into more lines than it needs. */
+@media (min-width: 981px) {
+  .nsx-copy h2 { max-width: none; }
+}
+
+/* ---- the steps ----
+   Every block is mounted and they share one spot: the one in play sits in
+   it, the ones still to come wait below, the ones done with have risen away.
+   Because they are all present they PASS each other — the arriving block
+   climbs into place while the leaving one keeps climbing and fades — which
+   is the difference between a slide and the swap-in-place this used to do.
+
+   The transform runs slower than the fade on purpose. The words are legible
+   for most of the climb rather than snapping into position at the end of
+   it, and the two easings are what keep the movement from looking linear. */
+.nsx-steps { position: relative; min-height: clamp(210px, 27vh, 290px); }
+.nsx-step {
+  position: absolute; inset: 0 0 auto 0;
+  opacity: 0; transform: translateY(52px); pointer-events: none;
+  transition:
+    opacity 0.45s ease,
+    transform 0.85s cubic-bezier(0.16, 0.74, 0.22, 1);
+}
+.nsx-step[data-state="on"] {
+  opacity: 1; transform: none; pointer-events: auto;
+}
+/* Out the top, not back the way it came — the column always travels one
+   way, so the sequence reads as a climb rather than a shuffle. */
+.nsx-step[data-state="past"] { opacity: 0; transform: translateY(-56px); }
+
+@keyframes nsx-in {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: none; }
+}
+.nsx-step-n {
+  display: block; margin-bottom: 0.2rem;
+  font-family: var(--font-display); font-weight: 800; line-height: 1;
+  font-size: clamp(2.2rem, 3.6vw, 3.4rem);
+  color: var(--jp-color, #3d56c5);
+}
+/* Outlined, so the numeral can be large without shouting over the title.
+   Guarded: without text-stroke the transparent fill would erase it, so the
+   solid colour above stays the fallback. */
+@supports (-webkit-text-stroke: 1px red) {
+  .nsx-step-n { -webkit-text-stroke: 2px var(--jp-color, #3d56c5); color: transparent; }
+}
+.nsx-step h3 {
+  margin: 0 0 0.75rem; color: var(--jp-color, #3d56c5);
+  font-size: clamp(1.8rem, 3.2vw, 2.9rem); font-weight: 800;
+  line-height: 1.06; letter-spacing: -0.035em;
+}
 @supports ((-webkit-background-clip: text) or (background-clip: text)) {
-  .step-card h3 {
-    background-image:
-      linear-gradient(96deg, var(--step-color, #3d56c5) 5%, #17275c 118%);
+  .nsx-step h3 {
+    background-image: linear-gradient(96deg, var(--jp-color, #3d56c5) 5%, #17275c 118%);
     -webkit-background-clip: text; background-clip: text;
     -webkit-text-fill-color: transparent;
   }
 }
-.step-body {
-  position: relative; z-index: 1;
-  margin: 1rem 0 0; color: #43434d;
-  font-size: 1.12rem; line-height: 1.7; max-width: 540px;
-}
-/* The pin. The band stands a screen tall plus one stretch of scroll per
-   step (--steps is set on the section by NextSteps.tsx); its contents are
-   sticky, so they hold still under the header while that extra height
-   scrolls past, and the band only leaves once the last step has had its
-   turn. The steps share one spot: the current one sits in place, the ones
-   still to come wait below it, and the ones done with have risen away.
-   Held back to windows with the room for it — a short window or a phone
-   keeps the plain list above, where every step is visible at once. */
-@media (min-width: 861px) and (min-height: 780px) {
-  .next-steps { height: calc(100vh + (var(--steps) - 1) * 50vh); }
-  /* Headroom above the heading, as much as the window can spare. The
-     middle term is the spare room itself — the form runs about 640px, so
-     whatever a window has beyond that goes overhead, down to a floor of
-     110px on a short screen and capped so a tall one is not all gap. */
-  .next-steps-inner {
-    position: sticky; top: clamp(110px, calc(100vh - 700px), 220px);
-  }
-  /* The form is pinned by the band now; its own sticky would fight it. */
-  .next-steps-inner .consult-card { position: static; }
-  /* One spot, shared: the step in play sits at the top of the stage, the
-     ones still to come wait low in it, the ones done with have risen off.
-     The stage is deep enough for the arriving step to make the climb. */
-  .steps-stage { min-height: 310px; }
+.nsx-step p {
+  margin: 0; color: #43434d; max-width: 46ch;
+  font-size: clamp(0.98rem, 1.2vw, 1.1rem); line-height: 1.7;
 }
 
-/* Narrow or short — no room to hold the whole band, so the heading and the
-   steps are held together as one frame instead, and the form is left to
-   scroll normally after them. The padding below the frame is the track:
-   the steps take their turns while it scrolls past, then the frame lets go.
-   Exactly the complement of the query above, so one mode or the other is
-   always on. The frame must stay flush with the top of its track — the
-   measuring in NextSteps.tsx reads the two as sharing a top edge. */
-@media (max-width: 860px), (max-height: 779px) {
-  .next-steps-frame { position: sticky; top: 96px; }
-  .next-steps-room { display: block; height: calc((var(--steps) - 1) * 55vh); }
-  .steps-stage { min-height: 255px; }
+/* ---- the stack ----
+   Every panel fills the same box. `data-on` reveals one; the ones already
+   revealed stay revealed and are simply covered by the higher z-index of
+   whatever came after, which is what makes each photograph hide the last
+   completely. Scrolling back up re-clips them downward, so it reverses. */
+/* Pinned to the stage's right edge and filling its whole height — the
+   photographs take the right-hand side of the band outright, with no
+   rounding, no shadow and no gutter. Only shown in the pinned layout; the
+   stacked one below has its own. */
+.nsx-stack { display: none; }
+@media (min-width: 981px) {
+  .nsx-stack {
+    display: block; position: absolute;
+    top: 0; right: 0; bottom: 0;
+    width: var(--nsx-stack-w);
+    overflow: hidden; background: var(--color-bg);
+  }
+}
+.jp {
+  position: absolute; inset: 0; display: block; color: #fff;
+  /* Hidden panels are clipped away from the bottom edge upward, so a panel
+     arrives by rising into the frame rather than fading in on the spot. */
+  clip-path: inset(100% 0 0 0);
+  transition: clip-path 0.75s cubic-bezier(0.22, 0.9, 0.28, 1);
+}
+.jp[data-on] { clip-path: inset(0 0 0 0); }
+.jp > img, .jp-blank {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%; object-fit: cover;
+}
+/* No photograph yet: the step's own colour, deepening downward. Carries the
+   same words, so the section is finished either way. */
+.jp-blank {
+  background:
+    radial-gradient(120% 90% at 50% 0%, rgba(255, 255, 255, 0.22), transparent 70%),
+    linear-gradient(160deg, var(--jp-color, #3d56c5), #0f1c44);
+}
+.jp-scrim {
+  position: absolute; inset: 0;
+  background: linear-gradient(to top,
+    rgba(9, 16, 38, 0.92) 0%, rgba(9, 16, 38, 0.6) 38%,
+    rgba(9, 16, 38, 0.1) 68%, rgba(9, 16, 38, 0.28) 100%);
+}
+.jp-body {
+  position: absolute; inset: auto 0 0 0; z-index: 1;
+  display: grid; gap: 0.5rem; padding: clamp(1.5rem, 3vw, 2.25rem);
+}
+/* The words come up a beat after the photograph has finished rising, so the
+   panel reads as an image that then speaks rather than as a slide. */
+.jp[data-on] .jp-body > * { animation: nsx-in 0.5s cubic-bezier(0.22, 0.9, 0.28, 1) both; }
+.jp[data-on] .jp-body > *:nth-child(1) { animation-delay: 0.34s; }
+.jp[data-on] .jp-body > *:nth-child(2) { animation-delay: 0.4s; }
+.jp[data-on] .jp-body > *:nth-child(3) { animation-delay: 0.46s; }
+.jp[data-on] .jp-body > *:nth-child(4) { animation-delay: 0.52s; }
+.jp-kicker {
+  font-size: 0.72rem; font-weight: 700;
+  letter-spacing: 0.2em; text-transform: uppercase;
+  color: #fff; opacity: 0.75;
+}
+.jp-title {
+  font-family: var(--font-display); font-weight: 800;
+  font-size: clamp(1.5rem, 2.6vw, 2.3rem); line-height: 1.08;
+  letter-spacing: -0.035em; color: #fff;
+}
+.jp-caption {
+  color: rgba(255, 255, 255, 0.85); font-size: 0.98rem; line-height: 1.5;
+  max-width: 34ch;
+}
+.jp-link {
+  justify-self: start; margin-top: 0.5rem;
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  padding: 0.6rem 1.25rem; border-radius: 999px;
+  background: #fff; color: var(--color-hero-ink);
+  font-family: var(--font-display); font-weight: 700; font-size: 0.92rem;
+  transition: background 0.25s ease, color 0.25s ease;
+}
+.jp:hover .jp-link { background: var(--jp-color, #3d56c5); color: #fff; }
+.jp:hover > img { transform: scale(1.03); }
+.jp > img { transition: transform 0.7s cubic-bezier(0.22, 0.9, 0.28, 1); }
+.jp:focus-visible { outline: 3px solid #fff; outline-offset: -6px; }
+
+/* The last panel: the form, on white, covering the photographs for good. */
+/* The band's own white, so the form reads as the photographs clearing away
+   rather than as one more panel sliding over them. The card inside is
+   already transparent (see the `.nsx .consult-card` block further up), which
+   is what makes this the bare form it was before. */
+.jp-consult {
+  background: var(--color-bg);
+  padding: clamp(1.25rem, 2.5vw, 2.25rem);
+  display: grid; align-content: center;
+  /* The one panel that can be taller than its frame on a short window.
+     Scrolling inside it beats scaling it down to unreadable. */
+  overflow-y: auto; overscroll-behavior: contain;
+}
+.jp-consult::-webkit-scrollbar { width: 6px; }
+.jp-consult::-webkit-scrollbar-thumb {
+  background: var(--color-border); border-radius: 3px;
+}
+/* The card is sticky by default (it used to pin itself beside the old
+   layout). Inside an absolutely-positioned panel that is meaningless and on
+   a short window it drifts, so it is pinned off here. */
+.nsx-stack .consult-card {
+  box-shadow: none; padding: 0;
+  /* Sticky by default — meaningless inside an absolutely-placed panel, and
+     it drifts on a short window. Centred rather than stretched: the stack is
+     wide now, and a 700px-wide form is not a better form. */
+  position: static; max-width: 430px; justify-self: center;
+}
+/* Same reason, for the stacked layout — which is shown up to 980px, wider
+   than the breakpoint where .consult-card is otherwise made static. */
+.nsx-list .consult-card { position: static; margin-inline: auto; }
+
+/* ---- the phone layout: no pin, no measurement ---- */
+.nsx-list-item { margin-bottom: 2.5rem; }
+.nsx-list-shot {
+  position: relative; display: block; overflow: hidden;
+  border-radius: 18px; aspect-ratio: 4 / 3; margin-bottom: 1.1rem;
+  box-shadow: 0 16px 36px rgba(23, 39, 92, 0.14);
+}
+.nsx-list-shot img, .nsx-list-shot .jp-blank { width: 100%; height: 100%; object-fit: cover; }
+.nsx-list-shot .jp-kicker {
+  position: absolute; left: 1rem; bottom: 0.9rem; z-index: 1;
+}
+.nsx-list-item h3 {
+  color: var(--jp-color, #3d56c5); margin-bottom: 0.5rem;
+  font-size: clamp(1.6rem, 6vw, 2.1rem); font-weight: 800;
+  line-height: 1.08; letter-spacing: -0.03em;
+}
+.nsx-list-item p { color: #43434d; line-height: 1.7; margin-bottom: 0.9rem; }
+.nsx-list-link {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  color: var(--jp-color, #3d56c5); font-weight: 700;
+}
+.nsx-list-link:hover { text-decoration: underline; text-underline-offset: 3px; }
+.nsx-list .consult-card { margin-top: 3rem; }
+
+@media (prefers-reduced-motion: reduce) {
+  /* The reveal is the whole point of the section, so it is kept — but made
+     instant, and everything decorative around it stops. */
+  .jp { transition: none; }
+  .nsx-step { transition: none; }
+  .jp[data-on] .jp-body > * { animation: none; }
+  .jp > img, .jp:hover > img { transition: none; transform: none; }
 }
 
 /* Stats strip below the hero — crimson figures, sitting on the page itself
@@ -1323,8 +1490,9 @@ a.greview-author:hover { text-decoration: underline; }
   color: var(--color-muted); font-size: 1.08rem; line-height: 1.75;
   max-width: 540px; margin: 0 auto 2.25rem;
 }
-/* The same outlined button as the consultation form, so the two calls to
-   action on the page read as the same gesture. */
+/* The same outlined treatment as the consultation form's own button, so the
+   two calls to action on the page read as one gesture. It is a link, not a
+   button — it goes to /contact — but the appearance is deliberately shared. */
 .journey-btn {
   display: inline-flex; align-items: center; gap: 0.6rem;
   background: transparent; border: 1.5px solid var(--color-hero-red);
@@ -1335,23 +1503,6 @@ a.greview-author:hover { text-decoration: underline; }
 .journey-btn:hover {
   background-color: var(--color-hero-red); color: #fff; gap: 0.85rem;
 }
-.consult-modal-overlay {
-  position: fixed; inset: 0; z-index: 100; overflow-y: auto;
-  display: flex; align-items: flex-start; justify-content: center;
-  background: rgba(23, 20, 48, 0.62); padding: 3rem 1.25rem;
-}
-.consult-modal { position: relative; width: 100%; max-width: 480px; }
-/* The white consult-card provides the modal's own background;
-   the sticky positioning only applies in the page layout */
-.consult-modal .consult-card { width: 100%; max-width: none; position: static; }
-.consult-modal-close {
-  position: absolute; top: 0.9rem; right: 0.9rem; z-index: 5;
-  display: grid; place-items: center; width: 36px; height: 36px;
-  border: none; border-radius: 50%; background: var(--color-surface);
-  color: var(--color-text); cursor: pointer; transition: background 0.15s;
-}
-.consult-modal-close:hover { background: var(--color-border); }
-
 /* Buttons */
 .btn { display: inline-block; padding: 0.65rem 1.4rem; border-radius: var(--radius); border: none; cursor: pointer; font-size: 1rem; font-family: var(--font-body); }
 .btn-primary { background: var(--color-primary); color: #fff; }
@@ -1621,15 +1772,9 @@ a.greview-author:hover { text-decoration: underline; }
   /* Reviews: heading and score stack, cards go one-up */
   .greviews-head { flex-direction: column; gap: 1rem; }
   .greviews-grid { grid-template-columns: 1fr; }
-  .next-steps { padding: 3.5rem 0; }
-  .next-steps-inner { grid-template-columns: 1fr; gap: 3rem; }
-  /* Single column: the form flows normally below the stacked cards */
+  /* The journey band is not pinned at this width — see .nsx-list, which
+     stacks every step with its photograph and needs no overrides here. */
   .consult-card { justify-self: center; position: static; }
-  .next-steps-logo { display: none; }
-  .step-card { max-width: none; }
-  .step-num { font-size: 2.6rem; }
-  .step-card h3 { font-size: 1.85rem; }
-  .step-body { font-size: 1.02rem; }
 }
 
 @media (max-width: 520px) {
