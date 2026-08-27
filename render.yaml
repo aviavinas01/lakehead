@@ -35,7 +35,17 @@ services:
         sync: false
       - key: ADMIN_PASSWORD
         sync: false
+      # The curated Success Stories playlist. Preferred source.
       - key: YOUTUBE_PLAYLIST_ID
+        sync: false
+      # The channel's uploads. Set this as well as the playlist, not instead
+      # of it: YouTube's playlist feed fails intermittently, and this is what
+      # the server falls back to when it does. Must start "UC".
+      - key: YOUTUBE_CHANNEL_ID
+        sync: false
+      # The separate playlist behind the Study Abroad testimonial row.
+      # Unset, that row renders nothing — it never borrows the channel feed.
+      - key: YOUTUBE_TESTIMONIALS_PLAYLIST_ID
         sync: false
       - key: GOOGLE_MAPS_API_KEY
         sync: false
