@@ -82,17 +82,17 @@ const links: NavItem[] = [
       lead: "A team of certified consultants guiding students to the right university, the right course, and the right country.",
       links: [
         { label: "Who We Are", to: "/about" },
-        { label: "Success Stories", to: "/about" },
-        { label: "Testimonials & Reviews", to: "/about" },
-        { label: "University Partners", to: "/about" },
-        /* Was only ever reachable from the side drawer; kept in the nav so
-           removing that drawer lost nothing. */
-        { label: "Gallery", to: "/" },
+        /* Success Stories used to sit here pointing at /about as well. The
+           video stories it meant are now cards on the reviews wall, so the
+           entry below is the only one that leads to them. */
+        { label: "Testimonials & Reviews", to: "/testimonials" },
+        { label: "University Partners", to: "/university-partners" },
+        { label: "Gallery", to: "/gallery" },
         { label: "Contact Us", to: "/contact" },
       ],
     },
   },
-  { label: "Events", to: "/blog" },
+  { label: "Events", to: "/events" },
   {
     label: "Resources",
     to: "/blog",
@@ -104,7 +104,8 @@ const links: NavItem[] = [
         { label: "Blog & Articles", to: "/blog" },
         { label: "News", to: "/blog" },
         { label: "Useful Documents", to: "/blog" },
-        { label: "Events", to: "/blog" },
+        /* Events had an entry here as well as its own top-level nav item.
+           One route, one way in — the top-level link is the one that stays. */
       ],
     },
   },

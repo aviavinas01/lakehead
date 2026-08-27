@@ -20,6 +20,10 @@ import StudyInUK from "./pages/StudyInUK";
 import StudyInUSA from "./pages/StudyInUSA";
 import StudyInNewZealand from "./pages/StudyInNewZealand";
 import StudyInSouthKorea from "./pages/StudyInSouthKorea";
+import Testimonials from "./pages/Testimonials";
+import UniversityPartners from "./pages/UniversityPartners";
+import Gallery from "./pages/Gallery";
+import Events from "./pages/Events";
 import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
 import Contact from "./pages/Contact";
@@ -58,6 +62,10 @@ export default function App() {
           <Route path="/study-in-usa" element={<StudyInUSA />} />
           <Route path="/study-in-new-zealand" element={<StudyInNewZealand />} />
           <Route path="/study-in-south-korea" element={<StudyInSouthKorea />} />
+          <Route path="/testimonials" element={<Testimonials />} />
+          <Route path="/university-partners" element={<UniversityPartners />} />
+          <Route path="/gallery" element={<Gallery />} />
+          <Route path="/events" element={<Events />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/blog/:slug" element={<BlogPost />} />
           <Route path="/contact" element={<Contact />} />

@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
+import { UNIVERSITIES } from "../data/universities";
 
 /**
  * Partner logos, as a staggered grid of tiles that hold their position and
@@ -11,24 +13,13 @@ import { useEffect, useRef, useState } from "react";
  * longer limited by how many tiles fit on screen.
  *
  * Add logos by dropping files into client/public/universities/ and adding a
- * line to UNIVERSITIES. Nothing else needs changing: the grid works out how
+ * line to UNIVERSITIES in data/universities.ts — the same list the partners
+ * page renders in full. Nothing else needs changing: the grid works out how
  * many tiles fit, and the rotation covers however many logos exist. A
  * missing file falls back to the university's name rather than a broken
  * image, so a typo degrades quietly.
  */
 
-const UNIVERSITIES: { name: string; logo: string }[] = [
-  { name: "University 1", logo: "/universities/uni-1.jpeg" },
-  { name: "University 2", logo: "/universities/uni-2.jpeg" },
-  { name: "University 3", logo: "/universities/uni-3.jpeg" },
-  { name: "University 4", logo: "/universities/uni-4.jpeg" },
-  { name: "University 5", logo: "/universities/uni-5.jpeg" },
-  { name: "University 6", logo: "/universities/uni-6.jpeg" },
-  { name: "University 7", logo: "/universities/uni-7.jpeg" },
-  { name: "University 8", logo: "/universities/uni-8.jpeg" },
-  { name: "University 9", logo: "/universities/uni-9.jpeg" },
-  { name: "University 10", logo: "/universities/uni-10.jpeg" },
-];
 
 const ROWS = 3;
 /** How long a tile holds before another one somewhere flips. */
@@ -226,7 +217,10 @@ export default function UniversityPartners() {
         ))}
       </div>
       <p className="uni-count">
-        {UNIVERSITIES.length} partner institutions and counting.
+        {UNIVERSITIES.length} partner institutions and counting.{" "}
+        {/* The tiles are aria-hidden decoration, so this link is also the
+            only way out of this section for a keyboard or a screen reader. */}
+        <Link to="/university-partners">See them all</Link>
       </p>
     </section>
   );

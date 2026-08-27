@@ -1,8 +1,39 @@
-import { useEffect, useState, type ChangeEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import api, { getErrorMessage } from "../../api/client";
+import { mediaSrc } from "../../api/media";
 import AdminNav from "./AdminNav";
-import type { Post, PostStatus } from "../../types/api";
+import {
+  renderArticle,
+  readingTime,
+  wordCount,
+  autoExcerpt,
+  SYNTAX_HELP,
+} from "../../lib/richText";
+import type { Media, Post, PostStatus } from "../../types/api";
+
+/**
+ * The post editor — /admin/posts/new and /admin/posts/:id/edit.
+ *
+ * The writing surface stays a plain textarea on purpose. A contenteditable
+ * rich-text editor is a large amount of fragile code, and it stores markup,
+ * which then has to be sanitised on the way back out. Posts here are stored
+ * as text in the small markup that lib/richText.tsx understands, so there is
+ * no HTML anywhere in the pipeline and nothing to sanitise. What makes that
+ * pleasant rather than austere is the other three things on this screen:
+ *
+ *   - a toolbar that wraps the selection, so nobody has to remember the
+ *     syntax to make a word bold;
+ *   - image upload, both for the cover and inline — pick a file, it goes to
+ *     /media, and the markup is inserted at the cursor;
+ *   - a live preview rendered by the SAME function the public article page
+ *     calls, so it is the article, not an approximation of it.
+ *
+ * DRAFTS AND PUBLISHING ARE TWO BUTTONS, not a dropdown. Choosing "status:
+ * published" in a select and then pressing Save is two decisions to express
+ * one intent, and it is the arrangement that gets a half-written post
+ * published by accident.
+ */
 
 interface EditorForm {
   title: string;
@@ -22,78 +53,463 @@ const initial: EditorForm = {
   status: "draft",
 };
 
+/** What the toolbar buttons do to the selection. */
+type Tool =
+  | { label: string; title: string; wrap: [string, string] }
+  | { label: string; title: string; line: string };
+
+const TOOLS: Tool[] = [
+  { label: "B", title: "Bold", wrap: ["**", "**"] },
+  { label: "I", title: "Italic", wrap: ["*", "*"] },
+  { label: "H2", title: "Section heading", line: "## " },
+  { label: "H3", title: "Sub-heading", line: "### " },
+  { label: "❝", title: "Quote", line: "> " },
+  { label: "•", title: "Bulleted list", line: "- " },
+  { label: "1.", title: "Numbered list", line: "1. " },
+  { label: "🔗", title: "Link", wrap: ["[", "](https://)"] },
+  { label: "—", title: "Divider", line: "---" },
+];
+
 export default function PostEditor() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+
   const [form, setForm] = useState<EditorForm>(initial);
   const [error, setError] = useState("");
-  const [busy, setBusy] = useState(false);
+  const [notice, setNotice] = useState("");
+  const [busy, setBusy] = useState<"" | "draft" | "published">("");
+  const [loading, setLoading] = useState(Boolean(id));
+  const [uploading, setUploading] = useState<"" | "cover" | "inline">("");
+  const [preview, setPreview] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
+
+  const area = useRef<HTMLTextAreaElement>(null);
+  const coverInput = useRef<HTMLInputElement>(null);
+  const inlineInput = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!id) return;
-    api.get<{ post: Post }>(`/posts/admin/${id}`).then((res) => {
-      const p = res.data.post;
-      setForm({
-        title: p.title,
-        excerpt: p.excerpt ?? "",
-        content: p.content,
-        coverImage: p.coverImage ?? "",
-        tags: p.tags.join(", "),
-        status: p.status,
-      });
-    });
+    api
+      .get<{ post: Post }>(`/posts/admin/${id}`)
+      .then((res) => {
+        const p = res.data.post;
+        setForm({
+          title: p.title,
+          excerpt: p.excerpt ?? "",
+          content: p.content,
+          coverImage: p.coverImage ?? "",
+          tags: p.tags.join(", "),
+          status: p.status,
+        });
+      })
+      .catch((err) => setError(getErrorMessage(err, "Couldn't load that post")))
+      .finally(() => setLoading(false));
   }, [id]);
+
+  /* Ctrl/Cmd+S saves without publishing — the reflex every writer has. */
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "s") {
+        e.preventDefault();
+        void save(form.status === "published" ? "published" : "draft");
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  });
 
   const set = (
     e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
-  ) => setForm({ ...form, [e.target.name]: e.target.value });
+  ) => setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
 
-  const save = async () => {
-    setBusy(true);
+  /**
+   * Replaces the current selection and restores the caret afterwards.
+   * Going through the textarea's own value rather than document.execCommand
+   * means this behaves identically in every browser — at the cost of losing
+   * the native undo stack, which is why the caret is put back by hand.
+   */
+  const applyTool = (tool: Tool) => {
+    const el = area.current;
+    if (!el) return;
+    const { selectionStart: from, selectionEnd: to, value } = el;
+    const selected = value.slice(from, to);
+
+    let next: string;
+    let caret: number;
+
+    if ("wrap" in tool) {
+      const [open, close] = tool.wrap;
+      next = value.slice(0, from) + open + selected + close + value.slice(to);
+      /* With nothing selected, land between the markers so the next
+         keystroke goes inside them. */
+      caret = selected ? from + open.length + selected.length + close.length : from + open.length;
+    } else {
+      /* A line tool applies to every line the selection touches, so
+         highlighting four lines and pressing "•" makes a four-item list. */
+      const lineStart = value.lastIndexOf("\n", from - 1) + 1;
+      const block = value.slice(lineStart, to);
+      const prefixed = block
+        .split("\n")
+        .map((l) => (l.startsWith(tool.line) ? l : tool.line + l))
+        .join("\n");
+      next = value.slice(0, lineStart) + prefixed + value.slice(to);
+      caret = lineStart + prefixed.length;
+    }
+
+    setForm((f) => ({ ...f, content: next }));
+    requestAnimationFrame(() => {
+      el.focus();
+      el.setSelectionRange(caret, caret);
+    });
+  };
+
+  const insertAtCursor = (text: string) => {
+    const el = area.current;
+    if (!el) {
+      setForm((f) => ({ ...f, content: `${f.content}\n\n${text}\n` }));
+      return;
+    }
+    const { selectionStart: at, value } = el;
+    const next = `${value.slice(0, at)}\n\n${text}\n\n${value.slice(at)}`;
+    setForm((f) => ({ ...f, content: next }));
+    const caret = at + text.length + 4;
+    requestAnimationFrame(() => {
+      el.focus();
+      el.setSelectionRange(caret, caret);
+    });
+  };
+
+  /**
+   * Uploads to the media library and hands back the stored path.
+   *
+   * Note the path is relative — `/uploads/<file>` — and is saved that way.
+   * `mediaSrc` puts the API's origin in front at render time, so moving the
+   * API to another host does not break every image ever uploaded.
+   */
+  const upload = async (file: File): Promise<string> => {
+    const body = new FormData();
+    body.append("file", file);
+    body.append("title", file.name);
+    const { data } = await api.post<{ media: Media }>("/media", body);
+    return data.media.url;
+  };
+
+  const onCoverPicked = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading("cover");
     setError("");
-    const payload = {
-      ...form,
-      tags: form.tags.split(",").map((t) => t.trim()).filter(Boolean),
-    };
     try {
-      if (id) await api.put(`/posts/${id}`, payload);
-      else await api.post("/posts", payload);
-      navigate("/admin");
+      const url = await upload(file);
+      setForm((f) => ({ ...f, coverImage: url }));
+    } catch (err) {
+      setError(getErrorMessage(err, "Cover upload failed"));
+    } finally {
+      setUploading("");
+      if (coverInput.current) coverInput.current.value = "";
+    }
+  };
+
+  const onInlinePicked = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading("inline");
+    setError("");
+    try {
+      const url = await upload(file);
+      /* The alt text doubles as the caption on the article page, so it is
+         seeded with something removable rather than left empty. */
+      insertAtCursor(`![${file.name.replace(/\.[^.]+$/, "")}](${url})`);
+    } catch (err) {
+      setError(getErrorMessage(err, "Image upload failed"));
+    } finally {
+      setUploading("");
+      if (inlineInput.current) inlineInput.current.value = "";
+    }
+  };
+
+  const save = async (status: PostStatus) => {
+    if (!form.title.trim() || !form.content.trim()) {
+      setError("A title and some content are needed before saving.");
+      return;
+    }
+    setBusy(status);
+    setError("");
+    setNotice("");
+
+    const payload = {
+      title: form.title.trim(),
+      /* An unwritten excerpt is filled from the opening of the article
+         rather than left blank — every card on /blog shows one. */
+      excerpt: (form.excerpt.trim() || autoExcerpt(form.content)).slice(0, 300),
+      content: form.content,
+      coverImage: form.coverImage,
+      tags: form.tags.split(",").map((t) => t.trim()).filter(Boolean),
+      status,
+    };
+
+    try {
+      if (id) {
+        await api.put(`/posts/${id}`, payload);
+        setForm((f) => ({ ...f, status }));
+        setNotice(status === "published" ? "Published." : "Saved as draft.");
+      } else {
+        const { data } = await api.post<{ post: Post }>("/posts", payload);
+        /* Straight into edit mode on the new post, so a second save updates
+           it instead of creating a duplicate. */
+        navigate(`/admin/posts/${data.post._id}/edit`, { replace: true });
+        setNotice(status === "published" ? "Published." : "Saved as draft.");
+      }
     } catch (err) {
       setError(getErrorMessage(err, "Save failed"));
     } finally {
-      setBusy(false);
+      setBusy("");
     }
   };
+
+  const rendered = useMemo(
+    () => (preview ? renderArticle(form.content) : null),
+    [preview, form.content]
+  );
+
+  const words = wordCount(form.content);
+  const cover = form.coverImage ? mediaSrc(form.coverImage) : "";
 
   return (
     <>
       <AdminNav />
-      <div className="container section form" style={{ maxWidth: 720 }}>
-        <h1>{id ? "Edit post" : "New post"}</h1>
-        <label>Title<input name="title" value={form.title} onChange={set} /></label>
-        <label>Excerpt (shown on cards)
-          <input name="excerpt" value={form.excerpt} onChange={set} maxLength={300} />
-        </label>
-        <label>Cover image URL
-          <input name="coverImage" value={form.coverImage} onChange={set} />
-        </label>
-        <label>Tags (comma-separated)
-          <input name="tags" value={form.tags} onChange={set} />
-        </label>
-        <label>Content (separate paragraphs with a blank line)
-          <textarea name="content" rows={14} value={form.content} onChange={set} />
-        </label>
-        <label>Status
-          <select name="status" value={form.status} onChange={set}>
-            <option value="draft">Draft</option>
-            <option value="published">Published</option>
-          </select>
-        </label>
-        <button className="btn btn-primary" onClick={save} disabled={busy}>
-          {busy ? "Saving…" : "Save post"}
-        </button>
-        {error && <p className="form-error">{error}</p>}
+      <div className="ed">
+        <div className="container">
+          <div className="ed-bar">
+            <div className="ed-bar-left">
+              <h1>{id ? "Edit post" : "New post"}</h1>
+              <span className={`badge badge-${form.status}`}>{form.status}</span>
+            </div>
+            <div className="ed-bar-right">
+              <button
+                type="button"
+                className="btn btn-small"
+                onClick={() => setPreview((p) => !p)}
+                aria-pressed={preview}
+              >
+                {preview ? "Back to writing" : "Preview"}
+              </button>
+              <button
+                type="button"
+                className="btn btn-small"
+                onClick={() => void save("draft")}
+                disabled={busy !== ""}
+              >
+                {busy === "draft" ? "Saving…" : "Save draft"}
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary btn-small"
+                onClick={() => void save("published")}
+                disabled={busy !== ""}
+              >
+                {busy === "published"
+                  ? "Publishing…"
+                  : form.status === "published"
+                    ? "Update"
+                    : "Publish"}
+              </button>
+            </div>
+          </div>
+
+          {error ? <p className="form-error ed-msg">{error}</p> : null}
+          {notice ? <p className="form-success ed-msg">{notice}</p> : null}
+
+          {loading ? (
+            <p className="ed-loading">Loading…</p>
+          ) : (
+            <div className="ed-split">
+              <div className="ed-main">
+                <input
+                  className="ed-title"
+                  name="title"
+                  value={form.title}
+                  onChange={set}
+                  placeholder="Article title"
+                  aria-label="Title"
+                />
+
+                {preview ? (
+                  <div className="ed-preview">
+                    {cover ? (
+                      <img className="ed-preview-cover" src={cover} alt="" />
+                    ) : null}
+                    <h1>{form.title || "Untitled"}</h1>
+                    {form.excerpt ? (
+                      <p className="ed-preview-standfirst">{form.excerpt}</p>
+                    ) : null}
+                    <div className="art-prose">{rendered}</div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="ed-toolbar" role="toolbar" aria-label="Formatting">
+                      {TOOLS.map((t) => (
+                        <button
+                          key={t.title}
+                          type="button"
+                          title={t.title}
+                          aria-label={t.title}
+                          onClick={() => applyTool(t)}
+                        >
+                          {t.label}
+                        </button>
+                      ))}
+                      <span className="ed-toolbar-gap" />
+                      <button
+                        type="button"
+                        onClick={() => inlineInput.current?.click()}
+                        disabled={uploading !== ""}
+                        title="Insert an image at the cursor"
+                      >
+                        {uploading === "inline" ? "Uploading…" : "Insert image"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setShowHelp((h) => !h)}
+                        aria-pressed={showHelp}
+                        title="Formatting help"
+                      >
+                        ?
+                      </button>
+                      <input
+                        ref={inlineInput}
+                        id="ed-inline-file"
+                        type="file"
+                        accept="image/*"
+                        hidden
+                        onChange={onInlinePicked}
+                      />
+                    </div>
+
+                    {showHelp ? (
+                      <dl className="ed-help">
+                        {SYNTAX_HELP.map((h) => (
+                          <div key={h.code}>
+                            <dt>{h.code}</dt>
+                            <dd>{h.means}</dd>
+                          </div>
+                        ))}
+                      </dl>
+                    ) : null}
+
+                    <textarea
+                      ref={area}
+                      className="ed-area"
+                      name="content"
+                      value={form.content}
+                      onChange={set}
+                      rows={26}
+                      placeholder={"Write the article here.\n\nA blank line starts a new paragraph. Use the toolbar above, or press ? for the formatting it produces."}
+                      aria-label="Content"
+                    />
+                    <p className="ed-count">
+                      {words} {words === 1 ? "word" : "words"} · {readingTime(form.content)} min read
+                    </p>
+                  </>
+                )}
+              </div>
+
+              <aside className="ed-side">
+                <section className="ed-panel">
+                  <h2>Cover image</h2>
+                  {cover ? (
+                    <div className="ed-cover">
+                      <img src={cover} alt="" />
+                      <button
+                        type="button"
+                        className="ed-cover-clear"
+                        onClick={() => setForm((f) => ({ ...f, coverImage: "" }))}
+                        aria-label="Remove cover image"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ) : (
+                    <p className="ed-hint">
+                      Shown on the article page and on every card that links
+                      to it. Landscape works best.
+                    </p>
+                  )}
+                  <button
+                    type="button"
+                    className="btn btn-small"
+                    onClick={() => coverInput.current?.click()}
+                    disabled={uploading !== ""}
+                  >
+                    {uploading === "cover"
+                      ? "Uploading…"
+                      : cover
+                        ? "Replace image"
+                        : "Upload image"}
+                  </button>
+                  <input
+                    ref={coverInput}
+                    type="file"
+                    accept="image/*"
+                    hidden
+                    onChange={onCoverPicked}
+                  />
+                  <label className="ed-field">
+                    <span>…or paste a URL</span>
+                    <input name="coverImage" value={form.coverImage} onChange={set} />
+                  </label>
+                </section>
+
+                <section className="ed-panel">
+                  <h2>Standfirst</h2>
+                  <label className="ed-field">
+                    <span>The line under the headline, and on cards</span>
+                    <textarea
+                      name="excerpt"
+                      value={form.excerpt}
+                      onChange={set}
+                      rows={4}
+                      maxLength={300}
+                    />
+                  </label>
+                  <p className="ed-hint">
+                    {form.excerpt
+                      ? `${form.excerpt.length}/300`
+                      : "Left empty, the opening of the article is used."}
+                  </p>
+                </section>
+
+                <section className="ed-panel">
+                  <h2>Tags</h2>
+                  <label className="ed-field">
+                    <span>Comma-separated, up to ten</span>
+                    <input
+                      name="tags"
+                      value={form.tags}
+                      onChange={set}
+                      placeholder="visas, canada, ielts"
+                    />
+                  </label>
+                  {form.tags.trim() ? (
+                    <ul className="ed-tags">
+                      {form.tags
+                        .split(",")
+                        .map((t) => t.trim())
+                        .filter(Boolean)
+                        .map((t) => (
+                          <li key={t}>{t}</li>
+                        ))}
+                    </ul>
+                  ) : null}
+                  <p className="ed-hint">
+                    Tags become filters on the blog, and decide which articles
+                    are suggested at the foot of this one.
+                  </p>
+                </section>
+              </aside>
+            </div>
+          )}
+        </div>
       </div>
     </>
   );

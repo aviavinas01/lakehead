@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { fetchGoogleRating } from "../api/googleRating";
 import type { GoogleRating } from "../types/api";
 
@@ -37,7 +38,15 @@ const GoogleG = () => (
   </svg>
 );
 
+/**
+ * The one page this band stays off. /testimonials shows the same Google
+ * reviews as cards on its wall, and repeating them above the footer would
+ * make the site look like it has twice as many as it does.
+ */
+const SUPPRESSED_ON = "/testimonials";
+
 export default function GoogleReviews() {
+  const { pathname } = useLocation();
   const [google, setGoogle] = useState<GoogleRating>();
 
   useEffect(() => {
@@ -52,6 +61,7 @@ export default function GoogleReviews() {
 
   /* Nothing to show is nothing to render — no heading, no empty band */
   if (!google || google.reviews.length === 0) return null;
+  if (pathname === SUPPRESSED_ON) return null;
 
   return (
     <section className="greviews">

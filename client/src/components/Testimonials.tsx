@@ -1,60 +1,15 @@
 import { useRef, useState } from "react";
+import { WRITTEN } from "../data/testimonials";
 
 /**
- * Student testimonials — one story is shown at a time, with the neighbouring
- * students' photos faded out on either side. Add entries here; `image` is a
- * path under client/public (e.g. "/testimonials/aarav.jpg") and is optional —
- * without one the student's initial is drawn in the circle instead.
+ * Student testimonials on the home page — one story is shown at a time, with
+ * the neighbouring students' photos faded out on either side.
+ *
+ * The stories themselves live in data/testimonials.ts, which the reviews
+ * page (/testimonials) also reads. Adding one there puts it in both places;
+ * keeping a second copy here is how the two quietly drift apart.
  */
-const TESTIMONIALS: {
-  quote: string;
-  name: string;
-  country: string;
-  image?: string;
-}[] = [
-  {
-    quote:
-      "I’m truly grateful for the guidance and support I received throughout my USA visa process. The team helped me understand each step clearly and prepared me thoroughly for my visa interview. What I appreciated most was the honest advice and practical guidance—I always knew what to expect and how to prepare. Their patience, professionalism, and willingness to answer every question made the entire process much less stressful. I would definitely recommend their guidance to anyone planning to study in the USA.",
-    name: "Aarav",
-    country: "USA",
-  },
-  {
-    quote:
-      "I had a great experience with the team throughout my study-abroad and visa application journey. A special thanks to the entire counseling team for their continuous support, clear guidance, and professional service at every stage. They were always approachable and made sure my questions were answered and my application was prepared properly. I truly appreciate their dedication and would happily recommend their services to other students planning to study abroad.",
-    name: "Sanjay",
-    country: "Australia",
-  },
-  {
-    quote:
-      "I had a really positive experience with the consultancy throughout my study-abroad application. From selecting the right university to preparing my documents, the team was supportive and easy to communicate with. They explained each step clearly and helped me feel confident about my application. I’m very thankful for their guidance and would definitely recommend them to other students.",
-    name: "Nisha",
-    country: "Australia",
-  },
-  {
-    quote:
-      "The entire process was much easier than I expected, thanks to the guidance I received from the counseling team. They helped me shortlist suitable universities, understand the requirements, and prepare my application properly. Whenever I had questions, the team was quick to respond and provide clear answers. I really appreciate their professionalism and support throughout my journey.",
-    name: "Rohan",
-    country: "Uk",
-  },
-  {
-    quote:
-      "I’m extremely happy with the support I received during my study-abroad journey. The counselors were patient, approachable, and genuinely focused on helping me make the right decisions. They guided me through the documentation and application process and kept me informed at every stage. It was reassuring to have a team I could rely on throughout the process.",
-    name: "Sneha",
-    country: "New Zealand",
-  },
-  {
-    quote:
-      "I had a smooth and positive experience with the team from the beginning of my application journey. They helped me understand the admission requirements, guided me through the documentation, and kept the process well organized. Their quick responses and friendly approach made everything much easier. I’m grateful for their support and would recommend them to anyone planning to study abroad.",
-    name: "Aayush",
-    country: "Canada",
-  },
-  {
-    quote:
-      "The guidance I received throughout my application process was excellent. The counselors took the time to understand my goals and helped me choose an option that suited my academic plans. They were always available to clarify my doubts and provided helpful advice whenever I needed it. I truly appreciate their dedication and support in helping me take the next step toward studying abroad.",
-    name: "Srijana",
-    country: "Denmark",
-  },
-];
+const TESTIMONIALS = WRITTEN;
 
 /** How many faded photos sit either side of the student being read. */
 const SIDE_COUNT = 2;
@@ -178,7 +133,7 @@ export default function Testimonials() {
               const isActive = index === active;
               return (
                 <button
-                  key={t.name}
+                  key={t.id}
                   type="button"
                   className="testimonial-face"
                   data-depth={depth}

@@ -49,11 +49,12 @@ const COLUMNS: { title: string; links: FooterLink[] }[] = [
     title: "Company",
     links: [
       { label: "Who we are", to: "/about" },
-      { label: "Success stories", to: "/about" },
-      { label: "Testimonials & reviews", to: "/about" },
-      { label: "University partners", to: "/about" },
-      { label: "Gallery", to: "/" },
-      { label: "Events", to: "/blog" },
+      /* Matches the navbar: success stories are part of the reviews wall
+         now, so there is no separate entry for them here either. */
+      { label: "Testimonials & reviews", to: "/testimonials" },
+      { label: "University partners", to: "/university-partners" },
+      { label: "Gallery", to: "/gallery" },
+      { label: "Events", to: "/events" },
       { label: "News", to: "/blog" },
       { label: "Blog & articles", to: "/blog" },
       { label: "Contact us", to: "/contact" },
