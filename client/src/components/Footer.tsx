@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { fetchGoogleRating, FALLBACK_RATING, GOOGLE_MAPS_URL } from "../api/googleRating";
 import { SERVICES } from "../data/services";
+import { SOCIALS, type SocialLink } from "../config/contact";
 import type { GoogleRating } from "../types/api";
 
 /**
@@ -71,47 +72,31 @@ const COLUMNS: { title: string; links: FooterLink[] }[] = [
   },
 ];
 
-/* Replace the hrefs with Lakehead's real profiles. */
-const SOCIALS: { label: string; href: string; icon: JSX.Element }[] = [
-  {
-    label: "LinkedIn",
-    href: "https://www.linkedin.com/",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-        <path d="M6.4 8.6H3.2V21h3.2V8.6zM4.8 3a1.9 1.9 0 100 3.8 1.9 1.9 0 000-3.8zM13 8.6H9.9V21H13v-6.5c0-1.8.8-2.9 2.3-2.9 1.4 0 2 1 2 2.9V21h3.2v-7.2c0-3.2-1.7-5.4-4.5-5.4-1.6 0-2.6.7-3 1.6V8.6z" />
-      </svg>
-    ),
-  },
-  {
-    label: "Facebook",
-    href: "https://www.facebook.com/",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-        <path d="M13.5 22v-8.1h2.7l.4-3.2h-3.1V8.7c0-.9.26-1.55 1.6-1.55h1.7V4.3c-.3-.04-1.3-.13-2.5-.13-2.5 0-4.2 1.5-4.2 4.3v2.4H7.4v3.2h2.7V22h3.4z" />
-      </svg>
-    ),
-  },
-  {
-    label: "YouTube",
-    href: "https://www.youtube.com/",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-        <path d="M21.6 7.2a2.5 2.5 0 00-1.75-1.77C18.3 5 12 5 12 5s-6.3 0-7.85.43A2.5 2.5 0 002.4 7.2 26.3 26.3 0 002 12c0 1.6.13 3.22.4 4.8a2.5 2.5 0 001.75 1.77C5.7 19 12 19 12 19s6.3 0 7.85-.43a2.5 2.5 0 001.75-1.77c.27-1.58.4-3.2.4-4.8s-.13-3.22-.4-4.8zM10 15.2V8.8l5.4 3.2-5.4 3.2z" />
-      </svg>
-    ),
-  },
-  {
-    label: "Instagram",
-    href: "https://www.instagram.com/",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
-        <rect x="3.5" y="3.5" width="17" height="17" rx="4.5" />
-        <circle cx="12" cy="12" r="4" />
-        <circle cx="17.2" cy="6.8" r="1.1" fill="currentColor" stroke="none" />
-      </svg>
-    ),
-  },
-];
+/**
+ * The marks for the profiles listed in config/contact.ts. The URLs live
+ * there, with the rest of "how to reach Lakehead"; only the artwork is here.
+ * Add a social account to that list and it needs a matching key in this map
+ * — TypeScript will say so if it is missing.
+ */
+const SOCIAL_ICONS: Record<SocialLink["id"], JSX.Element> = {
+  instagram: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+      <rect x="3.5" y="3.5" width="17" height="17" rx="4.5" />
+      <circle cx="12" cy="12" r="4" />
+      <circle cx="17.2" cy="6.8" r="1.1" fill="currentColor" stroke="none" />
+    </svg>
+  ),
+  facebook: (
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M13.5 22v-8.1h2.7l.4-3.2h-3.1V8.7c0-.9.26-1.55 1.6-1.55h1.7V4.3c-.3-.04-1.3-.13-2.5-.13-2.5 0-4.2 1.5-4.2 4.3v2.4H7.4v3.2h2.7V22h3.4z" />
+    </svg>
+  ),
+  tiktok: (
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M16.5 2h-3v13.1a2.6 2.6 0 11-2.2-2.57V9.4a5.7 5.7 0 105.2 5.68V8.9a6.9 6.9 0 004 1.28V7.1a4 4 0 01-4-4V2z" />
+    </svg>
+  ),
+};
 
 /**
  * Terms of service, Privacy policy and Cookie policy used to sit here
@@ -237,13 +222,13 @@ export default function Footer() {
             <div className="footer-socials">
               {SOCIALS.map((s) => (
                 <a
-                  key={s.label}
+                  key={s.id}
                   href={s.href}
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={s.label}
                 >
-                  {s.icon}
+                  {SOCIAL_ICONS[s.id]}
                 </a>
               ))}
             </div>

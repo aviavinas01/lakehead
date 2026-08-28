@@ -6,6 +6,7 @@ import HeroOrbit, { PlaneIcon } from "../components/HeroOrbit";
 import NextSteps from "../components/NextSteps";
 import StatsStrip from "../components/StatsStrip";
 import Destinations from "../components/Destinations";
+import ConsultPopup from "../components/ConsultPopup";
 import VideoTestimonials from "../components/VideoTestimonials";
 import Testimonials from "../components/Testimonials";
 import ConsultBanner from "../components/ConsultBanner";
@@ -285,6 +286,11 @@ export default function Home() {
       <VideoTestimonials />
 
       <ConsultBanner />
+
+      {/* Opens over the page a beat after it loads, once a session. Renders
+          nothing until then, and nothing at all on a return visit in the same
+          tab — see the component. */}
+      <ConsultPopup />
     </>
   );
 }

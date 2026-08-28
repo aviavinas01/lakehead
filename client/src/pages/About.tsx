@@ -517,6 +517,12 @@ export default function About() {
                   <span>Call the office</span>
                   <a href={contact.phoneHref}>{contact.phoneDisplay}</a>
                 </li>
+                {contact.mobileHref && contact.mobileDisplay && (
+                  <li>
+                    <span>Mobile</span>
+                    <a href={contact.mobileHref}>{contact.mobileDisplay}</a>
+                  </li>
+                )}
                 <li>
                   <span>WhatsApp</span>
                   <a href={contact.whatsappHref} target="_blank" rel="noopener noreferrer">

@@ -6215,3 +6215,137 @@ a.rev-score:hover { background: rgba(255, 255, 255, 0.08); }
   .chatdock-btn:hover { background: var(--color-hero-ink); }
   .chatdock-panel { animation: none; }
 }
+
+/* ============================================================
+   Free-counselling pop-up (components/ConsultPopup.tsx) — opens
+   once a session over the home page: navy shape-band header,
+   the offer, and two ways to take it up.
+   ============================================================ */
+/* Layer 250 sits above the chat dock (90) and the navbar (50) and below the
+   loading splash (300), which must always be the last thing on screen. The
+   blur is the point of the backdrop: the page stays legible enough to be
+   worth coming back to, and out of focus enough to hand the panel the page. */
+.cpop-scrim {
+  position: fixed; inset: 0; z-index: 250;
+  display: grid; place-items: center; padding: 1.25rem;
+  background: rgba(9, 16, 38, 0.55);
+  backdrop-filter: blur(9px) saturate(1.05);
+  -webkit-backdrop-filter: blur(9px) saturate(1.05);
+  animation: cpop-fade 0.26s ease both;
+}
+.cpop-scrim[data-state="out"] { animation: cpop-fade 0.2s ease reverse both; }
+@keyframes cpop-fade { from { opacity: 0; } to { opacity: 1; } }
+
+.cpop-panel {
+  position: relative; width: min(540px, 100%);
+  max-height: min(90vh, 780px); overflow-y: auto;
+  background: var(--color-bg); border-radius: 22px;
+  box-shadow: 0 40px 90px -30px rgba(9, 16, 38, 0.7);
+  animation: cpop-rise 0.34s cubic-bezier(0.22, 0.9, 0.28, 1) both;
+}
+.cpop-scrim[data-state="out"] .cpop-panel {
+  animation: cpop-rise 0.2s ease reverse both;
+}
+@keyframes cpop-rise {
+  from { opacity: 0; transform: translateY(22px) scale(0.96); }
+  to { opacity: 1; transform: none; }
+}
+
+.cpop-close {
+  position: absolute; top: 0.9rem; right: 0.9rem; z-index: 2;
+  display: grid; place-items: center; width: 34px; height: 34px;
+  border: none; border-radius: 50%; cursor: pointer;
+  background: rgba(255, 255, 255, 0.16); color: #fff;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+.cpop-close:hover { background: #fff; color: var(--color-hero-ink); transform: rotate(90deg); }
+.cpop-close:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+
+/* ---- the header band ---- */
+/* The arcs are the footer's pattern, cut off by the band's own overflow —
+   whole shapes would read as a row of icons rather than a pattern the panel
+   happens to pass through. */
+.cpop-banner {
+  position: relative; overflow: hidden;
+  padding: 2rem 1.9rem 1.75rem;
+  background: var(--color-hero-ink); color: #fff;
+}
+.cpop-shapes {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  fill: none; stroke: rgba(255, 255, 255, 0.09);
+  stroke-width: 26; stroke-linecap: round;
+}
+.cpop-eyebrow {
+  position: relative; margin: 0 0 0.6rem;
+  display: inline-block; padding: 0.3rem 0.75rem; border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  font-size: 0.74rem; font-weight: 600; letter-spacing: 0.08em;
+  text-transform: uppercase; color: #fff;
+}
+.cpop-title {
+  position: relative; margin: 0; color: #fff;
+  font-family: var(--font-display); font-weight: 800;
+  font-size: clamp(1.5rem, 4.2vw, 2rem); line-height: 1.18;
+  letter-spacing: -0.025em; max-width: 22ch;
+}
+/* One word in the accent, the same device the section headings use */
+.cpop-title span { color: #ff8a6b; font-style: italic; }
+
+/* ---- the body ---- */
+.cpop-body { padding: 1.5rem 1.9rem 1.75rem; }
+.cpop-lead {
+  margin: 0 0 1.1rem; color: #43434d;
+  font-size: 0.98rem; line-height: 1.65;
+}
+.cpop-points { list-style: none; margin: 0 0 1.5rem; padding: 0; display: grid; gap: 0.7rem; }
+.cpop-points li {
+  display: flex; align-items: flex-start; gap: 0.65rem;
+  font-size: 0.94rem; line-height: 1.5; color: var(--color-text);
+}
+.cpop-tick {
+  flex: none; display: grid; place-items: center;
+  width: 24px; height: 24px; margin-top: 1px; border-radius: 50%;
+  background: rgba(232, 83, 44, 0.12); color: var(--color-topbar-accent);
+}
+
+.cpop-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+.cpop-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+  padding: 0.9rem 1.1rem; border-radius: 999px;
+  background: var(--color-topbar-accent); color: #fff;
+  font-family: var(--font-display); font-weight: 700; font-size: 0.95rem;
+  text-align: center; line-height: 1.2;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+.cpop-btn:hover { background: var(--color-topbar-accent-hover); color: #fff; transform: translateY(-2px); }
+.cpop-btn:focus-visible { outline: 3px solid var(--color-hero-ink); outline-offset: 2px; }
+.cpop-btn-wa { background: #25d366; }
+.cpop-btn-wa:hover { background: #1fb855; }
+
+.cpop-later {
+  display: block; margin: 1.1rem auto 0; padding: 0.3rem 0.5rem;
+  background: none; border: none; cursor: pointer;
+  color: var(--color-muted); font: inherit; font-size: 0.88rem;
+}
+.cpop-later:hover { color: var(--color-text); text-decoration: underline; text-underline-offset: 3px; }
+
+@media (max-width: 560px) {
+  .cpop-scrim { padding: 1rem; place-items: end center; }
+  /* Anchored to the bottom of a phone, where a thumb is, and squared off at
+     the foot so it reads as a sheet rather than a card floating in a corner. */
+  .cpop-panel { width: 100%; max-height: 88vh; border-radius: 20px; }
+  .cpop-banner { padding: 1.6rem 1.25rem 1.4rem; }
+  .cpop-body { padding: 1.25rem 1.25rem 1.4rem; }
+  /* Side by side, these two become two lines of wrapped text each */
+  .cpop-actions { grid-template-columns: 1fr; }
+  .cpop-points { gap: 0.6rem; margin-bottom: 1.25rem; }
+}
+
+/* The entrance is decoration; the dialog itself is not. Anyone who has asked
+   for less motion gets it without the rise, the fade or the spinning cross. */
+@media (prefers-reduced-motion: reduce) {
+  .cpop-scrim, .cpop-panel,
+  .cpop-scrim[data-state="out"], .cpop-scrim[data-state="out"] .cpop-panel { animation: none; }
+  .cpop-close:hover { transform: none; }
+  .cpop-btn:hover { transform: none; }
+}
