@@ -3,6 +3,8 @@ import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { PlaneIcon } from "../components/HeroOrbit";
 import { Check, Arrow, Shot } from "../components/destinationBits";
+import { armReveals } from "../lib/reveal";
+import TypeStack from "../components/TypeStack";
 
 /**
  * Study in the USA — the long-form guide, built from Lakehead's own master
@@ -337,28 +339,18 @@ export default function StudyInUSA() {
   }, []);
 
   /* Everything marked data-reveal arrives as it reaches the viewport, then
-     stops being watched — a page this long would otherwise be replaying
-     animations at someone scrolling back for something they half-read. */
-  useEffect(() => {
-    const nodes = root.current?.querySelectorAll<HTMLElement>("[data-reveal]");
-    if (!nodes?.length) return;
+     stays put — a page this long would otherwise replay itself at anyone
+     scrolling back for something they half-read.
 
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      nodes.forEach((n) => n.classList.add("is-in"));
-      return;
-    }
-    const io = new IntersectionObserver(
-      (entries) => {
-        for (const e of entries) {
-          if (!e.isIntersecting) continue;
-          e.target.classList.add("is-in");
-          io.unobserve(e.target);
-        }
-      },
-      { threshold: 0.12, rootMargin: "0px 0px -6% 0px" }
-    );
-    nodes.forEach((n) => io.observe(n));
-    return () => io.disconnect();
+     A direct sweep, not an IntersectionObserver: an observer never fires for
+     an element that goes from below the viewport to above it in one jump —
+     which is what the contents rail, a fast scroll, and a restored scroll
+     position all do — and such an element then stays hidden forever while
+     still holding its full height. That is where the white gaps in the
+     middle of these pages came from. See lib/reveal.ts. */
+  useEffect(() => {
+    if (!root.current) return;
+    return armReveals(root.current);
   }, []);
 
   /* Which section the contents rail should highlight. A generous negative
@@ -608,29 +600,9 @@ export default function StudyInUSA() {
               fits you.
             </p>
 
-            {UNI_TYPES.map((t) => (
-              <div className="usa-type" key={t.name} data-reveal>
-                <figure className="usa-type-shot">
-                  <Shot src={t.image} alt="" />
-                </figure>
-                <div>
-                  <h3>{t.name}</h3>
-                  <p className="usa-type-lead">{t.lead}</p>
-                  <p>{t.text}</p>
-                  {t.best && (
-                    <p className="usa-best">
-                      <strong>Best for:</strong> {t.best}
-                    </p>
-                  )}
-                  <details className="usa-examples">
-                    <summary>Examples you may recognise ({t.examples.length})</summary>
-                    <ul>
-                      {t.examples.map((e) => <li key={e}>{e}</li>)}
-                    </ul>
-                  </details>
-                </div>
-              </div>
-            ))}
+            {/* A pinned stack rather than a column of rows — the same
+                component the other five guides use for this block. */}
+            <TypeStack items={UNI_TYPES} />
 
             <div className="usa-nepali" data-reveal>
               <h3>Commonly explored by Nepali students</h3>

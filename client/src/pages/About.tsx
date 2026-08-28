@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { PlaneIcon } from "../components/HeroOrbit";
 import { Check, Pin, Arrow, Shot } from "../components/destinationBits";
+import { revealInit } from "../lib/reveal";
 import InquiryForm from "../components/InquiryForm";
 import { contact } from "../config/contact";
 
@@ -183,7 +184,7 @@ export default function About() {
           io.unobserve(entry.target);
         }
       },
-      { threshold: 0.15, rootMargin: "0px 0px -8% 0px" }
+      revealInit(0.15, "-8%")
     );
 
     nodes.forEach((n) => io.observe(n));

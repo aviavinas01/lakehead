@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { PlaneIcon } from "./HeroOrbit";
 import { Check, Arrow, Shot } from "./destinationBits";
+import { armReveals } from "../lib/reveal";
+import TypeStack from "./TypeStack";
 import type { Block, Guide, HeadPart } from "../data/guides/types";
 
 /**
@@ -178,31 +180,10 @@ function Render({ block }: { block: Block }) {
         </ol>
       );
     case "types":
-      return (
-        <>
-          {block.items.map((t) => (
-            <div className="usa-type" key={t.name} data-reveal>
-              <figure className="usa-type-shot">
-                <Shot src={t.image} alt="" />
-              </figure>
-              <div>
-                <h3>{t.name}</h3>
-                <p className="usa-type-lead">{t.lead}</p>
-                <p>{t.text}</p>
-                {t.best && <p className="usa-best"><strong>Best for:</strong> {t.best}</p>}
-                {/* Long name lists fold away — twenty institutions open by
-                    default would bury the explanation above them. */}
-                {t.examples && t.examples.length > 0 && (
-                  <details className="usa-examples">
-                    <summary>Examples you may recognise ({t.examples.length})</summary>
-                    <ul>{t.examples.map((e) => <li key={e}>{e}</li>)}</ul>
-                  </details>
-                )}
-              </div>
-            </div>
-          ))}
-        </>
-      );
+      /* A pinned stack rather than a column of rows — see TypeStack. Not
+         marked data-reveal: it drives its own motion from scroll position
+         and a one-shot fade on top of that would fight it. */
+      return <TypeStack items={block.items} />;
     case "myths":
       return (
         <div className="usa-myths" data-reveal>
@@ -358,28 +339,19 @@ export default function GuidePage({ guide }: { guide: Guide }) {
   }, [guide.name]);
 
   /* Everything marked data-reveal arrives as it reaches the viewport, then
-     stops being watched — a page this long would otherwise replay itself at
-     anyone scrolling back for something they half-read. Re-run per guide,
-     because the nodes are different ones. */
+     stays put — a page this long would otherwise replay itself at anyone
+     scrolling back for something they half-read.
+
+     A direct sweep, not an IntersectionObserver: an observer never fires for
+     an element that goes from below the viewport to above it in one jump —
+     which is what the contents rail, a fast scroll, and a restored scroll
+     position all do — and such an element then stays hidden forever while
+     still holding its full height. That is where the white gaps in the
+     middle of these pages came from. See lib/reveal.ts. */
   useEffect(() => {
-    const nodes = root.current?.querySelectorAll<HTMLElement>("[data-reveal]");
-    if (!nodes?.length) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      nodes.forEach((n) => n.classList.add("is-in"));
-      return;
-    }
-    const io = new IntersectionObserver(
-      (entries) => {
-        for (const e of entries) {
-          if (!e.isIntersecting) continue;
-          e.target.classList.add("is-in");
-          io.unobserve(e.target);
-        }
-      },
-      { threshold: 0.12, rootMargin: "0px 0px -6% 0px" }
-    );
-    nodes.forEach((n) => io.observe(n));
-    return () => io.disconnect();
+    /* Re-armed per guide, because the nodes are different ones. */
+    if (!root.current) return;
+    return armReveals(root.current);
   }, [guide]);
 
   /* Which entry the rail highlights. The margins mean it changes when a

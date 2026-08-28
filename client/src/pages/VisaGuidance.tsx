@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { PlaneIcon } from "../components/HeroOrbit";
 import { Check, Arrow, Shot } from "../components/destinationBits";
+import { revealInit } from "../lib/reveal";
 
 /**
  * Visa Guidance — /services/visa-guidance. A static route, so it takes over
@@ -85,7 +86,7 @@ export default function VisaGuidance() {
       /* Fires a little before the block is fully on screen, so the movement
          is finishing as it reaches a comfortable reading position rather
          than starting there. */
-      { threshold: 0.15, rootMargin: "0px 0px -10% 0px" }
+      revealInit(0.15, "-10%")
     );
 
     nodes.forEach((n) => io.observe(n));

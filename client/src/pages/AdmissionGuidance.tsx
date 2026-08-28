@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { PlaneIcon } from "../components/HeroOrbit";
 import { Arrow, Shot } from "../components/destinationBits";
+import { revealInit } from "../lib/reveal";
 
 /**
  * Admission Guidance — /services/admission-guidance. A static route, so it
@@ -159,7 +160,7 @@ export default function AdmissionGuidance() {
           io.unobserve(entry.target);
         }
       },
-      { threshold: 0.25, rootMargin: "0px 0px -10% 0px" }
+      revealInit(0.25, "-10%")
     );
 
     nodes.forEach((n) => io.observe(n));

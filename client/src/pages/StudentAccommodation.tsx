@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { PlaneIcon } from "../components/HeroOrbit";
 import { Check, Arrow, Shot } from "../components/destinationBits";
+import { revealInit } from "../lib/reveal";
 
 /**
  * Student Accommodation — /services/student-accommodation. A static route,
@@ -112,7 +113,7 @@ export default function StudentAccommodation() {
           io.unobserve(entry.target);
         }
       },
-      { threshold: 0.2, rootMargin: "0px 0px -8% 0px" }
+      revealInit(0.2, "-8%")
     );
 
     nodes.forEach((n) => io.observe(n));

@@ -2996,16 +2996,69 @@ a.greview-author:hover { text-decoration: underline; }
    give the eye somewhere to rest, and reveals that pace the read.
    ============================================================ */
 
-/* Anything marked data-reveal starts here and is released by the observer
-   in the page. The class is never removed, so scrolling back does not
-   replay a page this long at the reader. */
-.usa [data-reveal] {
-  opacity: 0; transform: translateY(22px);
+/* ---- reveals ----
+   Anything marked data-reveal starts here and is released by the observer in
+   the page. The class is never removed, so scrolling back does not replay a
+   page this long at the reader.
+
+   The base is a short rise. What follows are the exceptions: a guide is
+   twenty-odd sections of the same three or four block types, and giving each
+   type its own way of arriving is most of what stops the scroll feeling
+   like one long identical fade. */
+/* `[data-reveal-armed]` is set on this element by armReveals() in
+   lib/reveal.ts, and nowhere else. Until it is, none of the rules below
+   apply and every revealable element is simply visible — so a JS error, an
+   old browser or a missed frame can never leave a hole in the page. */
+.usa[data-reveal-armed] [data-reveal] {
+  opacity: 0; transform: translateY(18px);
   transition:
-    opacity 0.6s ease,
-    transform 0.6s cubic-bezier(0.22, 0.9, 0.28, 1);
+    opacity 0.55s ease,
+    transform 0.7s cubic-bezier(0.22, 0.9, 0.28, 1);
 }
-.usa [data-reveal].is-in { opacity: 1; transform: none; }
+.usa[data-reveal-armed] [data-reveal].is-in { opacity: 1; transform: none; }
+
+/* A heading announces a section, so it travels further and settles slower
+   than the copy under it — the two arrive at visibly different speeds. */
+.usa[data-reveal-armed] .usa-h2[data-reveal] {
+  transform: translateY(34px);
+  transition-duration: 0.6s, 1s;
+}
+
+/* A pulled line enters from the side, against the vertical grain of
+   everything else, which is what makes it read as lifted out of the flow. */
+.usa[data-reveal-armed] .usa-pull[data-reveal] { transform: translateX(-26px); }
+.usa[data-reveal-armed] .usa-pull[data-reveal].is-in { transform: none; }
+
+/* Grouped items cascade rather than landing as one slab. Capped at six —
+   past that the last card would be waiting half a second for its turn, so
+   everything beyond simply arrives with the sixth.
+
+   The :is() list is repeated on the delays rather than shortened to
+   `.is-in > *`: that shorter form also matches the children of every OTHER
+   revealed element — the spans inside a heading, the caption inside a
+   photograph — and would have animated them on their own timers. */
+.usa :is(.usa-cards, .usa-chips, .dpage-checks, .usa-questions, .usa-roadmap).is-in > * {
+  animation: usa-cascade 0.55s cubic-bezier(0.22, 0.9, 0.28, 1) both;
+}
+.usa :is(.usa-cards, .usa-chips, .dpage-checks, .usa-questions, .usa-roadmap).is-in > *:nth-child(2) { animation-delay: 0.07s; }
+.usa :is(.usa-cards, .usa-chips, .dpage-checks, .usa-questions, .usa-roadmap).is-in > *:nth-child(3) { animation-delay: 0.14s; }
+.usa :is(.usa-cards, .usa-chips, .dpage-checks, .usa-questions, .usa-roadmap).is-in > *:nth-child(4) { animation-delay: 0.21s; }
+.usa :is(.usa-cards, .usa-chips, .dpage-checks, .usa-questions, .usa-roadmap).is-in > *:nth-child(5) { animation-delay: 0.28s; }
+.usa :is(.usa-cards, .usa-chips, .dpage-checks, .usa-questions, .usa-roadmap).is-in > *:nth-child(n + 6) { animation-delay: 0.35s; }
+@keyframes usa-cascade {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* The observer already marks everything `is-in` immediately under this
+     setting; without the transitions off as well, the whole page would
+     still animate itself in one go on load. */
+  .usa[data-reveal-armed] [data-reveal],
+  .usa[data-reveal-armed] .usa-h2[data-reveal],
+  .usa[data-reveal-armed] .usa-pull[data-reveal] { transition: none; transform: none; }
+  .usa :is(.usa-cards, .usa-chips, .dpage-checks, .usa-questions, .usa-roadmap).is-in > * { animation: none; }
+}
 
 /* ---- shell: contents rail beside the body ---- */
 .usa-shell {
@@ -3037,20 +3090,81 @@ a.greview-author:hover { text-decoration: underline; }
   border-left-color: var(--color-hero-red);
 }
 
-.usa-body { min-width: 0; }
-.usa-sec { padding-bottom: clamp(3rem, 6vw, 5rem); }
+/* The section counter. Numbering is real information on these pages — they
+   are a sequence you are meant to read through, and the rail already treats
+   them as an ordered list — so it is drawn from the document itself rather
+   than written into either page. That matters because the USA guide has
+   twenty-one hand-written sections and the other five are generated from
+   data; a counter is the only thing that numbers both without touching
+   either. */
+.usa-body { min-width: 0; counter-reset: usa-sec; }
+.usa-sec { counter-increment: usa-sec; }
+/* The gap between one section and the next. Generous on purpose: these
+   pages are twenty-odd sections long and the break is what tells you one
+   argument has finished before the next heading starts. */
+.usa-sec { padding-bottom: clamp(4rem, 7.5vw, 7rem); }
 /* The rail scrolls the heading to the very top of the viewport, where the
    fixed header would otherwise be sitting on it. */
 .usa-sec { scroll-margin-top: calc(var(--navbar-h, 87px) + 1.5rem); }
 .usa-h2 {
+  position: relative;
   color: var(--color-hero-ink);
-  font-size: clamp(1.9rem, 3.6vw, 3rem); line-height: 1.1;
-  letter-spacing: -0.03em; margin-bottom: 1.1rem; max-width: 20ch;
+  font-size: clamp(2rem, 4vw, 3.3rem); line-height: 1.08;
+  letter-spacing: -0.038em; max-width: 20ch;
+  /* Set against the heading's own size rather than a fixed value — a 3.3rem
+     headline needs more air under it than a 2rem one, and this is the join
+     that read as congested. */
+  margin-bottom: clamp(1.5rem, 2.6vw, 2.25rem);
+  text-wrap: balance;
 }
 .usa-h2 .h-outline { letter-spacing: 0; }
-.usa-h3 { color: var(--color-hero-ink); font-size: 1.25rem; margin: 2rem 0 0.9rem; }
-.usa-body p { color: var(--color-muted); font-size: 1.03rem; line-height: 1.8; margin-bottom: 1.1rem; }
+/* The numeral, as an eyebrow above the heading. Outlined rather than filled
+   so a column of twenty-one of them reads as texture down the page instead
+   of as twenty-one things shouting a number. */
+.usa-h2::before {
+  content: counter(usa-sec, decimal-leading-zero);
+  display: block; margin-bottom: 0.7rem;
+  font-family: var(--font-display); font-weight: 800;
+  font-size: 0.78rem; letter-spacing: 0.22em;
+  color: var(--color-hero-red);
+}
+/* A hairline that draws itself across as the heading lands — the one piece
+   of motion that says "new section" rather than "new paragraph".
+
+   Absolutely positioned, and ABOVE the heading rather than below it. In the
+   flow under the heading it sat on the first line of the paragraph that
+   follows, reading as a strikethrough; out of the flow it cannot touch the
+   copy at all, whatever the heading wraps to. Above the numeral it also does
+   the job better — it marks where the section starts, not where the heading
+   stops. It sits in the section's own top padding, so it never collides with
+   the section above either. */
+.usa-h2::after {
+  content: ""; position: absolute; left: 0; top: -2.1rem;
+  width: 5.5rem; height: 2px; background: var(--color-hero-red);
+  transform-origin: left;
+  transition: transform 0.8s cubic-bezier(0.22, 0.9, 0.28, 1) 0.15s;
+}
+/* Drawn from nothing only once the page is armed; unarmed it is simply
+   there, like everything else. */
+.usa[data-reveal-armed] .usa-h2::after { transform: scaleX(0); }
+.usa[data-reveal-armed] .usa-h2.is-in::after { transform: scaleX(1); }
+@media (prefers-reduced-motion: reduce) {
+  .usa-h2::after { transition: none; transform: scaleX(1); }
+}
+.usa-h3 { color: var(--color-hero-ink); font-size: 1.25rem; margin: clamp(2.25rem, 4vw, 3rem) 0 1rem; }
+.usa-body p { color: var(--color-muted); font-size: 1.03rem; line-height: 1.8; margin-bottom: 1.4rem; }
 .usa-body p strong { color: var(--color-hero-ink); }
+/* The paragraph directly under a heading is the section's standfirst, so it
+   is set larger and darker. Costs nothing — the copy is unchanged — and it
+   gives twenty-one sections of solid text an entry point each. */
+/* :not([class]) so this only ever hits an ordinary paragraph — a pull quote
+   and a quip are both <p> too, and both sit directly under a heading
+   sometimes, and both have display styling this would otherwise outrank. */
+.usa-body .usa-h2 + p:not([class]) {
+  font-size: clamp(1.1rem, 1.5vw, 1.24rem); line-height: 1.65;
+  color: var(--color-hero-ink); font-weight: 400;
+  margin-bottom: 1.9rem; max-width: 60ch;
+}
 
 /* The one word on the page allowed to shout */
 .usa-shout {
@@ -3058,28 +3172,53 @@ a.greview-author:hover { text-decoration: underline; }
   color: var(--color-hero-red);
 }
 
-/* A line lifted out of the flow — bigger, darker, no quote marks needed */
+/* A line lifted out of the flow — bigger, darker, no quote marks needed.
+   The rule is a child rather than a border-left so it can draw itself
+   downward as the quote arrives; a border cannot be animated that way. */
 .usa-body .usa-pull {
+  position: relative;
   font-family: var(--font-display); font-weight: 700;
-  font-size: clamp(1.25rem, 2.1vw, 1.6rem); line-height: 1.35;
-  letter-spacing: -0.02em; color: var(--color-hero-ink);
-  margin: 1.75rem 0; padding-left: 1.25rem;
-  border-left: 3px solid var(--color-hero-red);
+  font-size: clamp(1.45rem, 2.6vw, 2.05rem); line-height: 1.28;
+  letter-spacing: -0.03em; color: var(--color-hero-ink);
+  margin: clamp(2.5rem, 5vw, 3.5rem) 0; padding-left: 1.5rem; max-width: 24ch;
+  text-wrap: balance;
 }
-.usa-body .usa-pull em { font-style: normal; color: var(--color-hero-red); }
+.usa-body .usa-pull::before {
+  content: ""; position: absolute; left: 0; top: 0.1em; bottom: 0.1em;
+  width: 3px; border-radius: 2px; background: var(--color-hero-red);
+  transform-origin: top;
+  transition: transform 0.7s cubic-bezier(0.22, 0.9, 0.28, 1) 0.2s;
+}
+.usa[data-reveal-armed] .usa-body .usa-pull::before { transform: scaleY(0); }
+.usa[data-reveal-armed] .usa-body .usa-pull.is-in::before { transform: scaleY(1); }
+.usa-body .usa-pull em {
+  font-style: normal; color: var(--color-hero-red);
+  box-shadow: inset 0 -0.12em 0 rgba(224, 35, 78, 0.25);
+}
+@media (prefers-reduced-motion: reduce) {
+  .usa-body .usa-pull::before { transition: none; transform: scaleY(1); }
+}
 
 /* The asides and jokes. Deliberately quieter than body copy — they are
-   there to break the rhythm, not to compete for attention. */
+   there to break the rhythm, not to compete for attention. Set as a margin
+   note: no panel, a hanging mark, and italic-adjacent colour. A tinted box
+   made every aside look like a callout, which is the opposite of quiet. */
 .usa-body .quip {
-  font-size: 0.96rem; color: var(--color-muted);
-  padding: 0.9rem 1.1rem; margin: 1.4rem 0;
-  background: #f4f7fb; border-radius: 12px;
+  position: relative;
+  font-size: 0.99rem; line-height: 1.7; color: var(--color-muted);
+  padding: 0.1rem 0 0.1rem 2.4rem; margin: 2rem 0;
+  max-width: 56ch;
+}
+.usa-body .quip::before {
+  content: ""; position: absolute; left: 0.9rem; top: 0.75em;
+  width: 1rem; height: 2px; border-radius: 2px;
+  background: var(--color-hero-red); opacity: 0.55;
 }
 
 /* ---- Did you know ---- */
 .dyk {
   background: var(--color-hero-ink); color: #fff;
-  border-radius: 18px; padding: 1.6rem 1.75rem; margin: 1.9rem 0;
+  border-radius: 18px; padding: 1.6rem 1.75rem; margin: 2.4rem 0;
 }
 .dyk-tag {
   color: var(--color-hero-red) !important;
@@ -3093,7 +3232,7 @@ a.greview-author:hover { text-decoration: underline; }
 /* ---- warnings and hard rules ---- */
 .usa-warn {
   border: 2px solid var(--color-hero-red); border-radius: 16px;
-  padding: 1.4rem 1.6rem; margin: 1.9rem 0;
+  padding: 1.4rem 1.6rem; margin: 2.4rem 0;
 }
 .usa-warn-hard { background: rgba(224, 35, 78, 0.05); }
 .usa-warn-tag {
@@ -3130,7 +3269,7 @@ a.greview-author:hover { text-decoration: underline; }
 /* ---- card grids ---- */
 .usa-cards {
   display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1.25rem; margin: 1.75rem 0;
+  gap: 1.25rem; margin: 2.25rem 0;
 }
 .usa-card {
   background: #fff; border: 1px solid var(--color-border);
@@ -3144,54 +3283,151 @@ a.greview-author:hover { text-decoration: underline; }
 .usa-card h3 { color: var(--color-hero-ink); font-size: 1.08rem; margin-bottom: 0.45rem; }
 .usa-body .usa-card p { font-size: 0.95rem; line-height: 1.7; margin: 0; }
 
-/* ---- university types ---- */
-.usa-type {
-  display: grid; grid-template-columns: 0.75fr 1fr;
-  gap: clamp(1.5rem, 3vw, 2.5rem); align-items: start;
-  padding: 1.75rem 0; border-top: 1px solid var(--color-border);
+/* ---- university types: the pinned stack (components/TypeStack.tsx) ----
+
+   This replaced a column of image-beside-text rows. Two things were wrong
+   with those: read straight down, every row looked like the one above it;
+   and the alternating version briefly shipped here put the photograph into
+   the WIDER of the two grid columns on every second row without swapping
+   the columns to match, so the picture grew taller than its text and
+   `align-items: center` left a large void beside the shorter side. That is
+   the empty space in the middle of the copy, and the stack removes the
+   layout it came from rather than patching it.
+
+   The `.usa-examples` styles below the stack are shared with it — the
+   folded example list is unchanged and still rendered inside each panel. */
+
+.tst { position: relative; margin: clamp(2rem, 4vw, 3rem) 0; }
+
+/* The list is the small-screen layout, and the default: a stack of
+   absolutely-positioned panels has no sensible form on a phone, and pinning
+   a sequence on a touch screen fights the scroll. */
+.tst-stage { display: none; }
+.tst-list { display: grid; gap: clamp(2rem, 5vw, 3rem); }
+.tst-list-item {
+  display: grid; gap: 1.1rem;
+  padding-top: 1.75rem; border-top: 1px solid var(--color-border);
 }
-.usa-type-shot {
-  margin: 0; border-radius: 16px; overflow: hidden; aspect-ratio: 4 / 3;
-  box-shadow: 0 14px 32px rgba(23, 39, 92, 0.12);
+.tst-list-item .tst-shot { aspect-ratio: 16 / 10; }
+
+@media (min-width: 981px) {
+  .tst-list { display: none; }
+  /* A screen to look at, plus one dwell per panel. --tst-scroll is set by
+     the component from the item count, so adding a type lengthens the
+     section on its own. */
+  .tst { height: calc(100vh + var(--tst-scroll) * 100vh); }
+  .tst-stage {
+    display: block; position: sticky; top: 0;
+    height: 100vh; overflow: hidden;
+  }
+  @supports (height: 100svh) {
+    .tst { height: calc(100svh + var(--tst-scroll) * 100svh); }
+    .tst-stage { height: 100svh; }
+  }
+  .tst-deck {
+    position: absolute;
+    top: calc(var(--navbar-h, 87px) + clamp(1rem, 3vh, 2.5rem));
+    left: 0; right: 0; bottom: clamp(3rem, 7vh, 5rem);
+    border-radius: 22px; overflow: hidden;
+    background: var(--color-bg);
+    box-shadow: 0 26px 60px rgba(23, 39, 92, 0.16);
+  }
+  /* Every panel fills the deck. The one in play sits in it; the ones already
+     seen stay put and are covered by the higher z-index of whatever came
+     after; the ones still to come wait a full frame below. */
+  .tst-panel {
+    position: absolute; inset: 0;
+    display: grid; grid-template-columns: 0.85fr 1fr;
+    background: var(--color-bg);
+    transform: translateY(101%);
+    transition: transform 0.8s cubic-bezier(0.22, 0.9, 0.28, 1);
+  }
+  .tst-panel[data-on] { transform: none; }
+  /* Both halves belong to the same panel, so the photograph and the words
+     necessarily arrive in the same motion — there is nothing to keep in
+     step, which is the whole reason this is one element and not two. */
+  .tst-panel .tst-shot { height: 100%; aspect-ratio: auto; border-radius: 0; }
+  .tst-body {
+    padding: clamp(1.5rem, 3vw, 2.75rem);
+    display: flex; flex-direction: column; justify-content: center;
+    overflow-y: auto; overscroll-behavior: contain;
+  }
+  .tst-body::-webkit-scrollbar { width: 6px; }
+  .tst-body::-webkit-scrollbar-thumb {
+    background: var(--color-border); border-radius: 3px;
+  }
 }
-.usa-type-shot img, .usa-type-shot .dpage-shot-empty {
+
+@media (min-width: 1400px) {
+  .tst-panel { grid-template-columns: 1fr 1fr; }
+}
+
+/* ---- the panel's two halves ---- */
+.tst-shot {
+  position: relative; margin: 0; overflow: hidden;
+  border-radius: 16px; aspect-ratio: 4 / 3;
+  background: var(--color-surface);
+}
+.tst-shot img, .tst-shot .dpage-shot-empty {
   width: 100%; height: 100%; object-fit: cover;
 }
-.usa-type h3 { color: var(--color-hero-ink); font-size: 1.4rem; letter-spacing: -0.02em; margin-bottom: 0.5rem; }
-.usa-body .usa-type-lead {
-  color: var(--color-hero-ink); font-weight: 600; font-size: 1.02rem;
-  margin-bottom: 0.6rem;
+/* A slow drift on whichever panel is showing, so a still photograph held for
+   most of a screen's scroll is not completely inert. */
+.tst-panel[data-on] .tst-shot img { animation: tst-drift 12s ease-out both; }
+@keyframes tst-drift {
+  from { transform: scale(1.09); }
+  to { transform: scale(1); }
 }
-.usa-body .usa-best { font-size: 0.95rem; }
 
-/* Long example lists fold away — twenty university names open by default
-   would bury the explanation above them. */
-.usa-examples summary {
-  cursor: pointer; list-style: none;
-  color: var(--color-hero-red); font-weight: 600; font-size: 0.92rem;
-  padding: 0.4rem 0;
+.tst-count {
+  font-family: var(--font-display); font-weight: 800;
+  font-size: 0.82rem; letter-spacing: 0.18em;
+  color: var(--color-hero-red); margin-bottom: 0.6rem;
 }
-.usa-examples summary::-webkit-details-marker { display: none; }
-.usa-examples summary::before { content: "+ "; }
-.usa-examples[open] summary::before { content: "− "; }
-.usa-examples ul {
-  list-style: none; margin: 0.6rem 0 0; padding: 0;
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-  gap: 0.3rem 1rem;
+.tst-count span { color: var(--color-muted); font-weight: 600; }
+.usa-body .tst-body h3, .tst-list-item h3 {
+  color: var(--color-hero-ink); margin: 0 0 0.5rem;
+  font-size: clamp(1.5rem, 2.8vw, 2.3rem); font-weight: 800;
+  line-height: 1.06; letter-spacing: -0.035em;
 }
-.usa-examples li {
-  color: var(--color-muted); font-size: 0.9rem; padding-left: 0.9rem;
-  position: relative;
+.usa-body .tst-lead {
+  color: var(--color-hero-ink); font-weight: 600;
+  font-size: clamp(1.02rem, 1.4vw, 1.15rem); line-height: 1.55;
+  margin-bottom: 0.7rem;
 }
-.usa-examples li::before {
-  content: ""; position: absolute; left: 0; top: 0.62em;
-  width: 4px; height: 4px; border-radius: 50%; background: var(--color-hero-red);
+.usa-body .tst-text {
+  color: var(--color-muted); font-size: 1rem; line-height: 1.7;
+  margin-bottom: 0.8rem; max-width: 46ch;
+}
+.usa-body .tst-best { font-size: 0.95rem; margin-bottom: 0.4rem; }
+
+/* Progress dots along the foot of the stage. */
+.tst-dots { display: none; }
+@media (min-width: 981px) {
+  .tst-dots {
+    display: flex; gap: 0.4rem; justify-content: center;
+    position: absolute; left: 0; right: 0;
+    bottom: clamp(1rem, 3vh, 2rem);
+    list-style: none; margin: 0; padding: 0;
+  }
+  .tst-dots li {
+    width: 28px; height: 3px; border-radius: 2px;
+    background: var(--color-border);
+    transition: background 0.35s ease, width 0.35s ease;
+  }
+  .tst-dots li[data-on] { background: var(--color-hero-red); width: 44px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tst-panel { transition: none; }
+  .tst-panel[data-on] .tst-shot img { animation: none; }
+  .tst-dots li { transition: none; }
 }
 
 /* ---- chips ---- */
 .usa-chips {
   list-style: none; display: flex; flex-wrap: wrap; gap: 0.55rem;
-  margin: 1.25rem 0 1.5rem; padding: 0;
+  margin: 1.75rem 0 2rem; padding: 0;
 }
 .usa-chips li {
   background: #fff; border: 1px solid var(--color-border); border-radius: 999px;
@@ -3333,19 +3569,82 @@ a.greview-author:hover { text-decoration: underline; }
 .usa-body .usa-roadmap p { margin: 0; color: var(--color-hero-ink); font-size: 0.98rem; }
 
 /* ---- full-width image bands ---- */
+/* ---- the full-width photographs ----
+   These are the page's only breathing room, so they are given real height
+   and a proper entrance: the frame opens upward while the picture inside it
+   settles down out of an over-size crop. Two things moving at different
+   rates is what reads as cinematic rather than as a fade. */
 .usa-band {
-  position: relative; margin: clamp(2rem, 5vw, 3.5rem) 0;
-  border-radius: 20px; overflow: hidden;
-  height: clamp(220px, 30vw, 380px);
+  position: relative; margin: clamp(3rem, 6vw, 5rem) 0;
+  --band-radius: 20px;
+  border-radius: var(--band-radius); overflow: hidden;
+  height: clamp(280px, 40vw, 540px);
+  box-shadow: 0 24px 54px rgba(23, 39, 92, 0.16);
 }
+
+/* ---- breaking out to the right ----
+   The body column is the right-hand track of a grid whose left track is the
+   contents rail, so the photograph has free space on one side only — the
+   window's right edge. Reaching it needs the distance from the container's
+   content edge to that edge, which is the container's side margin plus its
+   own padding:
+
+     .container is  max-width: calc(40% + 0.6 * var(--container))
+     side margin =  (100vw - (40vw + 0.6C)) / 2  =  30vw - 0.3C
+     distance    =  30vw - 0.3C + 1.5rem
+
+   ...so the negative margin is the inverse of that. It is written against
+   `--container` rather than against a hard-coded 1200px so it stays true if
+   that token is ever retuned.
+
+   `min()` caps it at the container's padding: below roughly 1200px the
+   container is already the full width of the window, the formula would turn
+   positive, and a positive margin here would pull the photograph inward
+   instead of pushing it out. */
+@media (min-width: 1081px) {
+  .usa-band {
+    margin-right: min(-1.5rem, calc(0.3 * var(--container) - 1.5rem - 30vw));
+    /* The right edge is off-screen now, so only the left corners are round.
+       The clip-path reveal reads the same value, so the two cannot drift. */
+    --band-radius: 20px 0 0 20px;
+  }
+}
+/* The band opts out of the shared rise: it has its own reveal, and a frame
+   that slid up while its contents scaled would be two competing motions. */
+.usa[data-reveal-armed] .usa-band[data-reveal] {
+  opacity: 1; transform: none;
+  /* `round` on both ends keeps the corners rounded THROUGH the animation —
+     a plain rectangular inset squares them off for the duration and then
+     snaps them back at the last frame. */
+  clip-path: inset(0 0 100% 0 round var(--band-radius));
+  transition: clip-path 0.95s cubic-bezier(0.22, 0.9, 0.28, 1);
+}
+.usa[data-reveal-armed] .usa-band[data-reveal].is-in { clip-path: inset(0 0 0 0 round var(--band-radius)); }
 .usa-band img, .usa-band .dpage-shot-empty {
   width: 100%; height: 100%; object-fit: cover;
+  transform: scale(1.14);
+  transition: transform 1.6s cubic-bezier(0.16, 0.74, 0.22, 1);
 }
+.usa-band.is-in img { transform: scale(1); }
 .usa-band figcaption {
-  position: absolute; inset: auto 0 0 0; padding: 2.5rem 1.5rem 1.25rem;
-  background: linear-gradient(to top, rgba(9, 16, 38, 0.85), rgba(9, 16, 38, 0));
+  position: absolute; inset: auto 0 0 0; padding: 4rem clamp(1.75rem, 4vw, 3rem) 1.75rem;
+  background: linear-gradient(to top,
+    rgba(9, 16, 38, 0.9) 0%, rgba(9, 16, 38, 0.55) 45%, rgba(9, 16, 38, 0) 100%);
   color: #fff; font-family: var(--font-display); font-weight: 600;
-  font-size: clamp(1rem, 1.8vw, 1.25rem); text-align: center;
+  font-size: clamp(1.05rem, 2vw, 1.5rem); line-height: 1.25;
+  letter-spacing: -0.02em; text-align: left; max-width: 40ch;
+  /* Arrives after the frame has finished opening, so the words land on a
+     picture rather than travelling up with it. */
+  opacity: 0; transform: translateY(14px);
+  transition: opacity 0.5s ease 0.55s, transform 0.6s ease 0.55s;
+}
+.usa-band.is-in figcaption { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  .usa[data-reveal-armed] .usa-band[data-reveal],
+  .usa[data-reveal-armed] .usa-band[data-reveal].is-in { clip-path: none; transition: none; }
+  .usa-band img, .usa-band figcaption {
+    transition: none; transform: none; opacity: 1;
+  }
 }
 
 @media (max-width: 1080px) {
@@ -3355,7 +3654,8 @@ a.greview-author:hover { text-decoration: underline; }
   .usa-toc { display: none; }
 }
 @media (max-width: 720px) {
-  .usa-type { grid-template-columns: 1fr; }
+  /* .usa-type used to be stacked here; the block is a TypeStack now, which
+     carries its own small-screen layout (.tst-list). */
   .usa-myth { grid-template-columns: 1fr; gap: 0.6rem; }
   .usa-compare { grid-template-columns: 1fr; gap: 1rem; }
   .usa-compare-x { transform: rotate(90deg); }
