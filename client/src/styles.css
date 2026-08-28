@@ -1705,11 +1705,11 @@ a.greview-author:hover { text-decoration: underline; }
   .footer-bar-inner { flex-direction: column; align-items: flex-start; gap: 0.85rem; }
   .footer-legal { flex-wrap: wrap; gap: 1rem; }
   .nav-toggle { display: block; }
-  /* The contact details move to the fixed bottom bar on mobile,
-     so the whole top strip goes away */
+  /* The fixed bottom contact bar is no longer mounted (see Layout.tsx), so
+     nothing covers the end of the page and the footer needs no clearance.
+     The rule that showed it is kept, harmless while unmounted, so restoring
+     the component needs no CSS change. */
   .mobile-actions { display: flex; }
-  /* Leave room so the fixed bar never covers the end of the page */
-  .footer-bar-inner { padding-bottom: calc(6rem + env(safe-area-inset-bottom)); }
   /* No room to straddle the bars on mobile — keep the logo inside the white strip */
   .brand-logo { height: 46px; }
   /* The sloped shoulder would cover the centered contact pills on mobile */
@@ -5805,4 +5805,119 @@ a.rev-score:hover { background: rgba(255, 255, 255, 0.08); }
   .blg-lead, .blg-lead:hover, .blg-card, .blg-card:hover,
   .art-related-card, .art-related-card:hover { transition: none; transform: none; }
   .blg-lead-shot img, .blg-card-shot img { transition: none; transform: none; }
+}
+
+/* ============================================================
+   SMALL SCREENS — the last word in the stylesheet.
+
+   Everything here is inside a max-width query, so nothing in
+   this block can reach a desktop. It exists because the pages
+   added recently lean on very large display type and on a few
+   pieces of pure decoration, and both need reining in below
+   about 560px.
+
+   THE RULE THIS BLOCK FOLLOWS: no sentence, heading, caption or
+   list item is ever hidden. What gets dropped is decoration
+   only — drawn ornaments, watermarks and background flourishes
+   that carry no information and cost width, height or paint on
+   a phone. Every word that exists on a desktop exists here.
+   ============================================================ */
+
+@media (max-width: 560px) {
+  /* ---- display type ----
+     The headline faces are set with clamp(), and it was their MINIMUM that
+     was too big: at 360-390px a phrase like "one conversation." or "United
+     Kingdom" sat wider than the screen and pushed the page sideways. Each
+     minimum comes down; the preferred and maximum values are untouched, so
+     nothing above this width moves at all. */
+  .who-fat   { font-size: clamp(1.9rem, 9vw, 5rem); }
+  .who-accent{ font-size: clamp(1.15rem, 5vw, 2.15rem); }
+  .who-thin  { font-size: clamp(1.05rem, 4.4vw, 2.3rem); }
+  .rev-fat   { font-size: clamp(2.4rem, 12vw, 6.5rem); }
+  .rev-thin  { font-size: clamp(1.15rem, 5vw, 2.6rem); }
+  .unip-fat  { font-size: clamp(1.85rem, 8.5vw, 4.6rem); }
+  .unip-accent { font-size: clamp(1.15rem, 5vw, 2.5rem); }
+  .unip-thin { font-size: clamp(1.05rem, 4.4vw, 2.1rem); }
+  .ctc-fat   { font-size: clamp(2rem, 9.5vw, 6rem); }
+  .ctc-thin  { font-size: clamp(1.1rem, 4.8vw, 2.5rem); }
+  .evt-fat   { font-size: clamp(2rem, 9.5vw, 6rem); }
+  .evt-thin  { font-size: clamp(1.1rem, 4.8vw, 2.5rem); }
+  .blg-fat   { font-size: clamp(2rem, 9.5vw, 6rem); }
+  .blg-thin  { font-size: clamp(1.1rem, 4.8vw, 2.5rem); }
+  .gal-fat   { font-size: clamp(1.95rem, 9vw, 6rem); }
+  .gal-accent{ font-size: clamp(1.1rem, 4.8vw, 2.5rem); }
+  .gal-thin  { font-size: clamp(1.05rem, 4.4vw, 2.2rem); }
+  .unip-slide-name { font-size: clamp(2.1rem, 11vw, 8.5rem); }
+
+  /* The stepped indents are a wide-screen device. At this width they only
+     eat the measure the words need. */
+  .who-accent, .unip-accent, .gal-fat-2, .gal-accent { padding-left: 0; }
+
+  /* ---- decoration only ----
+     None of these carry a word. Each is a drawn ornament that either
+     overflows, repaints on every scroll frame, or shrinks to noise. */
+  .testimonials-decor { display: none; }   /* dashed flight-path watermark */
+  .footer-shapes { display: none; }        /* the band of cut-off arcs */
+  .rev-spotlight blockquote::before { display: none; } /* hung quote mark */
+  .usa-h2::after { display: none; }        /* the section hairline */
+  .unip-mean-n, .evt-kind-n, .who-principle-n { font-size: 1.5rem; }
+
+  /* ---- the gallery ribbon ----
+     Fourteen thumbnails across a phone is texture, not photographs. Fewer
+     and larger, and the scroll-linked drift is dropped: it is the one
+     effect here that runs work on every frame for something a phone screen
+     is too narrow to show properly. The photographs themselves stay. */
+  .gal-ribbon-row { width: 190%; margin-left: -45%; transform: none !important; }
+  .gal-ribbon-cell { border-radius: 8px; }
+
+  /* ---- guides ---- */
+  /* The outlined numerals that head each item in a numbered list are set
+     large enough on a desktop to read as texture; at this width they simply
+     take a line to themselves. Smaller, still present, still numbering. */
+  .usa-h2 { font-size: clamp(1.7rem, 7.5vw, 3.3rem); }
+  .usa-body .usa-pull { font-size: clamp(1.2rem, 5.5vw, 2.05rem); max-width: none; }
+  .usa-band { height: clamp(200px, 52vw, 300px); margin: 2rem 0; }
+  .usa-band figcaption { padding: 2.5rem 1.1rem 1.1rem; font-size: 0.95rem; }
+
+  /* ---- contact ---- */
+  .ctc-map { min-height: 260px; }
+
+  /* ---- the journey band on the home page ---- */
+  .nsx-list-item h3 { font-size: clamp(1.4rem, 7vw, 2.1rem); }
+
+  /* ---- forms and panels ----
+     Rounded panels with generous inner padding lose too much of a narrow
+     screen to their own edges. */
+  .who-form-panel, .ctc-form-panel { padding: 1.15rem; }
+  .evt-empty-card, .blg-empty-card { padding: 1.5rem 1.15rem; }
+}
+
+/* ============================================================
+   Very narrow — 400px and below. Almost every phone in portrait
+   is wider than this; what is here is the last line of defence
+   against a long unbroken word or a wide control.
+   ============================================================ */
+@media (max-width: 400px) {
+  /* A long word in a huge face is the one thing clamp() cannot solve. This
+     lets it break rather than push the page sideways. Headings only — body
+     copy at this size wraps fine and breaking it would read as a typo. */
+  h1, h2, h3,
+  .who-fat, .rev-fat, .unip-fat, .ctc-fat, .evt-fat, .blg-fat, .gal-fat,
+  .unip-slide-name, .usa-h2 {
+    overflow-wrap: break-word; hyphens: auto;
+  }
+
+  /* Chip and filter rows: let them wrap tightly rather than scroll. */
+  /* Tighter, but the counts stay — they tell you how much is behind each
+     filter, which is information rather than ornament. */
+  .rev-chip, .unip-chip, .blg-tag { padding: 0.4rem 0.75rem; font-size: 0.84rem; }
+  .rev-chip span, .unip-chip span { font-size: 0.72rem; }
+
+  /* The slideshow's dots run out of room before its arrows do. */
+  .unip-dots button { width: 20px; }
+
+  /* Two figures per row is still one too many at this width. */
+  .who-figures, .unip-figures { grid-template-columns: 1fr; }
+
+  .container { padding: 0 1.1rem; }
 }

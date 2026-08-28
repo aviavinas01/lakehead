@@ -2,7 +2,6 @@ import { Outlet } from "react-router-dom";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import GoogleReviews from "./GoogleReviews";
-import MobileActionBar from "./MobileActionBar";
 
 export default function Layout() {
   return (
@@ -14,7 +13,10 @@ export default function Layout() {
       {/* Renders nothing until the server has real reviews to give */}
       <GoogleReviews />
       <Footer />
-      <MobileActionBar />
+      {/* The fixed bottom contact bar (components/MobileActionBar.tsx) used
+          to sit here on small screens. Removed at the client's request; the
+          component is left in the tree, unmounted, so putting it back — here
+          for every page, or inside one page — is a single line. */}
     </>
   );
 }
