@@ -6018,3 +6018,200 @@ a.rev-score:hover { background: rgba(255, 255, 255, 0.08); }
 
   .container { padding: 0 1.1rem; }
 }
+
+/* ============================================================
+   Chat dock — the floating control in the bottom-right corner
+   (components/ChatDock.tsx). An abstract mark at rest that
+   becomes a bot's head, a WhatsApp pill that slides out above
+   it, and the assistant panel the circle opens.
+   ============================================================ */
+/* Layer 90 is chosen to sit above the sticky navbar (50) and the mobile
+   contact bar (60) but below the review reader (200) and the loading splash
+   (300) — a corner button must never float over a full-screen overlay.
+   The right offset also clears the 3px scroll-progress rail at the very edge
+   of the viewport. */
+.chatdock {
+  position: fixed; right: 1.5rem; z-index: 90;
+  bottom: calc(1.5rem + env(safe-area-inset-bottom));
+}
+
+/* The assistant circle. Two icons live inside it, stacked and cross-faded —
+   the button keeps one size and one hit area no matter which is showing.
+
+   The squared bottom-left corner is what turns the circle into a speech
+   bubble: one radius out of four, rather than a pseudo-element tail that
+   would have to be kept in line with the edge as the button scales. The white
+   ring and the hairline outside it are drawn with stacked box-shadows, so the
+   button reads as lifted off the page even where the page behind it is
+   white. */
+.chatdock-btn {
+  position: relative; display: grid; place-items: center;
+  width: 62px; height: 62px; padding: 0;
+  border: none; border-radius: 50% 50% 50% 10px; cursor: pointer; color: #fff;
+  background: var(--color-hero-ink);
+  box-shadow:
+    0 0 0 4px #fff,
+    0 0 0 5px rgba(23, 39, 92, 0.12),
+    0 12px 28px -10px rgba(23, 39, 92, 0.5);
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.3, 1), background-color 0.25s ease;
+}
+.chatdock-btn:hover { background: #1e3576; }
+.chatdock:hover .chatdock-btn,
+.chatdock:focus-within .chatdock-btn { transform: translateY(-2px) scale(1.05); }
+.chatdock-btn:focus-visible { outline: 3px solid var(--color-hero-ink); outline-offset: 3px; }
+
+.chatdock-icon {
+  grid-area: 1 / 1; width: 34px; height: 34px;
+  transition: opacity 0.28s ease, transform 0.42s cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+/* At rest the mark is showing and the head is turned away behind it; on
+   hover, on keyboard focus, or once the panel is open, they trade places. */
+.chatdock-icon-rest { opacity: 1; transform: rotate(0deg) scale(1); }
+.chatdock-icon-bot { opacity: 0; transform: rotate(-80deg) scale(0.55); }
+.chatdock:hover .chatdock-icon-rest,
+.chatdock:focus-within .chatdock-icon-rest,
+.chatdock[data-chat="open"] .chatdock-icon-rest {
+  opacity: 0; transform: rotate(80deg) scale(0.55);
+}
+.chatdock:hover .chatdock-icon-bot,
+.chatdock:focus-within .chatdock-icon-bot,
+.chatdock[data-chat="open"] .chatdock-icon-bot {
+  opacity: 1; transform: rotate(0deg) scale(1);
+}
+
+/* The WhatsApp circle, parked behind the assistant and sliding up out of it.
+   Same navy as the button below it: the pair reads as one stacked control
+   rather than two unrelated badges, and the glyph is recognisable enough on
+   its own without WhatsApp's green. */
+.chatdock-wa {
+  position: absolute; right: 4px; bottom: calc(100% + 0.85rem);
+  display: grid; place-items: center;
+  width: 54px; height: 54px; border-radius: 50%;
+  background: var(--color-hero-ink); color: #fff;
+  box-shadow:
+    0 0 0 4px #fff,
+    0 0 0 5px rgba(23, 39, 92, 0.12),
+    0 10px 24px -10px rgba(23, 39, 92, 0.5);
+  opacity: 0; transform: translateY(18px) scale(0.8); transform-origin: 50% 140%;
+  /* Out of the way of the page underneath while it is invisible. It stays
+     focusable, though: :focus-within brings it into view on the same frame a
+     keyboard reaches it, which a visibility switch would make impossible. */
+  pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.32s cubic-bezier(0.2, 0.8, 0.3, 1),
+    background-color 0.25s ease;
+}
+.chatdock a.chatdock-wa { color: #fff; }
+.chatdock-wa svg { width: 26px; height: 26px; }
+/* Bridges the gap down to the button, so crossing it with the pointer does
+   not drop :hover and collapse the stack halfway. */
+.chatdock-wa::after {
+  content: ""; position: absolute; left: 0; right: 0;
+  top: 100%; height: 1.1rem;
+}
+.chatdock:hover .chatdock-wa,
+.chatdock:focus-within .chatdock-wa {
+  opacity: 1; transform: none; pointer-events: auto;
+}
+.chatdock-wa:hover { background: #25d366; }
+.chatdock-wa:focus-visible { outline: 3px solid var(--color-hero-ink); outline-offset: 6px; }
+/* The panel slides into the same space and carries its own WhatsApp link */
+.chatdock[data-chat="open"] .chatdock-wa {
+  opacity: 0; transform: translateY(18px) scale(0.8); pointer-events: none;
+}
+
+/* ---- the assistant panel ---- */
+.chatdock-panel {
+  position: absolute; right: 0; bottom: calc(100% + 0.9rem);
+  display: flex; flex-direction: column;
+  width: min(340px, calc(100vw - 3rem));
+  background: var(--color-bg); border: 1px solid var(--color-border);
+  border-radius: 18px; overflow: hidden;
+  box-shadow: 0 24px 60px -18px rgba(23, 39, 92, 0.45);
+  transform-origin: 100% 100%;
+  animation: chatdock-in 0.22s cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+@keyframes chatdock-in {
+  from { opacity: 0; transform: translateY(12px) scale(0.94); }
+}
+.chatdock-head {
+  display: flex; align-items: center; gap: 0.7rem; padding: 0.85rem 0.9rem;
+  background: var(--color-hero-ink);
+  color: #fff;
+}
+.chatdock-head-mark {
+  display: grid; place-items: center; flex: none;
+  width: 38px; height: 38px; border-radius: 50%;
+  background: rgba(255, 255, 255, 0.18);
+}
+/* Inside the header the head is the only icon, so it is simply shown — the
+   cross-fade above belongs to the button. */
+.chatdock-head-mark .chatdock-icon {
+  width: 26px; height: 26px; opacity: 1; transform: none; transition: none;
+}
+.chatdock-head-text { display: flex; flex-direction: column; line-height: 1.25; flex: 1; }
+.chatdock-head-text strong { font-family: var(--font-display); font-size: 1rem; }
+.chatdock-head-text small { font-size: 0.78rem; color: rgba(255, 255, 255, 0.85); }
+.chatdock-close {
+  flex: none; display: grid; place-items: center;
+  width: 30px; height: 30px; padding: 0;
+  background: none; border: none; border-radius: 8px;
+  color: #fff; cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+.chatdock-close:hover { background: rgba(255, 255, 255, 0.2); }
+
+.chatdock-thread { padding: 1rem 0.9rem; background: var(--color-surface); }
+.chatdock-bubble {
+  background: var(--color-bg); border: 1px solid var(--color-border);
+  border-radius: 14px 14px 14px 4px; padding: 0.7rem 0.85rem;
+  font-size: 0.92rem; line-height: 1.55; color: var(--color-text); margin: 0;
+}
+.chatdock-note {
+  margin: 0.7rem 0 0.9rem; font-size: 0.82rem; line-height: 1.55;
+  color: var(--color-muted);
+}
+.chatdock-cta {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  padding: 0.6rem 1rem; border-radius: 999px;
+  background: #25d366; color: #fff; font-weight: 600; font-size: 0.9rem;
+  transition: background-color 0.15s ease;
+}
+.chatdock a.chatdock-cta { color: #fff; }
+.chatdock-cta:hover { background: #1fb855; }
+.chatdock-compose { padding: 0.7rem 0.9rem; border-top: 1px solid var(--color-border); }
+.chatdock-compose input {
+  width: 100%; padding: 0.6rem 0.85rem; font: inherit; font-size: 0.9rem;
+  border: 1px solid var(--color-border); border-radius: 999px;
+  background: var(--color-surface); color: var(--color-muted);
+  cursor: not-allowed;
+}
+
+/* A touch screen has neither hover nor a visible focus ring to open the pill
+   with, and the circle's own tap is spoken for by the panel — so the pill
+   simply stays out. The mark still only becomes a head once the panel opens. */
+@media (hover: none) {
+  .chatdock-wa { opacity: 1; transform: none; pointer-events: auto; }
+}
+
+@media (max-width: 560px) {
+  .chatdock { right: 1rem; bottom: calc(1rem + env(safe-area-inset-bottom)); }
+  .chatdock-btn { width: 56px; height: 56px; }
+  .chatdock-icon { width: 30px; height: 30px; }
+  .chatdock-wa { width: 48px; height: 48px; right: 4px; }
+  .chatdock-wa svg { width: 23px; height: 23px; }
+  .chatdock-panel { width: calc(100vw - 2rem); }
+}
+
+/* The dock still works, it just stops moving: the icons cut over and the
+   panel appears rather than sliding up out of the corner. */
+@media (prefers-reduced-motion: reduce) {
+  .chatdock-btn, .chatdock-icon, .chatdock-wa { transition-duration: 0.01ms; }
+  .chatdock:hover .chatdock-btn, .chatdock:focus-within .chatdock-btn { transform: none; }
+  .chatdock-icon-rest, .chatdock-icon-bot { transform: none; }
+  .chatdock:hover .chatdock-icon-rest,
+  .chatdock:focus-within .chatdock-icon-rest,
+  .chatdock[data-chat="open"] .chatdock-icon-rest { transform: none; }
+  .chatdock-wa, .chatdock[data-chat="open"] .chatdock-wa { transform: none; }
+  .chatdock-btn:hover { background: var(--color-hero-ink); }
+  .chatdock-panel { animation: none; }
+}
