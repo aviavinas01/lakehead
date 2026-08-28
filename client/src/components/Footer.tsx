@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { fetchGoogleRating, FALLBACK_RATING, GOOGLE_MAPS_URL } from "../api/googleRating";
+import { SERVICES } from "../data/services";
 import type { GoogleRating } from "../types/api";
 
 /**
@@ -21,6 +22,19 @@ interface FooterLink {
   to: string;
 }
 
+/**
+ * The link columns.
+ *
+ * Every entry here now lands on the page it names. The services column used
+ * to be seven differently-worded links all pointing at /services, and the
+ * legal row pointed at the contact form — a footer that promises a page and
+ * delivers something else is worse than a shorter footer.
+ *
+ * The services are read from data/services.ts rather than written out, so
+ * the column cannot drift from what the site actually offers: add a service
+ * there and it appears here, named and routed correctly, with no edit to
+ * this file.
+ */
 const COLUMNS: { title: string; links: FooterLink[] }[] = [
   {
     title: "Destinations",
@@ -31,18 +45,14 @@ const COLUMNS: { title: string; links: FooterLink[] }[] = [
       { label: "Canada", to: "/study-in-canada" },
       { label: "New Zealand", to: "/study-in-new-zealand" },
       { label: "South Korea", to: "/study-in-south-korea" },
+      { label: "All destinations", to: "/study-abroad" },
     ],
   },
   {
-    title: "Quick links",
+    title: "Student services",
     links: [
-      { label: "Education counselling", to: "/services" },
-      { label: "Test preparation", to: "/services" },
-      { label: "Visa guidance", to: "/services" },
-      { label: "Scholarships", to: "/services" },
-      { label: "Interview preparation", to: "/services" },
-      { label: "Student accommodation", to: "/services" },
-      { label: "Useful documents", to: "/blog" },
+      ...SERVICES.map((s) => ({ label: s.title, to: `/services/${s.slug}` })),
+      { label: "All services", to: "/services" },
     ],
   },
   {
@@ -55,7 +65,6 @@ const COLUMNS: { title: string; links: FooterLink[] }[] = [
       { label: "University partners", to: "/university-partners" },
       { label: "Gallery", to: "/gallery" },
       { label: "Events", to: "/events" },
-      { label: "News", to: "/blog" },
       { label: "Blog & articles", to: "/blog" },
       { label: "Contact us", to: "/contact" },
     ],
@@ -104,11 +113,20 @@ const SOCIALS: { label: string; href: string; icon: JSX.Element }[] = [
   },
 ];
 
-const LEGAL: FooterLink[] = [
-  { label: "Terms of service", to: "/contact" },
-  { label: "Privacy policy", to: "/contact" },
-  { label: "Cookie policy", to: "/contact" },
-];
+/**
+ * Terms of service, Privacy policy and Cookie policy used to sit here
+ * pointing at /contact. They are out until those pages exist: a "Privacy
+ * policy" link that opens a contact form is misleading rather than merely
+ * unfinished, and this site collects personal data through several forms, so
+ * that particular link matters more than most.
+ *
+ * Add the routes and put the entries back — the bar renders nothing at all
+ * while this is empty, so there is no gap to design around in the meantime.
+ * The consultation form's own "Privacy Policy" and "Terms & Conditions"
+ * links (components/ConsultCard.tsx) are still href="#" and want the same
+ * pages.
+ */
+const LEGAL: FooterLink[] = [];
 
 /**
  * The band of shapes above the legal bar. Each is a thick round-capped arc or
@@ -212,18 +230,39 @@ export default function Footer() {
             </svg>
           </a>
 
-          <div className="footer-socials">
-            {SOCIALS.map((s) => (
-              <a
-                key={s.label}
-                href={s.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label={s.label}
-              >
-                {s.icon}
-              </a>
-            ))}
+          {/* Socials and the accreditation stamp share the foot of the brand
+              column — the row is bottom-aligned, so the taller stamp rises
+              alongside the blurb rather than pushing the socials down. */}
+          <div className="footer-brand-foot">
+            <div className="footer-socials">
+              {SOCIALS.map((s) => (
+                <a
+                  key={s.label}
+                  href={s.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={s.label}
+                >
+                  {s.icon}
+                </a>
+              ))}
+            </div>
+
+            {/* ICEF accreditation seal. Static on purpose: the badge's own QR
+                code is the verification route, and a link to a page we cannot
+                name would be a guess. Wrap it in an <a> to ICEF's agency
+                listing once that URL is known. The width/height attributes
+                match the file (461×541) so the row does not jump while the
+                image loads. */}
+            <img
+              className="footer-icef"
+              src="/icef.png"
+              width={461}
+              height={541}
+              loading="lazy"
+              decoding="async"
+              alt="ICEF accredited agency — ICEF agency status #5561, trusted agency"
+            />
           </div>
         </div>
 
@@ -256,13 +295,18 @@ export default function Footer() {
       <div className="footer-bar">
         <div className="container footer-bar-inner">
           <p>© Copyright {year} Lakehead Education. All rights reserved.</p>
-          <nav className="footer-legal" aria-label="Legal">
-            {LEGAL.map((l) => (
-              <Link key={l.label} to={l.to}>
-                {l.label}
-              </Link>
-            ))}
-          </nav>
+          {/* Omitted entirely while LEGAL is empty. An empty <nav> still
+              announces itself as a "Legal" landmark to a screen reader, and
+              a landmark containing nothing is worse than no landmark. */}
+          {LEGAL.length > 0 && (
+            <nav className="footer-legal" aria-label="Legal">
+              {LEGAL.map((l) => (
+                <Link key={l.label} to={l.to}>
+                  {l.label}
+                </Link>
+              ))}
+            </nav>
+          )}
         </div>
       </div>
     </footer>

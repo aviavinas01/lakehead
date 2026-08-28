@@ -439,20 +439,46 @@ img { max-width: 100%; display: block; }
    per-country in Home.tsx; a gradient panel stands in until then.
    ============================================================ */
 .destinations { padding: var(--section-y) 0; }
+/* The heading and its lead sit over the globe, which is pulled up underneath
+   them — so both need a layer of their own. Without the z-index the globe
+   would paint over them: it comes later in the document, and a positioned
+   element with no z-index of its own paints in document order. */
 .destinations-title {
+  position: relative; z-index: 2;
   color: var(--color-hero-ink); font-size: clamp(2rem, 3.3vw, 2.9rem);
   letter-spacing: -0.02em; margin-bottom: 0.75rem;
 }
-.destinations-lead { color: var(--color-muted); max-width: 1100px; margin-bottom: 2rem; }
+.destinations-lead {
+  position: relative; z-index: 2;
+  color: var(--color-muted); max-width: 1100px; margin-bottom: 2rem;
+}
 /* Globe on the left, a deck of photos on the right with the country's
    details underneath. */
 .dest-layout {
-  display: grid; grid-template-columns: 0.9fr 1fr;
-  gap: 3.5rem; align-items: center;
+  display: grid; grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  gap: 2rem; align-items: center;
 }
 /* The globe is line work only — no fill anywhere, so it reads as a drawing
-   rather than a map, and the pins are the only colour on it. */
-.dest-globe { position: relative; }
+   rather than a map, and the pins are the only colour on it.
+
+   It runs off two edges of its column. The left margin carries it past the
+   left of the page — far enough that a quarter or so of the sphere is cut
+   off, which is what lets it be drawn this large without taking the width to
+   do it; the page is clipped on that axis (html, body { overflow-x: clip }),
+   so nothing scrolls sideways to reach it. The top margin lifts it up behind
+   the heading, and because it is a margin rather than a transform it takes
+   that height back out of the row instead of leaving a gap at the bottom —
+   the row stays as tall as the cards beside it.
+
+   align-self: start is what makes the top margin read as a lift: the row is
+   otherwise centred, where a negative margin there would only move it half
+   as far. Both bleeds scale with the viewport and stop at a floor, which is
+   all a narrow window can give before the globe has nothing left on screen. */
+.dest-globe {
+  position: relative; z-index: 0; align-self: start;
+  margin-left: clamp(-30rem, -22vw, -9rem);
+  margin-top: clamp(-7rem, -6vw, -2rem);
+}
 /* A plain dot instead of a pointer, over the globe and the space around it.
    Inlined as a data URI: a cursor that arrives a moment late is worse than
    no cursor at all, and at under a kilobyte it is cheaper than the request
@@ -461,10 +487,12 @@ img { max-width: 100%; display: block; }
 .dest-globe, .globe {
   cursor: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAB7UlEQVR42u1WvWoUURg955udIBa7MNOJjYQkYCViYSNWPoBNsLG2tskr6Cv4FMZaEMQoKIg+QEJUbHTjTm4KWd2d79jcwCC6c3ey2+geuDDFd+ec7/8CK6zwv4Md71k8TXg8SxeczSlsYRGwUw+LorgIZNfdtQUgI7Vf1/b65GR4EG0zAPUiBRgA7/f7hdnaAxJ3SPabBpLGkp6QvlNV1adUEUwlL4rispTtktyQHPHnaqaGJCR9lbB9fHz0vBm1rgIIgIPBYGCWvyV5SdIEQO8PdwVgSjKXFNyzKyF8+RjtfJZ3rd6T+cMGef4X4QSQS5qSHJD1o0aEOkXAAHhZlhfceQBg7TQiCWlzklbXuhrC0btZqbAWAZhMeIPkuehNatFGMt1q42ntWTNsRHLNPa0MmykVnmJzlol5VgE87Eguqf2uteVR+rknaRptNYfnJPms0aKdBGQhhENJuyQNwDSBfErS3PWmqoavIkfdNQUCYGa6L2lEMgcwmUUOoCdpIvFeSudYSjuNRqPPEm43RCiSNY+T7AH4AeBuCMP3KfsgSykmANl4/P1Dnp9/THKdxCZpRsJIWvymu166azuEb08XuYzw+4oty/KaO25K2CKRSbZP4kVVDffmXcdd+poLmC1LeZJpWV6vsMK/jV/QbNJqwwiCLgAAAABJRU5ErkJggg==") 16 16, grab;
 }
-/* Capped rather than filling its column, so the globe reads as an object on
-   the page instead of a backdrop. */
+/* Sized to fill the column it is given, up to a cap. Everything inside is an
+   SVG on a fixed viewBox and every gesture is measured against the element's
+   own rect, so the drag, the pins and the spin behave identically at any
+   width — only the drawing gets bigger. */
 .globe {
-  width: 100%; max-width: 460px; height: auto; margin: 0 auto;
+  width: 100%; max-width: 900px; height: auto; margin: 0 auto;
   display: block; touch-action: pan-y; user-select: none;
 }
 .globe-edge { fill: none; stroke: #c3c7d2; stroke-width: 1; }
@@ -503,36 +531,76 @@ img { max-width: 100%; display: block; }
 /* The deck reads as a column moving downwards: the country next in line
    waits above, the one showing sits in the middle at full strength, and the
    one just shown slides out below. The mask fades both ends so the
-   neighbours trail off rather than being cut. */
+   neighbours trail off rather than being cut.
+
+   One number drives all of it: --deck-h is the frame, the card is 72% of it,
+   and a card slides by exactly half of it — which is what puts the waiting
+   card's lower edge just inside the frame for the mask to fade. The card used
+   to be sized by three separate pixel values that had to be kept in step by
+   hand; resize the deck here and everything follows.
+
+   It is fluid because the column it sits in is: at the narrow end of the
+   two-column layout a fixed 500px frame made an almost-square photograph. */
 .dest-deck {
-  position: relative; height: 430px; overflow: hidden;
+  --deck-h: clamp(400px, 44vw, 620px);
+  position: relative; height: var(--deck-h); overflow: hidden;
   -webkit-mask-image: linear-gradient(180deg, transparent, #000 20%, #000 80%, transparent);
   mask-image: linear-gradient(180deg, transparent, #000 20%, #000 80%, transparent);
 }
 .dest-photo {
-  position: absolute; left: 0; right: 0; top: 50%; height: 290px;
-  margin-top: -145px;
+  position: absolute; left: 0; right: 0; top: 50%;
+  height: calc(var(--deck-h) * 0.72);
+  margin-top: calc(var(--deck-h) * -0.36);
   border-radius: 20px; overflow: hidden;
+  /* Keeps the name's blend mode inside the card. The showing card has no
+     transform of its own, so without this the blend would reach past it and
+     mix with whatever the page has behind the deck. */
+  isolation: isolate;
   box-shadow: 0 18px 38px -20px rgba(23, 39, 92, 0.55);
   transition: transform 0.85s cubic-bezier(0.25, 0.8, 0.28, 1), opacity 0.7s ease;
 }
 .dest-photo img, .dest-photo-placeholder { width: 100%; height: 100%; object-fit: cover; display: block; }
 .dest-photo-placeholder { background: linear-gradient(150deg, #d9dce6, #eef0f5); }
+/* The country's name, set across the foot of the photograph at display size
+   so it carries the card rather than labelling it.
+
+   It blends into the picture instead of sitting on a dark bar. `difference`
+   is the one blend mode that cannot fail here: it inverts whatever is behind
+   each letter, so the name stays legible over a bright sky and over a dark
+   skyline in the same photograph — where `overlay` or `soft-light` would
+   wash out on the light half. There is no scrim and no text-shadow, because
+   either would blend along with the type and muddy it.
+
+   The size cap is set by the longest name in the list: "New Zealand" has to
+   stay on one line at the narrow end of the two-column layout, where the
+   card is at its smallest. */
+.dest-photo-name {
+  position: absolute; left: 0; right: 0; bottom: 0; margin: 0;
+  padding: 0 1.5rem 1.25rem;
+  font-family: var(--font-display); font-weight: 700;
+  font-size: clamp(3rem, 6.5vw, 6.5rem); letter-spacing: -0.035em;
+  line-height: 0.95; color: #fff;
+  mix-blend-mode: difference;
+}
 /* Slot 1 is next and waits above; 0 is showing; -1 has just been and is on
    its way out below. Everything the queue is not near sits where the next
    one waits, so it enters from the same direction. */
 .dest-photo[data-slot="0"] { transform: none; opacity: 1; z-index: 3; }
-.dest-photo[data-slot="1"] { transform: translateY(-215px) scale(0.86); opacity: 0.3; z-index: 2; }
-.dest-photo[data-slot="-1"] { transform: translateY(215px) scale(0.86); opacity: 0.3; z-index: 2; }
-.dest-photo[data-slot="away"] { transform: translateY(-215px) scale(0.86); opacity: 0; z-index: 1; }
-.dest-info { margin-top: 3.75rem; }
-.dest-info h3 {
-  color: var(--color-hero-ink); font-size: 1.75rem;
-  letter-spacing: -0.02em; margin-bottom: 0.4rem;
+.dest-photo[data-slot="1"] { transform: translateY(calc(var(--deck-h) / -2)) scale(0.86); opacity: 0.3; z-index: 2; }
+.dest-photo[data-slot="-1"] { transform: translateY(calc(var(--deck-h) / 2)) scale(0.86); opacity: 0.3; z-index: 2; }
+.dest-photo[data-slot="away"] { transform: translateY(calc(var(--deck-h) / -2)) scale(0.86); opacity: 0; z-index: 1; }
+.dest-info { margin-top: 2.5rem; }
+/* The name is on the card; this copy exists only so the live region has a
+   country to announce with the blurb. */
+.dest-info-country {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
 }
+/* Now the first thing in the block rather than the second, so it carries a
+   little more weight than it did under a heading. */
 .dest-info p {
-  color: #43434d; font-size: 1rem; line-height: 1.65;
-  max-width: 30rem; margin: 0 0 1rem;
+  color: #43434d; font-size: 1.05rem; line-height: 1.65;
+  max-width: 34rem; margin: 0 0 1rem;
 }
 .dest-more {
   display: inline-flex; align-items: center; gap: 0.5rem;
@@ -1609,6 +1677,22 @@ a.greview-author:hover { text-decoration: underline; }
 .footer-socials a:hover { background: #fff; border-color: #fff; color: var(--color-footer-bg); }
 .footer-socials svg { width: 21px; height: 21px; }
 
+/* The foot of the brand column: social tiles on the left, the ICEF stamp on
+   the right. Bottom-aligned, so the taller stamp rises beside the blurb
+   instead of dragging the tiles down; it wraps to its own line when the
+   column is too narrow to hold both. */
+.footer-brand-foot {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  gap: 1.5rem; flex-wrap: wrap;
+}
+/* The seal is navy on transparent — the same navy as the shape band and the
+   legal bar — so it reads as pressed into the red rather than pasted over
+   it. The shadow is what lifts it off a background of the same weight. */
+.footer-icef {
+  flex: none; display: block; width: auto; height: 118px;
+  filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.3));
+}
+
 .footer-cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2.5rem; }
 .footer-col h4 {
   font-family: var(--font-display); font-size: 1.1rem; font-weight: 700;
@@ -1701,6 +1785,9 @@ a.greview-author:hover { text-decoration: underline; }
   .footer-main { grid-template-columns: 1fr; gap: 2.75rem; padding: 3rem 1.5rem 2.5rem; }
   .footer-cols { grid-template-columns: repeat(2, 1fr); gap: 2rem 1.5rem; }
   .footer-blurb { font-size: 0.95rem; }
+  /* One column now, so the row is as wide as the screen: the stamp keeps to
+     the right edge, opposite the socials, and shrinks a little with it. */
+  .footer-icef { height: 104px; }
   .footer-shapes { height: 120px; }
   .footer-bar-inner { flex-direction: column; align-items: flex-start; gap: 0.85rem; }
   .footer-legal { flex-wrap: wrap; gap: 1rem; }
@@ -1743,11 +1830,16 @@ a.greview-author:hover { text-decoration: underline; }
      The stacked photos carry the section on their own. */
   .dest-globe { display: none; }
   .dest-layout { grid-template-columns: 1fr; gap: 0; }
-  .dest-deck { height: 330px; }
-  .dest-photo { height: 230px; margin-top: -115px; }
-  .dest-photo[data-slot="1"], .dest-photo[data-slot="away"] { transform: translateY(-172px) scale(0.86); }
-  .dest-photo[data-slot="-1"] { transform: translateY(172px) scale(0.86); }
-  .dest-info { margin-top: 3.25rem; }
+  /* Full width now the globe is gone, so the deck can be a fixed size again.
+     Card height and slide distance both follow from this one value. */
+  .dest-deck { --deck-h: 380px; }
+  /* The card is narrower here, so the name comes down with it — still the
+     full width of the photograph's foot, still one line for every name. */
+  .dest-photo-name {
+    padding: 0 1.15rem 1rem;
+    font-size: clamp(2.2rem, 11vw, 4.5rem);
+  }
+  .dest-info { margin-top: 2rem; }
   .help-head { grid-template-columns: 1fr; gap: 1.25rem; }
   .help-lead { justify-self: start; }
   .help-grid { grid-template-columns: 1fr; }
@@ -5858,6 +5950,11 @@ a.rev-score:hover { background: rgba(255, 255, 255, 0.08); }
      overflows, repaints on every scroll frame, or shrinks to noise. */
   .testimonials-decor { display: none; }   /* dashed flight-path watermark */
   .footer-shapes { display: none; }        /* the band of cut-off arcs */
+  /* The ICEF stamp stays — it is a credential, not decoration. It only comes
+     down in size, and the gap tightens so it and the four social tiles still
+     share one line on a narrow phone. */
+  .footer-brand-foot { gap: 1rem; }
+  .footer-icef { height: 88px; }
   .rev-spotlight blockquote::before { display: none; } /* hung quote mark */
   .usa-h2::after { display: none; }        /* the section hairline */
   .unip-mean-n, .evt-kind-n, .who-principle-n { font-size: 1.5rem; }

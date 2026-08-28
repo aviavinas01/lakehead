@@ -59,7 +59,7 @@ function offsetOf(index: number, active: number, total: number) {
   return rel;
 }
 
-function Photo({ src, offset }: { src: string; offset: number }) {
+function Photo({ src, name, offset }: { src: string; name: string; offset: number }) {
   /* A country without a photo yet shows a plain panel rather than a broken
      image — drop the file in client/public and it appears by itself. */
   const [missing, setMissing] = useState(false);
@@ -71,6 +71,10 @@ function Photo({ src, offset }: { src: string; offset: number }) {
       ) : (
         <img src={src} alt="" loading="lazy" decoding="async" onError={() => setMissing(true)} />
       )}
+      {/* The name rides on the card rather than sitting in the text below it,
+          so it travels with its own photo as the deck turns — and it still
+          names the country while the photo is only half in view. */}
+      <p className="dest-photo-name">{name}</p>
     </div>
   );
 }
@@ -126,11 +130,19 @@ export default function Destinations() {
           <div className="dest-side">
             <div className="dest-deck">
               {DESTINATIONS.map((d, i) => (
-                <Photo key={d.name} src={d.image} offset={offsetOf(i, active, total)} />
+                <Photo
+                  key={d.name}
+                  src={d.image}
+                  name={d.name}
+                  offset={offsetOf(i, active, total)}
+                />
               ))}
             </div>
             <div className="dest-info" aria-live="polite">
-              <h3>{current.name}</h3>
+              {/* The name is shown on the card now, but it still has to be in
+                  the live region: without it the announcement is a blurb with
+                  no country attached to it. */}
+              <h3 className="dest-info-country">{current.name}</h3>
               <p>{current.blurb}</p>
               <Link className="dest-more" to={current.to ?? "/services"}>
                 Know more
