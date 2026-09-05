@@ -110,25 +110,24 @@ img { max-width: 100%; display: block; }
 /* The bar carries no ground of its own in two situations: over a destination
    page's photographic hero (`seeThrough` in Navbar.tsx, dropped the moment
    you scroll or open a menu), and under the home page's opened hero film
-   (`hero-film` on <body>, set by Home.tsx). Same appearance either way, so
-   both triggers share one selector. Everything inside has to invert with it:
+   Everything inside has to invert with it:
    the mark is a red PNG, flattened and inverted to white exactly as the
    footer logo is. */
-:is(.navbar.is-over, body.hero-film .navbar) .navbar-main { background: transparent; border-bottom-color: transparent; }
-:is(.navbar.is-over, body.hero-film .navbar) .brand-logo { filter: brightness(0) invert(1); }
+.navbar.is-over .navbar-main { background: transparent; border-bottom-color: transparent; }
+.navbar.is-over .brand-logo { filter: brightness(0) invert(1); }
 /* The wordmark is a gradient clipped to the text, so plain `color` cannot
    reach it — the fill has to be overridden and the gradient removed. */
-:is(.navbar.is-over, body.hero-film .navbar) .brand-wordmark strong {
+.navbar.is-over .brand-wordmark strong {
   background: none; color: #fff; -webkit-text-fill-color: #fff;
 }
-:is(.navbar.is-over, body.hero-film .navbar) .brand-wordmark span { color: rgba(255, 255, 255, 0.85); }
-:is(.navbar.is-over, body.hero-film .navbar) .nav-item > a { color: #fff; }
-:is(.navbar.is-over, body.hero-film .navbar) .nav-toggle { color: #fff; }
+.navbar.is-over .brand-wordmark span { color: rgba(255, 255, 255, 0.85); }
+.navbar.is-over .nav-item > a { color: #fff; }
+.navbar.is-over .nav-toggle { color: #fff; }
 /* The progress track is a pale tint meant to sit under a white bar; over the
    photo it reads as a rule ruling off the hero, which is the one thing this
    whole change is trying to get rid of. At the top of the page the fill is
    zero-width anyway, so there is nothing to see but the track — drop it. */
-:is(.navbar.is-over, body.hero-film .navbar) .scroll-progress { background: transparent; }
+.navbar.is-over .scroll-progress { background: transparent; }
 .brand-logo, .brand-wordmark strong, .brand-wordmark span,
 .nav-item > a, .nav-toggle {
   transition: color 0.3s ease, filter 0.3s ease;
@@ -268,9 +267,22 @@ img { max-width: 100%; display: block; }
   overflow: clip;
   overflow-clip-margin: 120px;
 }
+/* The film is the whole first screen, so the section it lives in has to be
+   one. The header is sticky and therefore in the flow above this, hence
+   subtracting it — the two together come to exactly one viewport, and the
+   film reaches up over the header from inside. Desktop only: below the
+   stacking breakpoint the film never opens (see the override further down),
+   so a forced full-height hero there would only push the copy around. */
+@media (min-width: 861px) {
+  .hero { min-height: calc(100svh - var(--navbar-h, 87px)); }
+  .hero-inner { min-height: inherit; }
+}
 .hero-inner {
   position: relative; z-index: 2;
-  display: grid; grid-template-columns: 1.05fr 1fr; align-items: center; gap: 3rem;
+  /* One column since the orbit came out of the hero. The copy is capped
+     rather than filling the width, so the right of the film stays picture
+     instead of becoming a margin. */
+  display: grid; grid-template-columns: minmax(0, 40rem); align-items: center;
   padding-top: 3.5rem; padding-bottom: 3.5rem;
 }
 .hero-eyebrow {
@@ -316,35 +328,34 @@ img { max-width: 100%; display: block; }
   position: absolute; inset: 7%; border: 1.5px dashed #d4d7e5; border-radius: 50%;
   transition: opacity 0.6s ease;
 }
-/* The opening video. Closed it is the circle inside the orbit; open it is
-   the background of the whole section. Only this one absolutely positioned
-   element animates, so nothing else on the page reflows while it moves.
+/* The hero's film: the background of the section, full width, reaching up
+   behind the header and down to where the figures below begin.
 
-   Its closed geometry comes from the variables Home publishes after
-   measuring `.hero-photo-slot` — nothing here is hardcoded, so the circle
-   lands on the orbit at any window size. */
+   The 2.5rem is the stats strip's own top padding, so the film stops exactly
+   where the numbers start. Both overhangs sit inside .hero's 120px clip
+   margin, which is what lets them paint outside the section at all.
+
+   There is no second state. This used to animate between a circle in an
+   orbit of badges and a full-bleed film - on hover, and later on scroll -
+   with its resting geometry measured at runtime and published as CSS
+   variables. All of that is gone, along with the measuring pass it needed
+   on every resize. */
 .hero-media {
   position: absolute; z-index: 0; overflow: hidden;
-  top: var(--media-y, 16.5%); left: var(--media-x, 60%);
-  width: var(--media-size, 360px); height: var(--media-size, 360px);
-  border-radius: 50%;
-  box-shadow: 0 24px 60px rgba(23, 39, 92, 0.18);
-  transition:
-    top 0.75s cubic-bezier(0.22, 0.9, 0.28, 1),
-    left 0.75s cubic-bezier(0.22, 0.9, 0.28, 1),
-    width 0.75s cubic-bezier(0.22, 0.9, 0.28, 1),
-    height 0.75s cubic-bezier(0.22, 0.9, 0.28, 1),
-    border-radius 0.6s ease,
-    box-shadow 0.6s ease;
+  top: calc(-1 * var(--navbar-h, 87px));
+  left: 0; width: 100%;
+  /* Down to the hero's own lower edge and no further. It used to overhang
+     by 2.5rem so that it ran into the figures below with no white between
+     them; the figures are meant to have room to breathe now, so the overhang
+     is what was making the two look stuck together. */
+  height: calc(100% + var(--navbar-h, 87px));
 }
 .hero-media img, .hero-media video { width: 100%; height: 100%; object-fit: cover; }
 .hero-photo-placeholder { width: 100%; height: 100%; background: linear-gradient(135deg, #e9eaf5, #c7cae3); }
-/* The scrim only exists once the video is behind the words — we cannot know
-   how bright a frame the clip is on, so the text brings its own ground with
-   it. Weighted to the left, where the copy sits. */
+/* We cannot know how bright a frame the clip is on, so the text brings its
+   own ground with it. Weighted to the left, where the copy sits. */
 .hero-media::after {
-  content: ""; position: absolute; inset: 0; opacity: 0;
-  transition: opacity 0.55s ease;
+  content: ""; position: absolute; inset: 0;
   background: linear-gradient(
     100deg,
     rgba(9, 16, 38, 0.93) 0%,
@@ -353,40 +364,19 @@ img { max-width: 100%; display: block; }
     rgba(9, 16, 38, 0.3) 100%
   );
 }
-/* An empty marker: it has no appearance of its own, it just holds the place
-   the media layer measures itself against. */
-.hero-photo-slot { position: absolute; inset: 16.5%; border-radius: 50%; }
-
-/* ---- opened out ---- */
-/* Reaches up over the header and down across the gap beneath the section.
-   The 2.5rem is the stats strip's own top padding — the film stops exactly
-   where the figures begin, so the white band disappears without a single
-   number being covered. Both overhangs sit inside .hero's 120px clip
-   margin, which is what lets them paint outside the section at all. */
-.hero.is-media-open .hero-media {
-  top: calc(-1 * var(--navbar-h, 87px));
-  left: 0; width: 100%;
-  height: calc(100% + var(--navbar-h, 87px) + 2.5rem);
-  border-radius: 0; box-shadow: none;
-}
-.hero.is-media-open .hero-media::after { opacity: 1; }
-/* The copy turns over with the video. The accent keeps its red — it is
-   display-sized and reads well on the scrim — so the headline shifts from
-   navy-on-white to white-on-film rather than losing its colour entirely. */
-.hero.is-media-open h1 { color: #fff; }
-.hero.is-media-open .hero-eyebrow { color: rgba(255, 255, 255, 0.88); }
-.hero.is-media-open .hero-lead { color: rgba(255, 255, 255, 0.9); }
-.hero.is-media-open .btn-outline {
+/* ---- the copy, which always sits on the film ---- */
+/* The accent keeps its red: it is display-sized and reads well on the scrim,
+   so the headline is white with one coloured phrase rather than flat white. */
+.hero h1 { color: #fff; }
+.hero-eyebrow { color: rgba(255, 255, 255, 0.88); }
+.hero-lead { color: rgba(255, 255, 255, 0.9); }
+.hero .btn-outline {
   background: transparent; color: #fff;
   border: 1.5px solid rgba(255, 255, 255, 0.8);
 }
-.hero.is-media-open .btn-outline:hover {
+.hero .btn-outline:hover {
   background: #fff; border-color: #fff; color: var(--color-hero-ink);
 }
-/* The badges ride a ring drawn for a white page. Once the film is up they
-   have nothing to sit on, so they step aside and let it be the picture. */
-.hero.is-media-open .hero-orbit { opacity: 0; }
-.hero.is-media-open .hero-orbit-ring { opacity: 0; }
 .hero h1, .hero-eyebrow, .hero-lead, .hero .btn-outline {
   transition: color 0.55s ease, background-color 0.55s ease, border-color 0.55s ease;
 }
@@ -434,179 +424,177 @@ img { max-width: 100%; display: block; }
 }
 
 /* ============================================================
-   Destinations — heading + 4-across grid of photo cards with
-   the country name overlaid bottom-left. Images are supplied
-   per-country in Home.tsx; a gradient panel stands in until then.
+   Destinations (components/Destinations.tsx) — a grid of
+   country tiles that turn over on hover, and a last tile out
+   to the consultation form.
    ============================================================ */
 .destinations { padding: var(--section-y) 0; }
-/* The heading and its lead sit over the globe, which is pulled up underneath
-   them — so both need a layer of their own. Without the z-index the globe
-   would paint over them: it comes later in the document, and a positioned
-   element with no z-index of its own paints in document order. */
+.dest-head { margin-bottom: 1.75rem; }
 .destinations-title {
-  position: relative; z-index: 2;
   color: var(--color-hero-ink); font-size: clamp(2rem, 3.3vw, 2.9rem);
   letter-spacing: -0.02em; margin-bottom: 0.75rem;
 }
-.destinations-lead {
-  position: relative; z-index: 2;
-  color: var(--color-muted); max-width: 1100px; margin-bottom: 2rem;
-}
-/* Globe on the left, a deck of photos on the right with the country's
-   details underneath. */
-.dest-layout {
-  display: grid; grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
-  gap: 2rem; align-items: center;
-}
-/* The globe is line work only — no fill anywhere, so it reads as a drawing
-   rather than a map, and the pins are the only colour on it.
+.destinations-lead { color: var(--color-muted); max-width: 60ch; margin: 0; }
 
-   It runs off two edges of its column. The left margin carries it past the
-   left of the page — far enough that a quarter or so of the sphere is cut
-   off, which is what lets it be drawn this large without taking the width to
-   do it; the page is clipped on that axis (html, body { overflow-x: clip }),
-   so nothing scrolls sideways to reach it. The top margin lifts it up behind
-   the heading, and because it is a margin rather than a transform it takes
-   that height back out of the row instead of leaving a gap at the bottom —
-   the row stays as tall as the cards beside it.
+.dest-grid {
+  display: grid; gap: clamp(0.75rem, 1.4vw, 1.15rem);
+  grid-template-columns: repeat(3, 1fr);
+}
+/* Six countries fill two rows exactly, which leaves the seventh tile alone
+   in a row of its own. Rather than sit there with two empty cells beside it,
+   it takes the whole row. `1 / -1` means "first line to last", so it does
+   the same thing at every column count below without being told the number. */
+.dtile-cta { grid-column: 1 / -1; }
 
-   align-self: start is what makes the top margin read as a lift: the row is
-   otherwise centred, where a negative margin there would only move it half
-   as far. Both bleeds scale with the viewport and stop at a floor, which is
-   all a narrow window can give before the globe has nothing left on screen. */
-.dest-globe {
-  position: relative; z-index: 0; align-self: start;
-  margin-left: clamp(-30rem, -22vw, -9rem);
-  margin-top: clamp(-7rem, -6vw, -2rem);
+/* ---- a tile ----
+   The link is the whole card and never turns; the element inside it does.
+   Turning the link itself would carry its shadow and its focus ring round
+   with the card, which looks like a bug and loses the focus ring at exactly
+   the moment a keyboard user needs it. */
+.dtile {
+  position: relative; display: block;
+  aspect-ratio: 1 / 1;
+  border-radius: 16px;
+  perspective: 1400px;
+  color: #fff;
+  box-shadow: 0 14px 30px -18px rgba(9, 16, 38, 0.5);
 }
-/* A plain dot instead of a pointer, over the globe and the space around it.
-   Inlined as a data URI: a cursor that arrives a moment late is worse than
-   no cursor at all, and at under a kilobyte it is cheaper than the request
-   would be. The pair of numbers is the hotspot — the middle of the dot, so
-   it sits on whatever it is over. */
-.dest-globe, .globe {
-  cursor: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAB7UlEQVR42u1WvWoUURg955udIBa7MNOJjYQkYCViYSNWPoBNsLG2tskr6Cv4FMZaEMQoKIg+QEJUbHTjTm4KWd2d79jcwCC6c3ey2+geuDDFd+ec7/8CK6zwv4Md71k8TXg8SxeczSlsYRGwUw+LorgIZNfdtQUgI7Vf1/b65GR4EG0zAPUiBRgA7/f7hdnaAxJ3SPabBpLGkp6QvlNV1adUEUwlL4rispTtktyQHPHnaqaGJCR9lbB9fHz0vBm1rgIIgIPBYGCWvyV5SdIEQO8PdwVgSjKXFNyzKyF8+RjtfJZ3rd6T+cMGef4X4QSQS5qSHJD1o0aEOkXAAHhZlhfceQBg7TQiCWlzklbXuhrC0btZqbAWAZhMeIPkuehNatFGMt1q42ntWTNsRHLNPa0MmykVnmJzlol5VgE87Eguqf2uteVR+rknaRptNYfnJPms0aKdBGQhhENJuyQNwDSBfErS3PWmqoavIkfdNQUCYGa6L2lEMgcwmUUOoCdpIvFeSudYSjuNRqPPEm43RCiSNY+T7AH4AeBuCMP3KfsgSykmANl4/P1Dnp9/THKdxCZpRsJIWvymu166azuEb08XuYzw+4oty/KaO25K2CKRSbZP4kVVDffmXcdd+poLmC1LeZJpWV6vsMK/jV/QbNJqwwiCLgAAAABJRU5ErkJggg==") 16 16, grab;
+.dtile:focus-visible {
+  outline: 3px solid var(--color-hero-red); outline-offset: 3px;
 }
-/* Sized to fill the column it is given, up to a cap. Everything inside is an
-   SVG on a fixed viewBox and every gesture is measured against the element's
-   own rect, so the drag, the pins and the spin behave identically at any
-   width — only the drawing gets bigger. */
-.globe {
-  width: 100%; max-width: 900px; height: auto; margin: 0 auto;
-  display: block; touch-action: pan-y; user-select: none;
+.dtile-turn {
+  position: absolute; inset: 0;
+  transform-style: preserve-3d;
+  transition: transform 0.62s cubic-bezier(0.3, 0.86, 0.3, 1);
 }
-.globe-edge { fill: none; stroke: #c3c7d2; stroke-width: 1; }
-.globe-grid { fill: none; stroke: #dcdfe7; stroke-width: 1; }
-.globe-land { fill: none; stroke: #2b3145; stroke-width: 1.5; stroke-linejoin: round; }
-/* The country in play, filled red so it is unmistakable the whole time it is
-   coming round. It sits under the coastline, so the outline still draws over
-   the top of it and the shape keeps its edge. */
-.globe-country {
-  fill: var(--color-hero-red);
-  stroke: #2b3145; stroke-width: 1; stroke-linejoin: round;
-  opacity: 0.9;
+.dtile:hover .dtile-turn, .dtile:focus-visible .dtile-turn {
+  transform: rotateY(180deg);
 }
-.globe-pin { cursor: pointer; }
-.globe-pin-hit { fill: transparent; }
-.globe-pin-dot { fill: #7b8397; transition: fill 0.35s ease; }
-.globe-pin.is-on .globe-pin-dot { fill: var(--color-hero-red); }
-.globe-pin:hover .globe-pin-dot { fill: var(--color-hero-ink); }
-.globe-pin:focus-visible { outline: none; }
-.globe-pin:focus-visible .globe-pin-dot { fill: var(--color-hero-ink); r: 7; }
-/* A ring that breathes under the lit pin, drawing the eye without blinking */
-.globe-pin-halo {
-  fill: none; stroke: var(--color-hero-red); stroke-width: 1.5;
-  transform-origin: center; transform-box: fill-box;
-  animation: globe-halo 2.4s ease-out infinite;
+.dtile-face {
+  position: absolute; inset: 0;
+  border-radius: 16px; overflow: hidden;
+  /* The half of the card facing away is not drawn. Without this both faces
+     paint and the back shows through the front as mirror writing. */
+  -webkit-backface-visibility: hidden; backface-visibility: hidden;
 }
-@keyframes globe-halo {
-  0% { transform: scale(0.45); opacity: 0.6; }
-  70%, 100% { transform: scale(1.35); opacity: 0; }
+.dtile-back { transform: rotateY(180deg); }
+
+/* ---- the front: the photograph and the name ---- */
+.dtile-front img, .dtile-blank {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%; object-fit: cover; display: block;
 }
-.dest-hint {
-  text-align: center; color: var(--color-muted);
-  font-size: 0.82rem; letter-spacing: 0.04em; margin-top: 0.5rem;
+.dtile-blank { background: linear-gradient(150deg, #cfd6e4, #eef0f5); }
+/* No colour wash over the photographs — the pictures carry themselves, and
+   a tint per country turned the row into a paint chart. Only enough darkness
+   at the foot to hold the name. */
+.dtile-scrim {
+  position: absolute; inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(9, 16, 38, 0.82) 0%,
+    rgba(9, 16, 38, 0.34) 38%,
+    rgba(9, 16, 38, 0) 68%
+  );
+}
+.dtile-name {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  padding: 0 clamp(0.9rem, 1.6vw, 1.4rem) clamp(0.9rem, 1.6vw, 1.35rem);
+  font-family: var(--font-display); font-weight: 800;
+  font-size: clamp(1.15rem, 2.1vw, 1.9rem);
+  letter-spacing: -0.02em; line-height: 1.05;
+  text-transform: uppercase; color: #fff;
 }
 
-/* The deck reads as a column moving downwards: the country next in line
-   waits above, the one showing sits in the middle at full strength, and the
-   one just shown slides out below. The mask fades both ends so the
-   neighbours trail off rather than being cut.
+/* ---- the back: what the country actually offers ---- */
+.dtile-back {
+  display: flex; flex-direction: column; justify-content: center;
+  gap: 0.55rem;
+  padding: clamp(1.1rem, 2vw, 1.6rem);
+  background: linear-gradient(155deg, var(--color-hero-ink), #0d1834);
+}
+.dtile-back-name {
+  font-family: var(--font-display); font-weight: 800;
+  font-size: clamp(1rem, 1.5vw, 1.3rem); letter-spacing: -0.02em;
+  text-transform: uppercase; line-height: 1.05;
+}
+.dtile-back-blurb {
+  color: rgba(255, 255, 255, 0.84);
+  font-size: clamp(0.78rem, 0.95vw, 0.92rem); line-height: 1.5;
+}
+.dtile-facts { display: grid; gap: 0.3rem; margin-top: 0.15rem; }
+.dtile-facts span {
+  position: relative; padding-left: 0.95rem;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: clamp(0.72rem, 0.85vw, 0.82rem); line-height: 1.4;
+}
+.dtile-facts span::before {
+  content: ""; position: absolute; left: 0; top: 0.5em;
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--color-hero-red);
+}
+.dtile-more {
+  display: inline-flex; align-items: center; gap: 0.4rem; margin-top: 0.4rem;
+  color: #fff; font-family: var(--font-display); font-weight: 700;
+  font-size: clamp(0.78rem, 0.95vw, 0.9rem);
+  transition: gap 0.2s ease;
+}
+.dtile:hover .dtile-more { gap: 0.7rem; }
 
-   One number drives all of it: --deck-h is the frame, the card is 72% of it,
-   and a card slides by exactly half of it — which is what puts the waiting
-   card's lower edge just inside the frame for the mask to fade. The card used
-   to be sized by three separate pixel values that had to be kept in step by
-   hand; resize the deck here and everything follows.
+/* ---- the last tile ---- */
+/* Flat brand orange and no photograph, so it reads as the end of the row
+   rather than a seventh country. It does not turn: there is nothing on its
+   back, and a card that flips to nothing is a broken card. */
+.dtile-cta {
+  aspect-ratio: auto; min-height: clamp(140px, 16vw, 200px);
+  display: flex; flex-direction: column; justify-content: center;
+  gap: 0.5rem;
+  padding: clamp(1.25rem, 2.4vw, 2rem);
+  border-radius: 16px;
+  background: var(--color-topbar-accent);
+  transition: background-color 0.25s ease;
+}
+.dtile-cta:hover { background: var(--color-topbar-accent-hover); }
+.dtile-cta svg { transition: transform 0.25s ease; }
+.dtile-cta:hover svg { transform: translateX(6px); }
+.dtile-cta strong {
+  font-family: var(--font-display); font-weight: 800;
+  font-size: clamp(1.3rem, 2.4vw, 2rem); line-height: 1.05;
+  letter-spacing: -0.02em; text-transform: uppercase;
+}
+.dtile-cta span {
+  color: rgba(255, 255, 255, 0.88);
+  font-size: clamp(0.82rem, 1vw, 0.95rem);
+}
 
-   It is fluid because the column it sits in is: at the narrow end of the
-   two-column layout a fixed 500px frame made an almost-square photograph. */
-.dest-deck {
-  --deck-h: clamp(400px, 44vw, 620px);
-  position: relative; height: var(--deck-h); overflow: hidden;
-  -webkit-mask-image: linear-gradient(180deg, transparent, #000 20%, #000 80%, transparent);
-  mask-image: linear-gradient(180deg, transparent, #000 20%, #000 80%, transparent);
+@media (max-width: 860px) {
+  .dest-grid { grid-template-columns: repeat(2, 1fr); }
 }
-.dest-photo {
-  position: absolute; left: 0; right: 0; top: 50%;
-  height: calc(var(--deck-h) * 0.72);
-  margin-top: calc(var(--deck-h) * -0.36);
-  border-radius: 20px; overflow: hidden;
-  /* Keeps the name's blend mode inside the card. The showing card has no
-     transform of its own, so without this the blend would reach past it and
-     mix with whatever the page has behind the deck. */
-  isolation: isolate;
-  box-shadow: 0 18px 38px -20px rgba(23, 39, 92, 0.55);
-  transition: transform 0.85s cubic-bezier(0.25, 0.8, 0.28, 1), opacity 0.7s ease;
+/* No hover on a touch screen, so there is no way to turn a card over. The
+   back's copy comes to the front instead — and the flip is switched off
+   rather than left to fire on tap, where it would swallow the first tap of
+   a link people expect to follow. */
+@media (hover: none) {
+  .dtile-turn { transform: none !important; }
+  .dtile-back { display: none; }
+  .dtile { aspect-ratio: 4 / 3; }
+  .dtile-scrim {
+    background: linear-gradient(
+      to top,
+      rgba(9, 16, 38, 0.9) 0%,
+      rgba(9, 16, 38, 0.55) 45%,
+      rgba(9, 16, 38, 0.05) 85%
+    );
+  }
 }
-.dest-photo img, .dest-photo-placeholder { width: 100%; height: 100%; object-fit: cover; display: block; }
-.dest-photo-placeholder { background: linear-gradient(150deg, #d9dce6, #eef0f5); }
-/* The country's name, set across the foot of the photograph at display size
-   so it carries the card rather than labelling it.
-
-   It blends into the picture instead of sitting on a dark bar. `difference`
-   is the one blend mode that cannot fail here: it inverts whatever is behind
-   each letter, so the name stays legible over a bright sky and over a dark
-   skyline in the same photograph — where `overlay` or `soft-light` would
-   wash out on the light half. There is no scrim and no text-shadow, because
-   either would blend along with the type and muddy it.
-
-   The size cap is set by the longest name in the list: "New Zealand" has to
-   stay on one line at the narrow end of the two-column layout, where the
-   card is at its smallest. */
-.dest-photo-name {
-  position: absolute; left: 0; right: 0; bottom: 0; margin: 0;
-  padding: 0 1.5rem 1.25rem;
-  font-family: var(--font-display); font-weight: 700;
-  font-size: clamp(3rem, 6.5vw, 6.5rem); letter-spacing: -0.035em;
-  line-height: 0.95; color: #fff;
-  mix-blend-mode: difference;
+@media (max-width: 480px) {
+  .dest-grid { grid-template-columns: 1fr; }
 }
-/* Slot 1 is next and waits above; 0 is showing; -1 has just been and is on
-   its way out below. Everything the queue is not near sits where the next
-   one waits, so it enters from the same direction. */
-.dest-photo[data-slot="0"] { transform: none; opacity: 1; z-index: 3; }
-.dest-photo[data-slot="1"] { transform: translateY(calc(var(--deck-h) / -2)) scale(0.86); opacity: 0.3; z-index: 2; }
-.dest-photo[data-slot="-1"] { transform: translateY(calc(var(--deck-h) / 2)) scale(0.86); opacity: 0.3; z-index: 2; }
-.dest-photo[data-slot="away"] { transform: translateY(calc(var(--deck-h) / -2)) scale(0.86); opacity: 0; z-index: 1; }
-.dest-info { margin-top: 2.5rem; }
-/* The name is on the card; this copy exists only so the live region has a
-   country to announce with the blurb. */
-.dest-info-country {
-  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
-  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+@media (prefers-reduced-motion: reduce) {
+  /* The turn is the whole point of the tile, so it is kept — instantly. */
+  .dtile-turn { transition: none; }
+  .dtile-cta svg, .dtile-more { transition: none; }
 }
-/* Now the first thing in the block rather than the second, so it carries a
-   little more weight than it did under a heading. */
-.dest-info p {
-  color: #43434d; font-size: 1.05rem; line-height: 1.65;
-  max-width: 34rem; margin: 0 0 1rem;
-}
-.dest-more {
-  display: inline-flex; align-items: center; gap: 0.5rem;
-  color: var(--color-hero-red); font-weight: 600; font-size: 0.95rem;
-}
-.dest-more:hover { gap: 0.75rem; }
 
 /* ============================================================
    "How we help clients" — eyebrow + navy headline left, muted
@@ -888,70 +876,12 @@ img { max-width: 100%; display: block; }
   to { opacity: 1; transform: none; }
 }
 
-/* ============================================================
-   The consultation form as it appears INSIDE the Next Steps band:
-   no white card, glass fields, and an outlined submit button. The
-   colours hold still — nothing here follows the steps, so the form
-   stays put visually while they take their turns beside it.
-
-   Scoped to .nsx rather than applied to .consult-card itself: the
-   base card keeps its own white background and shadow so the
-   component stays usable anywhere else it is dropped.
-   ============================================================ */
-.nsx .consult-card {
-  background: transparent; box-shadow: none;
-  padding: 0; border-radius: 0;
-}
-/* Set like the step numerals — outlined, and big enough to carry a
-   stroke without the letters closing up. */
-.nsx .consult-card h3 {
-  font-family: var(--font-display); font-weight: 800;
-  font-size: clamp(1.6rem, 2.2vw, 2.05rem);
-  line-height: 1.15; letter-spacing: -0.02em;
-  color: var(--color-hero-ink); margin-bottom: 0.55rem;
-}
-@supports (-webkit-text-stroke: 1px red) {
-  .nsx .consult-card h3 {
-    -webkit-text-stroke: 1.4px var(--color-hero-ink); color: transparent;
-  }
-  /* One word stays solid, so the outline has something to play against */
-  .nsx .consult-card h3 .accent {
-    -webkit-text-stroke: 0; color: var(--color-hero-red);
-  }
-}
-.nsx .consult-sub { font-size: 0.95rem; margin-bottom: 1.5rem; }
-/* Glass fields, so the band and its watermark carry on behind them */
-.nsx .consult-form input,
-.nsx .consult-form select,
-.nsx .consult-prefix {
-  background: rgba(255, 255, 255, 0.72);
-  border-color: rgba(23, 39, 92, 0.16);
-}
-.nsx .consult-form input:focus,
-.nsx .consult-form select:focus {
-  background: #fff; outline-color: var(--color-hero-red);
-}
-.nsx .consult-agree input { accent-color: var(--color-hero-red); }
-/* No panel here either — an outline in the brand crimson that fills in
-   and flips its lettering to white on hover, the same move the arrows on
-   the "how we help" cards make. */
-.nsx .consult-submit {
-  background: transparent; box-shadow: none;
-  border: 1.5px solid var(--color-hero-red);
-  color: var(--color-hero-red);
-  font-weight: 700; font-size: 0.98rem; padding: 0.9rem 1.5rem;
-  transition: background-color 0.25s ease, color 0.25s ease;
-}
-.nsx .consult-submit:hover:not(:disabled) {
-  background-color: var(--color-hero-red); color: #fff;
-}
-.nsx .consult-submit svg { transition: transform 0.2s ease; }
-.nsx .consult-submit:hover svg { transform: translateX(3px); }
-/* The reassurance strip drops its green panel for the same glass */
-.nsx .consult-trust {
-  background: rgba(255, 255, 255, 0.45);
-  border-color: rgba(23, 39, 92, 0.1);
-}
+/* The .nsx-scoped overrides that used to live here — transparent card,
+   glass fields, outlined submit — were written for a form that sat directly
+   on the band with photographs sliding past behind it. The form has its own
+   panel now and is styled once, near the bottom of this file, under
+   .consult-*. ConsultCard is used nowhere else, so there is nothing left for
+   a scoped variant to protect. */
 
 /* ============================================================
    Heading treatments, shared across the home page. Two only, so
@@ -1069,29 +999,46 @@ a.greview-author:hover { text-decoration: underline; }
    Each row is stepped further right than the one above, which is what stops
    three equal rows reading as a spreadsheet. The offsets are percentages of
    the container, so the cascade holds its shape at every width. */
-.uni-grid { display: grid; gap: clamp(0.5rem, 1.2vw, 1rem); overflow: hidden; }
+.uni-grid { display: grid; gap: clamp(0.5rem, 1.1vw, 0.9rem); overflow: hidden; }
 .uni-row {
-  display: flex; gap: clamp(0.5rem, 1.2vw, 1rem);
+  display: flex; gap: clamp(0.5rem, 1.1vw, 0.9rem);
   justify-content: center;
 }
-.uni-row:nth-child(1) { transform: translateX(-6%); }
-.uni-row:nth-child(3) { transform: translateX(6%); }
+/* Offset with `left`, NOT `transform`. A transform creates a stacking
+   context, which isolates the blending group inside it — and the logos below
+   depend on multiplying against the band itself. Staggered with a transform,
+   the tiles in these two rows would have nothing to blend with and their
+   white canvases would come back as white rectangles. Relative positioning
+   moves them just as well and isolates nothing. */
+.uni-row:nth-child(1) { position: relative; left: -4%; }
+.uni-row:nth-child(3) { position: relative; left: 4%; }
 
-/* No card chrome beyond a hairline. Each logo file is a white canvas, and
-   `multiply` drops that white to nothing against the pale band, so only the
-   mark itself shows. (This relies on .universities staying pale; on a dark
-   background the logos would vanish.) */
+/* No tile at all — the marks sit straight on the band. What makes that
+   possible is `multiply` on the image below: each logo file is a white
+   canvas, and multiplying it against the pale band drops that white to
+   nothing, leaving only the mark.
+
+   TWO THINGS THIS DEPENDS ON, both easy to break:
+     · .universities must stay pale. On a dark background multiply would
+       take the logos with it.
+     · Nothing between the image and the band may create a stacking context,
+       or the blend is isolated inside it and the white canvases reappear as
+       rectangles. That is why the row stagger above uses `left` rather than
+       a transform.
+
+   The box is now only a measuring device: it holds the grid's rhythm, and
+   its padding — kept tight, since there is no card edge to hold the mark
+   away from — is all that keeps one logo off the next.
+
+   NOT HOVERABLE. There is deliberately no :hover rule anywhere on these:
+   the tiles are a shuffling sample, not a set of controls, and nothing
+   happens if you click one. The only movement is the flip as a tile trades
+   its logo for another, which the component fires on its own timer. */
 .uni-tile {
   flex: 0 0 auto;
-  width: clamp(74px, 9.5vw, 132px); aspect-ratio: 1 / 1;
-  display: grid; place-items: center; padding: 0.55rem;
-  background: #fff; border: 1px solid var(--color-border); border-radius: 12px;
-  overflow: hidden;
-  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
-}
-.uni-tile:hover {
-  transform: translateY(-4px); border-color: transparent;
-  box-shadow: 0 14px 28px rgba(23, 39, 92, 0.14);
+  width: clamp(88px, 11.5vw, 156px); aspect-ratio: 1 / 1;
+  display: grid; place-items: center; padding: clamp(0.35rem, 0.7vw, 0.6rem);
+  background: none; border: 0;
 }
 .uni-tile > img {
   width: 100%; height: 100%; object-fit: contain; mix-blend-mode: multiply;
@@ -1106,8 +1053,8 @@ a.greview-author:hover { text-decoration: underline; }
   to   { opacity: 1; transform: rotateX(0) scale(1); }
 }
 .uni-fallback {
-  color: var(--color-muted); font-size: 0.7rem; line-height: 1.3;
-  text-align: center; padding: 0.3rem;
+  color: var(--color-muted); font-size: 0.72rem; line-height: 1.3;
+  text-align: center; padding: 0.25rem;
 }
 .uni-count {
   text-align: center; color: var(--color-muted);
@@ -1151,10 +1098,6 @@ a.greview-author:hover { text-decoration: underline; }
 .nsx {
   background: var(--color-bg); margin-top: var(--section-y);
   position: relative; overflow-x: clip;
-  /* The watermark's beige. Deeper than the band's old background colour
-     was, because it now has to read AS a mark on white rather than as the
-     ground everything else sat on. */
-  --nsx-mark: #f4e8e0;
   /* The photographs' width, declared once. The stack is pinned to the
      window's right edge and the copy column reserves exactly this much
      padding, so neither has to measure the other at runtime. */
@@ -1189,40 +1132,23 @@ a.greview-author:hover { text-decoration: underline; }
      the container is centred — a grid track could not line up with both. */
   .nsx-inner {
     position: relative; z-index: 1; width: 100%;
+    /* IT COVERS THE WHOLE STAGE, INCLUDING THE PANEL. The padding-right
+       below keeps its CONTENT clear of the cards, but the element itself
+       still lies across them — and with z-index 1 it sits above the stack,
+       which is placed absolutely and has no z-index of its own. So every
+       click, and every attempt to focus a field on the right-hand side, was
+       landing on this instead: the form could be seen and not touched.
+
+       The box stops taking pointer events; the column of copy inside it
+       takes them back. Nothing about the way the page paints changes. */
+    pointer-events: none;
     /* Clear of the header, then a measured drop — the block sits high in the
        frame rather than centred in it, which is what leaves the steps room
        to rise into. */
     padding-top: calc(var(--navbar-h, 86px) + clamp(1.5rem, 7vh, 4.5rem));
     padding-right: calc(var(--nsx-stack-w) + clamp(1.5rem, 3vw, 3rem));
   }
-  .nsx-copy { max-width: 46rem; }
-}
-
-/* ---- the watermark ----
-   The logo, large and turned, sitting behind the copy. It is masked rather
-   than drawn: the source PNG is red, and a filter can flatten a red to
-   black or white but not to a beige, so the file supplies the SHAPE and the
-   colour comes from `background-color`.
-
-   Only inside the @supports block. Without mask support the element would
-   otherwise be a solid beige rectangle across the section, which is a far
-   worse outcome than no watermark at all. */
-.nsx-mark { display: none; }
-@supports ((-webkit-mask-image: url("/drawer-logo.png")) or (mask-image: url("/drawer-logo.png"))) {
-  @media (min-width: 981px) {
-    .nsx-mark {
-      display: block; position: absolute; inset: 0; z-index: 0;
-      pointer-events: none; overflow: hidden;
-    }
-    .nsx-mark span {
-      position: absolute; top: 50%; left: clamp(-14rem, -9vw, -5rem);
-      width: min(680px, 46vw); height: min(680px, 46vw);
-      transform: translateY(-50%) rotate(-14deg);
-      background-color: var(--nsx-mark);
-      -webkit-mask: url("/drawer-logo.png") no-repeat center center / contain;
-      mask: url("/drawer-logo.png") no-repeat center center / contain;
-    }
-  }
+  .nsx-copy { max-width: 46rem; pointer-events: auto; }
 }
 
 /* ---- left column ---- */
@@ -1252,20 +1178,38 @@ a.greview-author:hover { text-decoration: underline; }
    The transform runs slower than the fade on purpose. The words are legible
    for most of the climb rather than snapping into position at the end of
    it, and the two easings are what keep the movement from looking linear. */
-.nsx-steps { position: relative; min-height: clamp(210px, 27vh, 290px); }
+.nsx-steps {
+  position: relative; min-height: clamp(210px, 27vh, 290px);
+  /* How far a block travels, in and out. One number drives both directions,
+     so they cannot drift apart.
+
+     It starts from well below the frame — far enough that a block is on its
+     way up from off the bottom of the stage rather than nudging into place.
+     .nsx-stage clips at the viewport, so the beginning of the climb happens
+     out of sight and a step appears to come up off the page. Viewport-
+     relative so a tall window gets proportionally more of it. */
+  --nsx-travel: clamp(150px, 24vh, 300px);
+}
 .nsx-step {
   position: absolute; inset: 0 0 auto 0;
-  opacity: 0; transform: translateY(52px); pointer-events: none;
+  opacity: 0; transform: translateY(var(--nsx-travel)); pointer-events: none;
+  /* The fade is much shorter than the move on purpose: a block is legible
+     for the middle of its climb and transparent at both ends, which is what
+     lets it travel this far without two of them ever being readable at once.
+     Duration follows the distance — the same easing over a longer run would
+     otherwise read as faster. */
   transition:
-    opacity 0.45s ease,
-    transform 0.85s cubic-bezier(0.16, 0.74, 0.22, 1);
+    opacity 0.38s ease,
+    transform 0.8s cubic-bezier(0.16, 0.74, 0.22, 1);
 }
 .nsx-step[data-state="on"] {
   opacity: 1; transform: none; pointer-events: auto;
 }
-/* Out the top, not back the way it came — the column always travels one
-   way, so the sequence reads as a climb rather than a shuffle. */
-.nsx-step[data-state="past"] { opacity: 0; transform: translateY(-56px); }
+/* A block ARRIVES by climbing and LEAVES by fading where it stands. Only
+   one direction of travel, so the column never appears to be pulled upward
+   out of the frame — the movement you see is always something coming in,
+   never something being taken away. */
+.nsx-step[data-state="past"] { opacity: 0; transform: none; }
 
 @keyframes nsx-in {
   from { opacity: 0; transform: translateY(18px); }
@@ -1300,11 +1244,12 @@ a.greview-author:hover { text-decoration: underline; }
   font-size: clamp(0.98rem, 1.2vw, 1.1rem); line-height: 1.7;
 }
 
-/* ---- the stack ----
-   Every panel fills the same box. `data-on` reveals one; the ones already
-   revealed stay revealed and are simply covered by the higher z-index of
-   whatever came after, which is what makes each photograph hide the last
-   completely. Scrolling back up re-clips them downward, so it reverses. */
+/* ---- the strip ----
+   Every panel fills the same box and is moved into or out of it by
+   `data-slot` — one below, one in, the rest above. The overflow here is what
+   crops the panels that are out of frame; without it they would be visible
+   above and below the band. Scrolling back up runs the same transforms in
+   reverse, so the strip travels back down exactly as it came. */
 /* Pinned to the stage's right edge and filling its whole height — the
    photographs take the right-hand side of the band outright, with no
    rounding, no shadow and no gutter. Only shown in the pinned layout; the
@@ -1315,99 +1260,195 @@ a.greview-author:hover { text-decoration: underline; }
     display: block; position: absolute;
     top: 0; right: 0; bottom: 0;
     width: var(--nsx-stack-w);
-    overflow: hidden; background: var(--color-bg);
+    background: var(--color-bg);
+    /* One card, and the space under it. These two numbers decide everything
+       about the queue: how far the column travels per step, and how much of
+       the cards either side is left on screen.
+
+       The card is deliberately close to HALF the stage, not most of it. An
+       earlier attempt used 66vh, which left so little room above and below
+       that the neighbours had nowhere to show — the queue was there in the
+       markup and invisible on screen. */
+    --jp-h: clamp(380px, 56vh, 480px);
+    --jp-gap: clamp(1rem, 3vh, 2rem);
+
+    /* NO `overflow: hidden` HERE, on purpose. The card in play steps to the
+       left, out past the column, and overflow would cut it off at the edge
+       — CSS cannot clip one axis and leave the other alone.
+
+       The mask does the vertical clipping instead: sized 400% wide and
+       centred, it reaches far beyond the column on both sides so nothing
+       horizontal is touched, while vertically it ends exactly at the box, so
+       cards further up and down the queue fade out and then stop. */
+    -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 5%, #000 95%, transparent 100%);
+    mask-image: linear-gradient(180deg, transparent 0, #000 5%, #000 95%, transparent 100%);
+    -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+    -webkit-mask-size: 400% 100%; mask-size: 400% 100%;
+    -webkit-mask-position: center; mask-position: center;
+  }
+  /* Every card in one column. `top: 50%` puts the column's start at the
+     middle of the stage; the transform backs it up by half a card to centre
+     the first, then by a whole card-and-gap for each step after. Uniform
+     heights are what make one multiplication enough. */
+  .nsx-reel {
+    position: absolute; left: 0; right: 0; top: 50%;
+    display: grid; gap: var(--jp-gap);
+    transform: translateY(calc(
+      (var(--jp-h) / -2) - var(--nsx-n, 0) * (var(--jp-h) + var(--jp-gap))
+    ));
+    /* Quick enough to keep up with the wheel. The column has less scroll to
+       cross per step now, so a long glide would land after the reader has
+       already moved on. */
+    transition: transform 0.62s cubic-bezier(0.32, 0.84, 0.28, 1);
+    /* The reel moves on almost every scroll through this band. Promoting it
+       once is cheaper than the browser deciding to promote and demote it
+       repeatedly, and it is a single element, so the memory cost is one
+       layer rather than the free-for-all `will-change` usually becomes. */
+    will-change: transform;
   }
 }
 .jp {
-  position: absolute; inset: 0; display: block; color: #fff;
-  /* Hidden panels are clipped away from the bottom edge upward, so a panel
-     arrives by rising into the frame rather than fading in on the spot. */
-  clip-path: inset(100% 0 0 0);
-  transition: clip-path 0.75s cubic-bezier(0.22, 0.9, 0.28, 1);
+  /* A fixed height is what lets the reel move by one multiplication and what
+     keeps the queue evenly spaced whatever a card happens to contain. */
+  height: var(--jp-h);
+  display: grid; place-items: center;
+  padding: 0 clamp(1.25rem, 3.5vw, 3rem);
+  /* Queueing cards are NOT dimmed. Size and position carry the hierarchy
+     instead: they sit a little smaller and stay in the column, while the one
+     in play grows slightly and steps out of it. Fading them was the previous
+     attempt, and it made the queue look like a mistake rather than a queue. */
+  opacity: 1; transform: scale(0.92);
+  transition: transform 0.55s cubic-bezier(0.32, 0.84, 0.28, 1);
 }
-.jp[data-on] { clip-path: inset(0 0 0 0); }
-.jp > img, .jp-blank {
+/* Cards not in play take no clicks. This matters more than it looks: the
+   stack stopped using `overflow: hidden` when the card in play began
+   stepping out to the left, and a masked-out card is invisible but still
+   perfectly clickable — the queued cards were lying across the whole
+   right-hand side of the band, over the form on the last one. `inert`
+   already covers assistive tech and the tab order; this covers the mouse. */
+.jp:not([data-slot="on"]) { pointer-events: none; }
+
+/* The card in play breaks the line of the column — a step to the left, out
+   past the track the others are travelling in, and a touch larger. That
+   sideways move is the whole reason .nsx-stack cannot use overflow. */
+.jp[data-slot="on"] {
+  transform: translateX(clamp(-72px, -4.5vw, -28px)) scale(1.02);
+}
+
+/* The card itself, and the only part that is a link. */
+.jp-frame {
+  position: relative; display: block; width: min(480px, 100%);
+  color: inherit;
+}
+/* Right of centre, leaving the left third clear for the chips to sit over
+   and beyond. The photograph is a card now, not a wall — hence the radius,
+   the shadow and the crop to a landscape rectangle rather than filling a
+   full-height panel. */
+.jp-shot {
+  display: block; position: relative; margin-left: auto;
+  width: 78%; aspect-ratio: 4 / 3;
+  border-radius: 18px; overflow: hidden;
+  box-shadow: 0 26px 50px -26px rgba(9, 16, 38, 0.55);
+}
+.jp-shot img, .jp-blank {
   position: absolute; inset: 0;
   width: 100%; height: 100%; object-fit: cover;
 }
-/* No photograph yet: the step's own colour, deepening downward. Carries the
-   same words, so the section is finished either way. */
+/* No photograph yet: the step's own colour, deepening downward. The card is
+   still a card and the chips still read, so the section is finished either
+   way. */
 .jp-blank {
   background:
     radial-gradient(120% 90% at 50% 0%, rgba(255, 255, 255, 0.22), transparent 70%),
     linear-gradient(160deg, var(--jp-color, #3d56c5), #0f1c44);
 }
+
+/* ---- under the card ---- */
+.jp-foot {
+  display: grid; justify-items: start; gap: 0.4rem;
+  width: 78%; margin-left: auto; padding-top: 1.1rem;
+}
+/* Only the phone layout sets a kicker over its photograph now; the pinned
+   card dropped its "STEP 01" sign, which the left column already says. */
+.jp-kicker {
+  font-size: 0.72rem; font-weight: 700;
+  letter-spacing: 0.2em; text-transform: uppercase;
+}
+.jp-caption {
+  color: #43434d; font-size: 0.98rem; line-height: 1.5; max-width: 34ch;
+}
+.jp-link {
+  margin-top: 0.5rem;
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  padding: 0.65rem 1.3rem; border-radius: 999px;
+  background: var(--color-hero-ink); color: #fff;
+  font-family: var(--font-display); font-weight: 700; font-size: 0.92rem;
+  transition: background 0.25s ease, transform 0.2s ease;
+}
+.jp-frame:hover .jp-link { background: var(--jp-color, #3d56c5); transform: translateX(2px); }
+.jp-frame:hover .jp-shot img { transform: scale(1.04); }
+.jp-shot img { transition: transform 0.7s cubic-bezier(0.22, 0.9, 0.28, 1); }
+.jp-frame:focus-visible { outline: 3px solid var(--jp-color, #3d56c5); outline-offset: 8px; border-radius: 22px; }
+
+/* The card's parts arrive a beat after the card has finished rising, so the
+   panel reads as a picture that then speaks rather than as one flat slide. */
+.jp[data-slot="on"] .jp-foot > * { animation: nsx-in 0.5s cubic-bezier(0.22, 0.9, 0.28, 1) both; }
+.jp[data-slot="on"] .jp-foot > *:nth-child(1) { animation-delay: 0.26s; }
+.jp[data-slot="on"] .jp-foot > *:nth-child(2) { animation-delay: 0.33s; }
+/* Only the card in play animates its words. Without this the cards waiting
+   in the queue run their entrance on page load and have finished long
+   before anyone scrolls to them. */
+.jp:not([data-slot="on"]) .jp-foot > * { animation: none; }
+
+/* The scrim and the kicker over it belong to the stacked phone layout now
+   (.nsx-list-shot) — the pinned card carries its words beneath the picture
+   rather than on it, so nothing up there needs a gradient any more. */
 .jp-scrim {
   position: absolute; inset: 0;
   background: linear-gradient(to top,
     rgba(9, 16, 38, 0.92) 0%, rgba(9, 16, 38, 0.6) 38%,
     rgba(9, 16, 38, 0.1) 68%, rgba(9, 16, 38, 0.28) 100%);
 }
-.jp-body {
-  position: absolute; inset: auto 0 0 0; z-index: 1;
-  display: grid; gap: 0.5rem; padding: clamp(1.5rem, 3vw, 2.25rem);
-}
-/* The words come up a beat after the photograph has finished rising, so the
-   panel reads as an image that then speaks rather than as a slide. */
-.jp[data-on] .jp-body > * { animation: nsx-in 0.5s cubic-bezier(0.22, 0.9, 0.28, 1) both; }
-.jp[data-on] .jp-body > *:nth-child(1) { animation-delay: 0.34s; }
-.jp[data-on] .jp-body > *:nth-child(2) { animation-delay: 0.4s; }
-.jp[data-on] .jp-body > *:nth-child(3) { animation-delay: 0.46s; }
-.jp[data-on] .jp-body > *:nth-child(4) { animation-delay: 0.52s; }
-.jp-kicker {
-  font-size: 0.72rem; font-weight: 700;
-  letter-spacing: 0.2em; text-transform: uppercase;
-  color: #fff; opacity: 0.75;
-}
-.jp-title {
-  font-family: var(--font-display); font-weight: 800;
-  font-size: clamp(1.5rem, 2.6vw, 2.3rem); line-height: 1.08;
-  letter-spacing: -0.035em; color: #fff;
-}
-.jp-caption {
-  color: rgba(255, 255, 255, 0.85); font-size: 0.98rem; line-height: 1.5;
-  max-width: 34ch;
-}
-.jp-link {
-  justify-self: start; margin-top: 0.5rem;
-  display: inline-flex; align-items: center; gap: 0.5rem;
-  padding: 0.6rem 1.25rem; border-radius: 999px;
-  background: #fff; color: var(--color-hero-ink);
-  font-family: var(--font-display); font-weight: 700; font-size: 0.92rem;
-  transition: background 0.25s ease, color 0.25s ease;
-}
-.jp:hover .jp-link { background: var(--jp-color, #3d56c5); color: #fff; }
-.jp:hover > img { transform: scale(1.03); }
-.jp > img { transition: transform 0.7s cubic-bezier(0.22, 0.9, 0.28, 1); }
-.jp:focus-visible { outline: 3px solid #fff; outline-offset: -6px; }
 
-/* The last panel: the form, on white, covering the photographs for good. */
-/* The band's own white, so the form reads as the photographs clearing away
-   rather than as one more panel sliding over them. The card inside is
-   already transparent (see the `.nsx .consult-card` block further up), which
-   is what makes this the bare form it was before. */
-.jp-consult {
-  background: var(--color-bg);
-  padding: clamp(1.25rem, 2.5vw, 2.25rem);
+/* ---- the closing panel: the form ----
+   Over the reel rather than in it. Inside the queue the form was one card of
+   five, with a neighbour showing above and below it and the queue's own mask
+   feathering its top and bottom edges — none of which a form being filled in
+   wants. Here it has the frame to itself.
+
+   Opaque, so the queue behind it is covered outright; and the queue is faded
+   anyway (see .nsx-stack[data-closing]) so nothing shows through at the
+   moment the two cross. */
+.nsx-consult {
+  position: absolute; inset: 0; z-index: 2;
   display: grid; align-content: center;
-  /* The one panel that can be taller than its frame on a short window.
-     Scrolling inside it beats scaling it down to unreadable. */
+  padding: clamp(1.25rem, 2.5vw, 2.5rem);
+  background: var(--color-bg);
+  opacity: 0; pointer-events: none;
+  transform: translateY(24px);
+  transition:
+    opacity 0.5s ease,
+    transform 0.62s cubic-bezier(0.32, 0.84, 0.28, 1);
+  /* Taller than the frame on a short window: scrolling inside it beats
+     scaling a form down to unreadable. No rail down the side, though. */
   overflow-y: auto; overscroll-behavior: contain;
+  scrollbar-width: none; -ms-overflow-style: none;
 }
-.jp-consult::-webkit-scrollbar { width: 6px; }
-.jp-consult::-webkit-scrollbar-thumb {
-  background: var(--color-border); border-radius: 3px;
+.nsx-consult::-webkit-scrollbar { width: 0; height: 0; display: none; }
+.nsx-consult[data-on] { opacity: 1; pointer-events: auto; transform: none; }
+/* The queue steps aside for it. Fading rather than hiding, so scrolling back
+   up brings the cards straight back without a jump. */
+.nsx-stack[data-closing] .nsx-reel {
+  opacity: 0;
+  transition: opacity 0.4s ease;
 }
-/* The card is sticky by default (it used to pin itself beside the old
-   layout). Inside an absolutely-positioned panel that is meaningless and on
-   a short window it drifts, so it is pinned off here. */
-.nsx-stack .consult-card {
-  box-shadow: none; padding: 0;
-  /* Sticky by default — meaningless inside an absolutely-placed panel, and
-     it drifts on a short window. Centred rather than stretched: the stack is
-     wide now, and a 700px-wide form is not a better form. */
-  position: static; max-width: 430px; justify-self: center;
-}
+
+/* The card was sticky, from a layout where it pinned itself beside the
+   steps. Inside a panel that is already placed absolutely that means
+   nothing, and on a short window it drifts. The 430px cap that used to be
+   here went with it: the form is two columns now and that width folded it
+   back to one. */
+.nsx-stack .consult-card { position: static; }
 /* Same reason, for the stacked layout — which is shown up to 980px, wider
    than the breakpoint where .consult-card is otherwise made static. */
 .nsx-list .consult-card { position: static; margin-inline: auto; }
@@ -1420,8 +1461,10 @@ a.greview-author:hover { text-decoration: underline; }
   box-shadow: 0 16px 36px rgba(23, 39, 92, 0.14);
 }
 .nsx-list-shot img, .nsx-list-shot .jp-blank { width: 100%; height: 100%; object-fit: cover; }
+/* On the phone the kicker still sits ON the photograph, over the scrim, so
+   it takes white rather than the step's accent it carries in the card. */
 .nsx-list-shot .jp-kicker {
-  position: absolute; left: 1rem; bottom: 0.9rem; z-index: 1;
+  position: absolute; left: 1rem; bottom: 0.9rem; z-index: 1; color: #fff;
 }
 .nsx-list-item h3 {
   color: var(--jp-color, #3d56c5); margin-bottom: 0.5rem;
@@ -1439,15 +1482,22 @@ a.greview-author:hover { text-decoration: underline; }
 @media (prefers-reduced-motion: reduce) {
   /* The reveal is the whole point of the section, so it is kept — but made
      instant, and everything decorative around it stops. */
-  .jp { transition: none; }
+  .jp, .nsx-reel { transition: none; }
   .nsx-step { transition: none; }
-  .jp[data-on] .jp-body > * { animation: none; }
-  .jp > img, .jp:hover > img { transition: none; transform: none; }
+  .jp[data-slot="on"] .jp-foot > * { animation: none; }
+  .jp-shot img, .jp-frame:hover .jp-shot img { transition: none; transform: none; }
+  .jp-frame:hover .jp-link { transform: none; }
 }
 
 /* Stats strip below the hero — crimson figures, sitting on the page itself
    rather than a band of their own. */
-.stats-strip { padding: 2.5rem 0 1.5rem; }
+/* Set down from the hero rather than tucked under it: the film above now
+   runs the full height of the first screen, and the figures want to read as
+   the next thing on the page instead of a caption to it. */
+/* Set well down from the film above. The hero runs the full height of the
+   first screen, so these are the first thing past it and want to arrive as
+   their own band rather than as a caption to the video. */
+.stats-strip { padding: clamp(4.5rem, 11vh, 8rem) 0 clamp(2.5rem, 5vh, 4rem); }
 .stats-grid {
   display: grid; grid-template-columns: repeat(4, 1fr);
   gap: 2rem; text-align: center;
@@ -1467,74 +1517,128 @@ a.greview-author:hover { text-decoration: underline; }
   position: absolute; width: 1px; height: 1px; overflow: hidden;
   clip-path: inset(50%); white-space: nowrap;
 }
-.roll { display: inline-flex; line-height: 1; }
-.roll-digit { display: inline-block; height: 1em; overflow: hidden; }
+/* THE CELL HEIGHT IS ONE NUMBER, AND THE COMPONENT USES IT TOO.
+   Each digit is a window one cell tall with a strip of numerals behind it,
+   slid up by a whole number of cells — so the window, the cells and the
+   distance travelled all have to agree. StatsStrip.tsx reads --roll-h for
+   its transform rather than assuming 1em.
+
+   It is comfortably more than 1em on purpose: at exactly 1em the window is
+   the height of the font's em box, and the numerals inside it were being
+   shaved top and bottom by the overflow that makes the window a window. */
+.roll { display: inline-flex; --roll-h: 1.34em; }
+.roll-digit { display: inline-block; height: var(--roll-h); overflow: hidden; }
+/* One long, decelerating run. The curve leaves almost all of its easing to
+   the end, so a digit travels fast while it is a blur and settles slowly
+   where the eye can actually follow it — the earlier curve arrived hard and
+   made the landing look like a stop rather than a settle. */
 .roll-strip {
   display: block;
-  transition: transform 1.9s cubic-bezier(0.16, 0.86, 0.26, 1);
+  transition: transform 2.4s cubic-bezier(0.12, 0.78, 0.14, 1);
 }
-.roll-strip span, .roll-fixed { display: block; height: 1em; line-height: 1; }
+/* line-height equal to the cell centres each numeral in it, so the extra
+   room is shared above and below rather than all landing under the digit. */
+.roll-strip span, .roll-fixed {
+  display: block; height: var(--roll-h); line-height: var(--roll-h);
+}
 .roll-fixed { display: inline-block; }
 .stats-note { text-align: center; color: #3d2b2b; font-size: 0.8rem; margin-top: 1.25rem; }
 
-/* White consultation card — right-aligned and sticky, so it holds its
-   place on screen while the steps come up on the left. */
-.consult-card {
-  background: #fff; border-radius: 18px; padding: 1.9rem 1.7rem;
-  box-shadow: 0 18px 44px rgba(23, 39, 92, 0.14);
-  max-width: 450px; width: 100%; justify-self: end;
-  position: sticky; top: 110px; align-self: start;
+/* ============================================================
+   The free-consultation form (components/ConsultCard.tsx).
+   Used only inside the journey band's closing panel.
+   ============================================================ */
+.consult-card { width: min(100%, 780px); margin: 0 auto; }
+.consult-intro { margin-bottom: clamp(1.25rem, 2.5vh, 2rem); }
+.consult-intro h3 {
+  margin: 0 0 0.4rem; color: var(--color-hero-ink);
+  font-family: var(--font-display); font-weight: 800;
+  font-size: clamp(1.5rem, 2.4vw, 2.1rem);
+  letter-spacing: -0.03em; line-height: 1.1;
 }
-.consult-card h3 {
-  text-align: center; color: var(--color-text); font-size: 1.2rem;
-  line-height: 1.35; margin-bottom: 0.3rem;
+.consult-sub {
+  margin: 0; color: #52586a; max-width: 52ch;
+  font-size: clamp(0.92rem, 1.05vw, 1rem); line-height: 1.6;
 }
-.consult-card h3 .accent { color: var(--color-hero-red); }
-.consult-sub { text-align: center; color: var(--color-muted); font-size: 0.88rem; margin-bottom: 1.3rem; }
-.consult-form { display: flex; flex-direction: column; gap: 0.75rem; }
-.consult-form input, .consult-form select {
-  width: 100%; padding: 0.68rem 0.9rem; font-size: 0.9rem;
-  font-family: var(--font-body); color: var(--color-text);
-  background: #fff; border: 1px solid var(--color-border); border-radius: 10px;
+
+/* Two columns of labelled fields. `auto-fit` rather than a fixed pair, so
+   the form folds to one column when the panel is narrow without a breakpoint
+   being told where that is. */
+.consult-form {
+  display: grid; gap: clamp(0.85rem, 1.6vh, 1.25rem) 1.15rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
 }
-/* Empty-state text sits lightly faded until the visitor types/selects */
-.consult-form input::placeholder { color: #b3aca6; }
-.consult-form select:invalid, .consult-form select option[value=""] { color: #b3aca6; }
-.consult-form input:focus, .consult-form select:focus {
-  outline: 2px solid #7b64e0; outline-offset: 1px;
+.consult-field { display: grid; gap: 0.4rem; align-content: start; }
+.consult-field > span:first-child {
+  color: var(--color-hero-ink); font-weight: 600;
+  font-size: 0.88rem; letter-spacing: -0.01em;
 }
-.consult-phone { display: grid; grid-template-columns: 64px 1fr; gap: 0.65rem; }
+.consult-hint { color: var(--color-muted); font-size: 0.76rem; }
+.consult-form input,
+.consult-form select {
+  width: 100%; padding: 0.85rem 1rem;
+  font: inherit; font-size: 0.98rem; color: var(--color-text);
+  background: #fff;
+  border: 1.5px solid var(--color-border); border-radius: 10px;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+.consult-form input::placeholder { color: #9aa1b0; }
+.consult-form input:focus,
+.consult-form select:focus {
+  outline: none; border-color: var(--color-hero-ink);
+  box-shadow: 0 0 0 3px rgba(23, 39, 92, 0.1);
+}
+/* The prefix is part of the field, not a box beside it: one border round
+   both, and the seam between them is a single rule. */
+.consult-phone { display: flex; }
 .consult-prefix {
-  display: grid; place-items: center; border: 1px solid var(--color-border);
-  border-radius: 10px; font-size: 0.95rem; color: var(--color-text);
+  display: grid; place-items: center; flex: none;
+  padding: 0 0.85rem;
+  background: var(--color-surface); color: #52586a;
+  font-size: 0.95rem; font-weight: 600;
+  border: 1.5px solid var(--color-border); border-right: 0;
+  border-radius: 10px 0 0 10px;
 }
+.consult-phone input { border-radius: 0 10px 10px 0; }
+
+/* Full width, both of them: the agreement and the button end the form and
+   should not be sharing a row with a field. */
+.consult-agree, .consult-submit,
+.consult-form .form-error, .consult-form .form-success { grid-column: 1 / -1; }
 .consult-agree {
   display: flex; align-items: flex-start; gap: 0.6rem;
-  font-size: 0.84rem; margin: 0.3rem 0 0.6rem; cursor: pointer;
+  color: #52586a; font-size: 0.88rem; line-height: 1.5;
+  margin-top: 0.35rem;
 }
-.consult-agree input { width: 17px; height: 17px; margin-top: 0.2rem; accent-color: #2fd4a7; }
-.consult-agree a { color: #2563eb; }
-.consult-agree a:hover { text-decoration: underline; }
+.consult-agree input {
+  flex: none; width: 18px; height: 18px; margin-top: 0.1rem;
+  accent-color: var(--color-hero-red);
+}
+.consult-agree a { color: var(--color-hero-red); font-weight: 600; }
+.consult-agree a:hover { text-decoration: underline; text-underline-offset: 3px; }
+/* The full width of the form, and the only filled thing on it, so the last
+   step is unmistakable and there is no hunting for a small pill in a corner.
+   The arrow sits hard right rather than beside the words, which is what
+   makes the button read as the way out of the form. */
 .consult-submit {
-  align-self: stretch; display: inline-flex; align-items: center;
-  justify-content: center; gap: 0.55rem;
-  background: #63f0c6; color: #123c33; font-weight: 600; font-size: 0.92rem;
-  font-family: var(--font-body); border: none; border-radius: 12px;
-  padding: 0.85rem 1.5rem; cursor: pointer; transition: background 0.15s;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 1rem; width: 100%;
+  padding: 1.05rem 1.5rem; border: 0; border-radius: 12px; cursor: pointer;
+  background: var(--color-hero-red); color: #fff;
+  font-family: var(--font-display); font-weight: 700; font-size: 1.02rem;
+  letter-spacing: -0.01em;
+  transition: background-color 0.25s ease, box-shadow 0.25s ease;
 }
-.consult-submit:hover { background: #4ce4b8; }
-.consult-submit:disabled { opacity: 0.6; cursor: not-allowed; }
-/* Green reassurance strip at the card's foot */
-.consult-trust {
-  display: flex; justify-content: space-between; gap: 0.5rem;
-  background: #edfaf3; border: 1px solid #d3f1e2; border-radius: 12px;
-  padding: 0.7rem 0.85rem; margin-top: 1.1rem;
+.consult-submit:hover:not(:disabled) {
+  background: #c31740;
+  box-shadow: 0 12px 26px -12px rgba(224, 35, 78, 0.7);
 }
-.consult-trust span {
-  display: inline-flex; align-items: center; gap: 0.4rem;
-  font-size: 0.7rem; font-weight: 600; color: var(--color-success); line-height: 1.25;
+.consult-submit:focus-visible {
+  outline: 3px solid var(--color-hero-ink); outline-offset: 3px;
 }
-.consult-trust svg { flex-shrink: 0; }
+.consult-submit:disabled { opacity: 0.6; cursor: default; }
+.consult-submit svg { flex: none; transition: transform 0.2s ease; }
+.consult-submit:hover:not(:disabled) svg { transform: translateX(4px); }
 
 /* ============================================================
    "Get Ready To Begin Your Journey" — large CTA band above the
@@ -1824,22 +1928,6 @@ a.greview-author:hover { text-decoration: underline; }
   .hero-orbit-wrap { --orbit-size: min(400px, 88vw); }
   /* Stats strip wraps to 2×2; the trust strip stacks */
   .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
-  .consult-trust { flex-direction: column; align-items: flex-start; }
-  /* No globe on a phone: it is unreadable at that size, awkward to drag on a
-     touch screen, and the frame loop is wasted work on the weakest devices.
-     The stacked photos carry the section on their own. */
-  .dest-globe { display: none; }
-  .dest-layout { grid-template-columns: 1fr; gap: 0; }
-  /* Full width now the globe is gone, so the deck can be a fixed size again.
-     Card height and slide distance both follow from this one value. */
-  .dest-deck { --deck-h: 380px; }
-  /* The card is narrower here, so the name comes down with it — still the
-     full width of the photograph's foot, still one line for every name. */
-  .dest-photo-name {
-    padding: 0 1.15rem 1rem;
-    font-size: clamp(2.2rem, 11vw, 4.5rem);
-  }
-  .dest-info { margin-top: 2rem; }
   .help-head { grid-template-columns: 1fr; gap: 1.25rem; }
   .help-lead { justify-self: start; }
   .help-grid { grid-template-columns: 1fr; }
@@ -1859,7 +1947,12 @@ a.greview-author:hover { text-decoration: underline; }
   .success-nav { padding-top: 0; }
   /* The cascade needs room to step; below this the rows sit square, and the
      tile count drops instead (columnsFor in the component). */
-  .uni-row:nth-child(1), .uni-row:nth-child(3) { transform: none; }
+  .uni-row:nth-child(1), .uni-row:nth-child(3) { left: 0; }
+  /* Three columns at this width, so the tiles cannot follow the desktop
+     sizing down — at 58px a row of three left most of a phone screen empty.
+     Sized off the viewport here instead, which keeps the row filling the
+     width it has. */
+  .uni-tile { width: clamp(84px, 26vw, 124px); }
   .testimonials-head { margin-bottom: 1.75rem; }
   /* Reviews: heading and score stack, cards go one-up */
   .greviews-head { flex-direction: column; gap: 1rem; }
@@ -1884,18 +1977,6 @@ a.greview-author:hover { text-decoration: underline; }
   /* No transition means the entrance never runs — show the cards outright */
   .help-card { opacity: 1; transform: none; }
   .testimonial-story { opacity: 1; transform: none; }
-  /* Without a transition the video would snap open rather than travel, so
-     for anyone asking for less motion it simply stays in its circle. */
-  .hero.is-media-open .hero-media {
-    top: var(--media-y); left: var(--media-x);
-    width: var(--media-size); height: var(--media-size);
-    border-radius: 50%;
-  }
-  .hero.is-media-open .hero-media::after { opacity: 0; }
-  .hero.is-media-open h1 { color: var(--color-hero-ink); }
-  .hero.is-media-open .hero-lead { color: var(--color-muted); }
-  .hero.is-media-open .hero-orbit,
-  .hero.is-media-open .hero-orbit-ring { opacity: 1; }
 }
 
 /* ============================================================
@@ -6349,3 +6430,15 @@ a.rev-score:hover { background: rgba(255, 255, 255, 0.08); }
   .cpop-close:hover { transform: none; }
   .cpop-btn:hover { transform: none; }
 }
+
+/* Delivery state of the notification email, on each admin inquiry card.
+   Absent entirely on inquiries taken before mail existed — see MailState. */
+.inquiry-mail {
+  display: inline-block; margin-top: 0.5rem;
+  padding: 0.2rem 0.6rem; border-radius: 999px;
+  font-size: 0.78rem; font-weight: 600;
+}
+.inquiry-mail.is-sent { background: #e6f4ea; color: var(--color-success); }
+.inquiry-mail.is-skipped { background: var(--color-surface); color: var(--color-muted); }
+.inquiry-mail.is-failed { background: #fdecea; color: var(--color-danger); }
+

@@ -25,6 +25,34 @@ const envSchema = z.object({
   /* A second, separate playlist for the student testimonial row on the
      Study Abroad page. Leave it unset and that row simply does not render. */
   YOUTUBE_TESTIMONIALS_PLAYLIST_ID: z.string().optional(),
+
+  /* Outgoing mail — the notification a counsellor gets when someone fills in
+     a form. EVERY ONE OF THESE IS OPTIONAL, and deliberately so: a failure in
+     this schema calls process.exit(1) below, so one required mail variable
+     would take the whole API down the moment it was deployed without the
+     dashboard being filled in first. Unset, mail.service.ts reports itself
+     unconfigured and the site behaves exactly as it did before — inquiries
+     are still saved and still reach the dashboard.
+
+     MAIL_HOST    smtp.gmail.com, mail.yourhost.com, …
+     MAIL_PORT    587 for STARTTLS (the usual choice), 465 for implicit TLS.
+                  Never 25 — cloud providers block outbound 25 as spam control.
+     MAIL_SECURE  "true" only for 465. On 587 this must be false: the socket
+                  starts in the clear and STARTTLS upgrades it.
+     MAIL_USER    the full mailbox address to log in as
+     MAIL_PASS    for Google Workspace this is an App Password generated with
+                  2FA on, NOT the account password
+     MAIL_FROM    what recipients see. Must be a mailbox on a domain we are
+                  allowed to send as, or SPF/DMARC will reject it. Defaults
+                  to MAIL_USER.
+     MAIL_TO      who gets notified. Comma-separated for several people. */
+  MAIL_HOST: z.string().optional(),
+  MAIL_PORT: z.coerce.number().optional(),
+  MAIL_SECURE: z.enum(["true", "false"]).default("false"),
+  MAIL_USER: z.string().optional(),
+  MAIL_PASS: z.string().optional(),
+  MAIL_FROM: z.string().optional(),
+  MAIL_TO: z.string().optional(),
 });
 
 const parsed = envSchema.safeParse(process.env);

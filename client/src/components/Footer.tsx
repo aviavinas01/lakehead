@@ -11,7 +11,7 @@ import type { GoogleRating } from "../types/api";
  * links.
  *
  * The columns are drawn from what the site already offers elsewhere — the
- * destinations from the globe section, the services from the navbar's
+ * destinations from the home page's grid, the services from the navbar's
  * dropdown panels, and the rest from the side drawer — so the footer stays a
  * summary of the site rather than a second, drifting set of links. Repoint
  * the `to` values as dedicated pages are built; most land on the nearest

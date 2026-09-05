@@ -1,7 +1,49 @@
 import { useCallback, useEffect, useState } from "react";
 import api from "../../api/client";
 import AdminNav from "./AdminNav";
-import type { Inquiry, InquiryStatus, Paginated } from "../../types/api";
+import type {
+  Inquiry,
+  InquirySource,
+  InquiryStatus,
+  Paginated,
+} from "../../types/api";
+
+/** How each form names itself in the list. */
+const SOURCE_LABELS: Record<InquirySource, string> = {
+  consultation: "Free consultation",
+  contact: "Contact page",
+  about: "Who We Are",
+  "study-abroad": "Study abroad",
+  unknown: "Website",
+};
+
+/**
+ * Whether the notification email reached the counsellors.
+ *
+ * Renders nothing for an inquiry taken before mail existed — those have no
+ * record at all, and "not emailed" would be a false accusation rather than
+ * information. The three real states each say something different: sent is
+ * done, skipped means mail is not configured on the server, and failed is
+ * the one that needs a person, so it carries the reason with it.
+ */
+function MailState({ notified }: Pick<Inquiry, "notified">) {
+  if (!notified) return null;
+  if (notified.state === "sent") {
+    return <span className="inquiry-mail is-sent">✓ Emailed</span>;
+  }
+  if (notified.state === "skipped") {
+    return (
+      <span className="inquiry-mail is-skipped" title={notified.reason}>
+        Not emailed — mail is not set up
+      </span>
+    );
+  }
+  return (
+    <span className="inquiry-mail is-failed" title={notified.reason}>
+      ⚠ Email failed{notified.reason ? ` — ${notified.reason}` : ""}
+    </span>
+  );
+}
 
 export default function Inquiries() {
   const [data, setData] = useState<Paginated<Inquiry> | null>(null);
@@ -56,9 +98,11 @@ export default function Inquiries() {
                 </div>
                 <p className="inquiry-meta">
                   {q.email} {q.phone && `· ${q.phone}`} · {q.service} ·{" "}
+                  {SOURCE_LABELS[q.source ?? "unknown"]} ·{" "}
                   {new Date(q.createdAt).toLocaleString()}
                 </p>
                 <p>{q.message}</p>
+                <MailState notified={q.notified} />
                 <div className="inquiry-actions">
                   {q.status !== "contacted" && (
                     <button className="btn btn-small" onClick={() => setStatus(q._id, "contacted")}>

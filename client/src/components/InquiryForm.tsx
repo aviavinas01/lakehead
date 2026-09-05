@@ -1,6 +1,6 @@
 import { useState, type ChangeEvent, type FormEvent } from "react";
 import api, { getErrorMessage } from "../api/client";
-import type { ServiceType } from "../types/api";
+import type { InquirySource, ServiceType } from "../types/api";
 
 /**
  * The enquiry form, in one place. It is asked for on the contact page and
@@ -36,12 +36,20 @@ interface Props {
   className?: string;
   submitLabel?: string;
   submitClassName?: string;
+  /**
+   * Which page this copy of the form is on. It is not a field the visitor
+   * fills in — it rides along with the submission so the notification email
+   * and the dashboard can say where an enquiry came from. Defaults to the
+   * contact page, which is where this form has always lived.
+   */
+  source?: InquirySource;
 }
 
 export default function InquiryForm({
   className = "form",
   submitLabel = "Send inquiry",
   submitClassName = "btn btn-primary",
+  source = "contact",
 }: Props) {
   const [form, setForm] = useState<ContactForm>(initial);
   const [status, setStatus] = useState<Status>({ state: "idle", message: "" });
@@ -56,7 +64,7 @@ export default function InquiryForm({
     e.preventDefault();
     setStatus({ state: "sending", message: "" });
     try {
-      const res = await api.post<{ message: string }>("/inquiries", form);
+      const res = await api.post<{ message: string }>("/inquiries", { ...form, source });
       setStatus({ state: "success", message: res.data.message });
       setForm(initial);
     } catch (err) {

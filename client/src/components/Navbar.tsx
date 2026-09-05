@@ -234,24 +234,66 @@ export default function Navbar() {
     setOpenSub(null);
   }, [openMenu]);
 
-  /* The destination pages open on a full-bleed photograph and the bar sits
-     over it rather than on a white strip above it. It goes solid again as
-     soon as you scroll, because a transparent bar over white body copy is
-     unreadable — and it goes solid the moment a menu opens, so a white panel
-     never hangs off a bar you can see through.
+  /* Pages that open on a full-bleed picture put the bar over it rather than
+     on a white strip above it, and it stays that way for exactly as long as
+     there is picture behind it: the moment the hero's lower edge passes
+     under the bar, the bar goes solid and its type turns back to navy.
+     A menu opening also forces it solid, so a white panel never hangs off a
+     bar you can see through.
 
-     setAtTop is called on every scroll event but passes the same boolean
-     almost every time, and React bails on an unchanged value — so this
-     re-renders only when the threshold is actually crossed. */
-  const overHero = /^\/(study-(abroad|in-)|services)/.test(pathname);
-  const [atTop, setAtTop] = useState(true);
+     This used to be `scrollY < 100` on a hardcoded list of routes, which was
+     wrong in both directions — the bar turned white a tenth of the way down
+     a 700px photograph, and pages with a hero that were not on the list
+     never got the treatment at all. Asking the DOM what is underneath means
+     any page that opens with a hero behaves the same, including ones added
+     later, and nothing has to be kept in step with a regular expression. */
+  const [overPicture, setOverPicture] = useState(false);
   useEffect(() => {
-    const onScroll = () => setAtTop(window.scrollY < 100);
-    onScroll();
+    let raf = 0;
+
+    const measure = () => {
+      raf = 0;
+      /* First match in document order: on every page that has one, the hero
+         is the first thing inside <main>. Scoped to <main> so a stray
+         "hero"-ish class elsewhere on the page cannot be mistaken for one. */
+      const hero = document.querySelector<HTMLElement>(
+        "main .hero, main .dpage-hero"
+      );
+      if (!hero) {
+        setOverPicture(false);
+        return;
+      }
+      /* The bar's own height, not a guess: it is shorter on mobile, where
+         the logo shrinks. Comparing against the hero's BOTTOM is what keeps
+         the treatment for the whole of the picture rather than the first
+         hundred pixels of the page. */
+      const barH = headerRef.current?.offsetHeight ?? 0;
+      setOverPicture(hero.getBoundingClientRect().bottom > barH);
+    };
+
+    const onScroll = () => {
+      if (!raf) raf = requestAnimationFrame(measure);
+    };
+
+    measure();
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-  const seeThrough = overHero && atTop && !openMenu && !open;
+    window.addEventListener("resize", onScroll);
+    /* A hero that is still loading its photograph, or a page whose content
+       arrives from the API, changes height after the first measurement. */
+    const ro = new ResizeObserver(onScroll);
+    ro.observe(document.body);
+
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      ro.disconnect();
+      if (raf) cancelAnimationFrame(raf);
+    };
+    /* Re-queried on every navigation: the previous page's hero is gone and
+       the new one has not been looked for yet. */
+  }, [pathname]);
+
+  const seeThrough = overPicture && !openMenu && !open;
 
   return (
     <header className={`navbar${seeThrough ? " is-over" : ""}`} ref={headerRef}>

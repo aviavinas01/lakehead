@@ -1,107 +1,139 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
-import Globe from "./Globe";
 
 /**
- * "Your Journey to Global Education" — a turning globe on the left with a pin
- * on every country we place students in, and a deck of photos on the right
- * with the country's details underneath.
+ * "Your Journey to Global Education" — the destinations grid on the home
+ * page: one tile per country, and a last tile that sends you to the form.
  *
- * The globe drives the cards, not a timer: whichever country is facing the
- * viewer is the one whose photo shows. So they arrive in the order the globe
- * actually brings them round — Canada, the USA, the UK, South Korea,
- * Australia, New Zealand — and each gets a spell as long as the gap to its
- * neighbour, which is why close pairs like Canada and the USA each get a
- * short one. Dragging the globe or picking a pin moves the cards
- * the same way, because it moves what is facing.
+ * Each tile is a single link covering the whole card, front and back. Resting
+ * on it turns the card over to what that country actually offers; clicking
+ * anywhere on it — either face — goes to that country's page. One link rather
+ * than a second one hidden on the back is what keeps this usable by keyboard
+ * and on a touch screen.
  *
- * Below the width in the stylesheet where the layout stacks, the globe is
- * dropped entirely and only the photo deck remains — a globe that small is
- * unreadable and awkward to drag on a touch screen, and it would be pulling
- * a coastline through an animation frame on the weakest devices we serve.
+ * On a touch screen the flip is switched off entirely (see the stylesheet)
+ * and the detail is shown on the front instead, because a card that only
+ * gives up its content on hover gives up nothing at all to a thumb.
  *
- * `at` is the country's real longitude and latitude; the globe projects it.
+ * This replaced a turning globe carrying the same six countries. The globe
+ * and its coastline data went with it; `git log` has them if the idea ever
+ * comes back.
  */
 
-/* The single source of truth for what the globe shows. countryShapes.ts
-   still carries outlines for a few countries that are not listed here —
-   leaving them costs nothing and means a country can be restored by adding
-   one line back to this array. Keep the list in longitude order: the deck
-   follows whatever the globe brings round next. */
 const DESTINATIONS: {
   name: string;
+  /** What the back of the card says. One sentence. */
   blurb: string;
+  /** Two short facts, listed under the blurb. */
+  facts: string[];
+  /** Path under client/public. */
   image: string;
-  at: [number, number];
-  /* Where "Know more" goes. Countries without a page of their own yet fall
-     back to the services page — give one a `to` as its page is built. */
-  to?: string;
+  to: string;
 }[] = [
-  { name: "Canada", blurb: "Affordable tuition and a clear path to residency.", image: "/canada.jpg", at: [-106, 56], to: "/study-in-canada" },
-  { name: "USA", blurb: "World-ranked universities and OPT work rights after you graduate.", image: "/usa.jpg", at: [-98, 39.5], to: "/study-in-usa" },
-  { name: "UK", blurb: "One-year master's degrees and a two-year graduate visa.", image: "/uk.jpg", at: [-1.5, 53], to: "/study-in-uk" },
-  { name: "South Korea", blurb: "Scholarship-rich programmes taught in English.", image: "/southkorea.jpg", at: [127.8, 36.5], to: "/study-in-south-korea" },
-  { name: "Australia", blurb: "Strong post-study work rights in every state.", image: "/australia.jpg", at: [134, -25], to: "/study-in-australia" },
-  { name: "New Zealand", blurb: "Small class sizes and a welcoming visa system.", image: "/newzealand.jpg", at: [172, -41], to: "/study-in-new-zealand" },
+  {
+    name: "Australia",
+    blurb: "Strong post-study work rights in every state, and a straight run from campus to a skilled visa.",
+    facts: ["2–4 year post-study work visa", "February and July intakes"],
+    image: "/australia.jpg",
+    to: "/study-in-australia",
+  },
+  {
+    name: "New Zealand",
+    blurb: "Small class sizes and a welcoming visa system, with the shortest queues of any destination we place into.",
+    facts: ["Up to 3 years post-study work", "Partner and dependant visas"],
+    image: "/newzealand.jpg",
+    to: "/study-in-new-zealand",
+  },
+  {
+    name: "United States",
+    blurb: "World-ranked universities and OPT work rights, with more scholarship money than anywhere else on this list.",
+    facts: ["12–36 months of OPT", "Fall and Spring intakes"],
+    image: "/usa.jpg",
+    to: "/study-in-usa",
+  },
+  {
+    name: "United Kingdom",
+    blurb: "One-year master's degrees and a two-year graduate visa — the fastest route from application to working abroad.",
+    facts: ["1-year master's degrees", "2-year Graduate Route visa"],
+    image: "/uk.jpg",
+    to: "/study-in-uk",
+  },
+  {
+    name: "Canada",
+    blurb: "Affordable tuition and the clearest path to permanent residency of any country we work with.",
+    facts: ["Up to 3 years of PGWP", "A named route to residency"],
+    image: "/canada.jpg",
+    to: "/study-in-canada",
+  },
+  {
+    name: "South Korea",
+    blurb: "Scholarship-rich programmes taught in English, at a cost of living well below the west.",
+    facts: ["Government scholarships", "Taught in English"],
+    image: "/southkorea.jpg",
+    to: "/study-in-south-korea",
+  },
 ];
 
+const Arrow = ({ size = 18 }: { size?: number }) => (
+  <svg viewBox="0 0 24 24" width={size} height={size} fill="none"
+    stroke="currentColor" strokeWidth="2" strokeLinecap="round"
+    strokeLinejoin="round" aria-hidden="true">
+    <path d="M5 12h14M13 6l6 6-6 6" />
+  </svg>
+);
 
-/**
- * Where a photo sits relative to the one showing: 0 is the middle, +1 is the
- * country next in line (waiting above), -1 the one just shown (leaving
- * below). Everything else is out of sight. Taking the shorter way round the
- * list keeps the queue moving one way as the globe turns.
- */
-function offsetOf(index: number, active: number, total: number) {
-  let rel = index - active;
-  if (rel > total / 2) rel -= total;
-  if (rel < -total / 2) rel += total;
-  return rel;
-}
-
-function Photo({ src, name, offset }: { src: string; name: string; offset: number }) {
-  /* A country without a photo yet shows a plain panel rather than a broken
+function Tile({ destination }: { destination: (typeof DESTINATIONS)[number] }) {
+  /* A country without a photo yet shows a plain field rather than a broken
      image — drop the file in client/public and it appears by itself. */
   const [missing, setMissing] = useState(false);
-  const slot = Math.abs(offset) > 1 ? "away" : String(offset);
+
   return (
-    <div className="dest-photo" data-slot={slot} aria-hidden={offset !== 0}>
-      {missing ? (
-        <div className="dest-photo-placeholder" />
-      ) : (
-        <img src={src} alt="" loading="lazy" decoding="async" onError={() => setMissing(true)} />
-      )}
-      {/* The name rides on the card rather than sitting in the text below it,
-          so it travels with its own photo as the deck turns — and it still
-          names the country while the photo is only half in view. */}
-      <p className="dest-photo-name">{name}</p>
-    </div>
+    <Link className="dtile" to={destination.to}>
+      {/* The two faces share one box and turn together. This inner element is
+          what rotates, not the link: rotating the link would take its shadow
+          and its focus ring round with it. */}
+      <span className="dtile-turn">
+        <span className="dtile-face dtile-front">
+          {missing ? (
+            <span className="dtile-blank" aria-hidden="true" />
+          ) : (
+            <img
+              src={destination.image}
+              alt=""
+              loading="lazy"
+              decoding="async"
+              onError={() => setMissing(true)}
+            />
+          )}
+          <span className="dtile-scrim" aria-hidden="true" />
+          <span className="dtile-name">{destination.name}</span>
+        </span>
+
+        {/* aria-hidden: the same country said twice is noise. The front's
+            name and the link's own destination already say where this goes,
+            and these facts are a flourish rather than the only copy — every
+            one of them is on the country's own page. */}
+        <span className="dtile-face dtile-back" aria-hidden="true">
+          <span className="dtile-back-name">{destination.name}</span>
+          <span className="dtile-back-blurb">{destination.blurb}</span>
+          <span className="dtile-facts">
+            {destination.facts.map((f) => (
+              <span key={f}>{f}</span>
+            ))}
+          </span>
+          <span className="dtile-more">
+            Explore {destination.name} <Arrow size={16} />
+          </span>
+        </span>
+      </span>
+    </Link>
   );
 }
 
 export default function Destinations() {
-  const [active, setActive] = useState(0);
-  const section = useRef<HTMLElement>(null);
-  const [running, setRunning] = useState(false);
-
-  const total = DESTINATIONS.length;
-  const current = DESTINATIONS[active];
-
-  /* The globe turns and the deck advances only while the section is in view. */
-  useEffect(() => {
-    const el = section.current;
-    if (!el) return;
-    const io = new IntersectionObserver(
-      ([entry]) => setRunning(entry.isIntersecting),
-      { threshold: 0.2 }
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, []);
-
   return (
-    <section className="destinations" ref={section}>
-      <div className="container">
+    <section className="destinations">
+      <div className="container dest-head">
         <h2 className="destinations-title">
           Your Journey to Global Education{" "}
           <span className="h-accent">Starts Here</span>
@@ -112,48 +144,27 @@ export default function Destinations() {
           universities, scholarships, and opportunities to turn your
           study-abroad plans into reality.
         </p>
+      </div>
 
-        {/* Nothing here pauses on hover: the globe keeps turning while the
-            pointer is over it, and the cards keep following it round. */}
-        <div className="dest-layout">
-          <div className="dest-globe">
-            <Globe
-              points={DESTINATIONS.map((d) => ({ name: d.name, at: d.at }))}
-              active={active}
-              spinning={running}
-              onSelect={setActive}
-              onFacing={setActive}
-            />
-            <p className="dest-hint">Drag the globe, or tap a pin</p>
-          </div>
+      <div className="container">
+        <div className="dest-grid">
+          {DESTINATIONS.map((d) => (
+            <Tile key={d.name} destination={d} />
+          ))}
 
-          <div className="dest-side">
-            <div className="dest-deck">
-              {DESTINATIONS.map((d, i) => (
-                <Photo
-                  key={d.name}
-                  src={d.image}
-                  name={d.name}
-                  offset={offsetOf(i, active, total)}
-                />
-              ))}
-            </div>
-            <div className="dest-info" aria-live="polite">
-              {/* The name is shown on the card now, but it still has to be in
-                  the live region: without it the announcement is a blurb with
-                  no country attached to it. */}
-              <h3 className="dest-info-country">{current.name}</h3>
-              <p>{current.blurb}</p>
-              <Link className="dest-more" to={current.to ?? "/services"}>
-                Know more
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none"
-                  stroke="currentColor" strokeWidth="2" strokeLinecap="round"
-                  strokeLinejoin="round" aria-hidden="true">
-                  <path d="M5 12h14M13 6l6 6-6 6" />
-                </svg>
-              </Link>
-            </div>
-          </div>
+          {/* The way out of the grid. It spans whatever is left of its row,
+              so the block ends square however many columns the width has
+              given us — six countries and this make seven, which never
+              divides evenly on its own. */}
+          <Link className="dtile dtile-cta" to="/contact">
+            <Arrow size={30} />
+            <strong>
+              Begin your
+              <br />
+              journey
+            </strong>
+            <span>Free counselling, no obligation</span>
+          </Link>
         </div>
       </div>
     </section>

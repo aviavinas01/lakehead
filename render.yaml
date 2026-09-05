@@ -51,3 +51,24 @@ services:
         sync: false
       - key: GOOGLE_PLACE_ID
         sync: false
+      # Outgoing mail for inquiry notifications. Every one is optional: with
+      # them unset the API boots and runs normally, forms save, and the admin
+      # dashboard marks each inquiry "skipped" so it is clear why no mail
+      # went out. Declared here so the blueprint knows they exist — the
+      # values themselves are typed into the dashboard, never committed.
+      # See server/.env.example for what each one wants.
+      # MAIL_PASS is a secret: for Google Workspace it is an App Password.
+      - key: MAIL_HOST
+        sync: false
+      - key: MAIL_PORT      # 587 (STARTTLS). Never 25 — Render blocks it.
+        sync: false
+      - key: MAIL_SECURE    # "true" only on port 465; false on 587
+        sync: false
+      - key: MAIL_USER
+        sync: false
+      - key: MAIL_PASS
+        sync: false
+      - key: MAIL_FROM      # a mailbox on our own domain, not the enquirer's
+        sync: false
+      - key: MAIL_TO        # comma-separated for several recipients
+        sync: false

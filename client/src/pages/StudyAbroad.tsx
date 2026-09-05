@@ -121,6 +121,7 @@ function EnquirySection() {
         email: form.email,
         phone: form.phone ? `+977 ${form.phone}` : undefined,
         service: "study-abroad",
+        source: "study-abroad",
         message: `Study abroad enquiry — ${detail.join("; ")}.`,
       });
       setStatus({ state: "sent", message: res.data.message });

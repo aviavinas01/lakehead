@@ -156,16 +156,15 @@ const entries: OrbitEntry[] = [
 
 export default function HeroOrbit({
   open,
-  onOpen,
-  onClose,
   slotRef,
 }: {
-  /** True while the video is opened out across the whole section */
+  /**
+   * True while the video is opened out across the whole section. Driven by
+   * how far the page has scrolled, not by the pointer — the orbit used to
+   * open and close the film on pointerenter/leave, and those handlers are
+   * gone with it. See the note in pages/Home.tsx.
+   */
   open: boolean;
-  /** The pointer has come to rest on the circle */
-  onOpen: () => void;
-  /** ...and has left it */
-  onClose: () => void;
   /** Home measures this to park the media layer on the resting circle */
   slotRef: RefObject<HTMLDivElement>;
 }) {
@@ -209,9 +208,6 @@ export default function HeroOrbit({
       </div>
       <div
         className="hero-orbit-hit"
-        onPointerEnter={onOpen}
-        onPointerMove={onOpen}
-        onPointerLeave={onClose}
       />
     </div>
   );

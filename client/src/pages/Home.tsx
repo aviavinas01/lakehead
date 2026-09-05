@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../api/client";
 import { mediaSrc } from "../api/media";
-import HeroOrbit, { PlaneIcon } from "../components/HeroOrbit";
+import { PlaneIcon } from "../components/HeroOrbit";
 import NextSteps from "../components/NextSteps";
 import StatsStrip from "../components/StatsStrip";
 import Destinations from "../components/Destinations";
@@ -51,22 +51,20 @@ export default function Home() {
   const [heroImage, setHeroImage] = useState<string>();
   const helpGrid = useRef<HTMLDivElement>(null);
 
-  /* ---- the hero's opening video -------------------------------------
-     At rest the clip sits in the circle inside HeroOrbit. Resting the
-     pointer on it opens it out until it is the background of the whole
-     section; leaving the circle closes it again.
+  /* ---- the hero's film ----------------------------------------------
+     The clip is simply the background of the hero, full width, reaching up
+     behind the header. Nothing opens, nothing closes, nothing is measured.
 
-     The layer is a child of <section className="hero"> rather than of
-     HeroOrbit, because it has to grow past HeroOrbit's bounds and an
-     element cannot escape its containing block. Its resting geometry is
-     measured from the empty `.hero-photo-slot` marker HeroOrbit leaves
-     behind, and published as CSS variables — so the closed state lands
-     exactly on the circle at any window size, with nothing hardcoded. */
-  const heroSection = useRef<HTMLElement>(null);
-  const photoSlot = useRef<HTMLDivElement>(null);
-  const [mediaOpen, setMediaOpen] = useState(false);
-  /* A missing file falls back to the next option rather than a broken
-     image: video → photo → the neutral circle. */
+     It used to travel between a circle in an orbit of badges and a
+     full-bleed film — first on hover, later on scroll — which meant a
+     measuring pass on every resize, a set of published CSS variables, a
+     body class, and a section whose appearance depended on where the page
+     happened to be. The only thing that behaviour is still doing is
+     changing the header, and the header already knows how to do that by
+     itself on every other full-bleed page (see `overHero` in Navbar.tsx).
+
+     A missing file falls back to the next option rather than a broken
+     image: video → photo → a neutral gradient. */
   const [videoBroken, setVideoBroken] = useState(false);
   const [imageBroken, setImageBroken] = useState(false);
   const reduced =
@@ -74,53 +72,6 @@ export default function Home() {
     window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const showVideo = !videoBroken && !reduced;
   const showPhoto = heroImage && !imageBroken;
-
-  /* Measured on mount and whenever the layout can change. Reading the slot
-     rather than recomputing the orbit's arithmetic means this cannot drift
-     out of step with the stylesheet. */
-  useEffect(() => {
-    const section = heroSection.current;
-    const slot = photoSlot.current;
-    if (!section || !slot) return;
-    const measure = () => {
-      const s = section.getBoundingClientRect();
-      const p = slot.getBoundingClientRect();
-      section.style.setProperty("--media-x", `${p.left - s.left}px`);
-      section.style.setProperty("--media-y", `${p.top - s.top}px`);
-      section.style.setProperty("--media-size", `${p.width}px`);
-    };
-    measure();
-    const ro = new ResizeObserver(measure);
-    ro.observe(section);
-    ro.observe(slot);
-    return () => ro.disconnect();
-  }, []);
-
-  /* Scrolling wins outright over hovering, and keeps winning briefly after,
-     so the video cannot open under a cursor that never moved — scrolling
-     re-runs hit-testing and would otherwise fire a fresh pointerenter. */
-  const settleAt = useRef(0);
-  useEffect(() => {
-    const onScroll = () => {
-      settleAt.current = Date.now() + 350;
-      setMediaOpen(false);
-    };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-  const openMedia = () => {
-    if (Date.now() < settleAt.current) return;
-    setMediaOpen(true);
-  };
-
-  /* The film reaches up over the header as well, so the header has to get
-     out of its own way — this class turns it transparent and its type white,
-     the same treatment the destination pages use. It goes on <body> because
-     the navbar is a sibling of this page, not a descendant of it. */
-  useEffect(() => {
-    document.body.classList.toggle("hero-film", mediaOpen);
-    return () => document.body.classList.remove("hero-film");
-  }, [mediaOpen]);
 
   /* The three "how we help" cards settle in from their own side the first
      time the row is scrolled to. One observer on the row, so the cards move
@@ -171,13 +122,8 @@ export default function Home() {
 
   return (
     <>
-      <section
-        className={`hero${mediaOpen ? " is-media-open" : ""}`}
-        ref={heroSection}
-      >
-        {/* Closed, this is the circle inside the orbit; open, it is the
-            section's background. Only the box animates — one absolutely
-            positioned element, so nothing else on the page reflows. */}
+      <section className="hero">
+        {/* The section's background, and nothing more than that. */}
         <div className="hero-media" aria-hidden="true">
           {showVideo ? (
             <video
@@ -214,12 +160,6 @@ export default function Home() {
               <Link to="/contact" className="btn btn-outline">Talk to Us →</Link>
             </div>
           </div>
-          <HeroOrbit
-            open={mediaOpen}
-            onOpen={openMedia}
-            onClose={() => setMediaOpen(false)}
-            slotRef={photoSlot}
-          />
         </div>
       </section>
 

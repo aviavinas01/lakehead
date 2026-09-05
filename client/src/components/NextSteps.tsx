@@ -8,11 +8,19 @@ import { JOURNEY, JOURNEY_CLOSER, type JourneyStep } from "../data/journey";
  * home page.
  *
  * HOW IT READS. The band holds still while the page scrolls through it. The
- * left column names the step you are on; the right is a stack of
- * photographs, and each new step's photograph rises up and covers the one
- * before it completely. After the last step the stack is covered one final
- * time by the free-consultation form, which is what the whole sequence has
- * been walking towards.
+ * left column names the step you are on; the right is a strip of
+ * photographs that moves as one. Each new step pushes the one before it up
+ * and out of the frame while rising into its place — the two travel
+ * together, edge to edge, the way a carousel moves rather than the way a
+ * window shade drops. After the last step the free-consultation form comes
+ * up the same way, which is what the whole sequence has been walking
+ * towards.
+
+ *
+ * This used to be a clip-path reveal: every panel stayed where it was and
+ * the new one was simply un-clipped over the top of it. That reads as
+ * something opening ON the picture rather than the pictures advancing, and
+ * nothing ever appeared to leave.
  *
  * ------------------------------------------------------------------
  * WHY THIS WAS REWRITTEN — the old version jumped from step 1 to step 4.
@@ -61,8 +69,20 @@ const BLOCKS = [...JOURNEY, JOURNEY_CLOSER];
 const WEIGHTS = [...JOURNEY.map(() => 1), 1.8];
 const TOTAL_WEIGHT = WEIGHTS.reduce((a, b) => a + b, 0);
 
-/** Scroll distance one unit of weight is worth, as a share of the viewport. */
-const VH_PER_UNIT = 0.6;
+/**
+ * Scroll distance one unit of weight is worth, as a share of the viewport.
+ *
+ * THIS IS THE DIAL, and it is a genuine trade in both directions. The band
+ * is `100vh + TOTAL_WEIGHT * VH_PER_UNIT * 100vh` tall, so raising it makes
+ * each step calmer and the whole section longer to get through. Too high and
+ * the section reads as unresponsive — a lot of wheel for one card. Too low
+ * and a flick skips a step before its transition has landed.
+ *
+ * It has been as high as 0.85, which was too much: you could feel the delay
+ * between scrolling and anything happening. The card transitions were
+ * shortened to match this value, so if you change it, check them too.
+ */
+const VH_PER_UNIT = 0.45;
 
 /** Cumulative fractions of the way through: [0.2, 0.4, …, 1]. */
 const THRESHOLDS = WEIGHTS.reduce<number[]>((acc, w) => {
@@ -101,15 +121,27 @@ const Arrow = () => (
 );
 
 /**
- * One photograph in the stack.
+ * Where a panel sits relative to the one showing: 0 is in frame, negative
+ * has been and gone, positive is still to come. Everything further out than
+ * one step parks at the same place just off the frame, so jumping several
+ * steps at once slides one panel's width rather than four.
+ */
+function slotFor(offset: number): "past" | "on" | "next" {
+  if (offset === 0) return "on";
+  return offset < 0 ? "past" : "next";
+}
+
+/**
+ * One photograph in the strip.
  *
- * `revealed` and `current` are deliberately two things. A panel that has
- * had its turn STAYS revealed — it is simply covered by the ones above it,
- * which is what makes each new photograph hide the last completely, and what
- * makes scrolling back up reverse exactly. But only the panel on top is
- * `current`, and only that one is reachable: without the distinction, tabbing
- * through the section would land on four links stacked invisibly behind each
- * other.
+ * Position is the only thing that decides how it looks: the stylesheet parks
+ * "next" below the frame, "on" in it and "past" above it, and moving between
+ * those three is the whole transition. Because every panel is always mounted
+ * and always transformed, scrolling back up reverses exactly — the panel
+ * that left the top comes back down from the top.
+ *
+ * Only the panel in frame is reachable. Without that, tabbing through the
+ * section would land on four links parked out of sight above and below it.
  *
  * A missing image file leaves the panel as its own colour field carrying
  * the same words — not a broken image and not a grey box. The photographs
@@ -118,45 +150,51 @@ const Arrow = () => (
 function JourneyPanel({
   step,
   index,
-  revealed,
-  current,
+  offset,
 }: {
   step: JourneyStep;
   index: number;
-  revealed: boolean;
-  current: boolean;
+  /** index - the panel showing. See slotFor. */
+  offset: number;
 }) {
   const [missing, setMissing] = useState(false);
+  const slot = slotFor(offset);
 
   return (
-    <Link
+    /* One card in the queue. It does not move itself — the reel moves all of
+       them together, which is what makes the queue read as a queue.
+       `data-slot` is about emphasis and reachability only: the card in play
+       is upright and full strength, its neighbours sit back, and only the
+       one in play can be clicked or tabbed to. */
+    <div
       className="jp"
-      to={step.to}
-      data-on={revealed || undefined}
-      style={{ "--jp-color": step.color, zIndex: index + 1 } as CSSProperties}
-      {...inertWhenHidden(current)}
+      data-slot={slot}
+      style={{ "--jp-color": step.color } as CSSProperties}
+      {...inertWhenHidden(slot === "on")}
     >
-      {missing ? (
-        <span className="jp-blank" aria-hidden="true" />
-      ) : (
-        <img
-          src={step.image}
-          alt=""
-          loading={index === 0 ? "eager" : "lazy"}
-          decoding="async"
-          onError={() => setMissing(true)}
-        />
-      )}
-      <span className="jp-scrim" aria-hidden="true" />
-      <span className="jp-body">
-        <span className="jp-kicker">Step {String(index + 1).padStart(2, "0")}</span>
-        <strong className="jp-title">{step.title}</strong>
-        <span className="jp-caption">{step.caption}</span>
-        <span className="jp-link">
-          {step.linkLabel} <Arrow />
+      <Link className="jp-frame" to={step.to}>
+        <span className="jp-shot">
+          {missing ? (
+            <span className="jp-blank" aria-hidden="true" />
+          ) : (
+            <img
+              src={step.image}
+              alt=""
+              loading={index === 0 ? "eager" : "lazy"}
+              decoding="async"
+              onError={() => setMissing(true)}
+            />
+          )}
         </span>
-      </span>
-    </Link>
+
+        <span className="jp-foot">
+          <span className="jp-caption">{step.caption}</span>
+          <span className="jp-link">
+            {step.linkLabel} <Arrow />
+          </span>
+        </span>
+      </Link>
+    </div>
   );
 }
 
@@ -245,38 +283,34 @@ export default function NextSteps() {
       }
     >
       <div className="nsx-stage" ref={stage}>
-        {/* The mark. It is the logo PNG used as a mask rather than as an
-            image, because the file is red and this has to be beige — a
-            filter can flatten it to black or white but not to an arbitrary
-            colour. Guarded, since an unsupported mask would leave a solid
-            beige rectangle sitting over the section. First in the stage so it
-            paints behind everything without needing a z-index to say so. */}
-        <div className="nsx-mark" aria-hidden="true">
-          <span />
-        </div>
+        {/* The reel sits OUTSIDE the container, pinned to the stage's own
+            right edge, so it takes the right-hand side of the window rather
+            than stopping at the container's gutter. The container below
+            reserves exactly its width as padding, which is what keeps the
+            copy clear of it without either one measuring the other.
 
-        {/* The stack sits OUTSIDE the container, pinned to the stage's own
-            right edge, so the photographs run to the edge of the window
-            rather than stopping at the container's gutter. The container
-            below reserves exactly its width as padding, which is what keeps
-            the copy clear of it without either one measuring the other. */}
-        <div className="nsx-stack">
-          {JOURNEY.map((s, i) => (
-            <JourneyPanel
-              key={s.id}
-              step={s}
-              index={i}
-              revealed={panel >= i}
-              current={panel === i}
-            />
-          ))}
-          {/* The last panel. It carries the section's own ground rather than
-              a card of its own: the form is meant to look as though the
-              photographs cleared away and left it standing on the band. */}
+            One custom property moves the whole column: the stylesheet reads
+            --nsx-n as "slide up by this many cards". Every card keeps its
+            own place in the queue. */}
+        <div className="nsx-stack" data-closing={onCloser || undefined}>
+          <div className="nsx-reel" style={{ "--nsx-n": panel } as CSSProperties}>
+            {JOURNEY.map((s, i) => (
+              <JourneyPanel key={s.id} step={s} index={i} offset={i - panel} />
+            ))}
+          </div>
+
+          {/* NOT a card in the queue. The form is what the whole sequence has
+              been walking towards, and it wants the frame to itself — inside
+              the reel it was one card among five, with its neighbours sat
+              either side of it and the queue's mask feathering its edges.
+
+              So it sits over the reel instead: full height, opaque, and only
+              once the last step has been read. `data-closing` on the stack is
+              what takes the queue behind it out of sight, so nothing peeks
+              past a form somebody is filling in. */}
           <div
-            className="jp jp-consult"
+            className="nsx-consult"
             data-on={onCloser || undefined}
-            style={{ zIndex: PANEL_COUNT } as CSSProperties}
             {...inertWhenHidden(onCloser)}
           >
             <ConsultCard />

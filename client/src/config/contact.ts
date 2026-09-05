@@ -46,7 +46,7 @@ export interface Office {
 }
 
 const NEPAL_HOURS = [
-  { days: "Sunday – Friday", time: "9:30 am – 5:30 pm" },
+  { days: "Sunday – Friday", time: "6:30 am – 5:30 pm" },
   { days: "Saturday", time: "Closed" },
 ];
 

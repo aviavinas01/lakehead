@@ -3,12 +3,13 @@ import {
   type IInquiry,
   type InquiryDocument,
   type InquiryStatus,
+  type NotifyRecord,
 } from "../models/Inquiry.js";
 import { ApiError } from "../utils/ApiError.js";
 import type { PaginatedResult, PaginationQuery } from "../types/common.js";
 
 type CreateInquiryInput = Pick<IInquiry, "name" | "email" | "message"> &
-  Partial<Pick<IInquiry, "phone" | "service">>;
+  Partial<Pick<IInquiry, "phone" | "service" | "source">>;
 
 export const inquiryService = {
   async create(input: CreateInquiryInput): Promise<InquiryDocument> {
@@ -37,6 +38,25 @@ export const inquiryService = {
     });
     if (!inquiry) throw ApiError.notFound("Inquiry not found");
     return inquiry;
+  },
+
+  /**
+   * Writes the outcome of the notification email onto the inquiry.
+   *
+   * Deliberately separate from `update`, which is the admin's endpoint and
+   * only accepts status and notes — the delivery record is written by the
+   * server about itself and must not be settable over the API.
+   *
+   * A failure here is swallowed: this is called after the visitor's response
+   * has already gone out, so there is nobody left to tell, and losing the
+   * record of a sent email must not become a second error in the log.
+   */
+  async recordNotification(id: string, record: NotifyRecord): Promise<void> {
+    try {
+      await Inquiry.updateOne({ _id: id }, { $set: { notified: record } });
+    } catch (err) {
+      console.error("[inquiry] Could not record mail result:", err);
+    }
   },
 
   async remove(id: string): Promise<void> {

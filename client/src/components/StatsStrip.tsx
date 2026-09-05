@@ -47,7 +47,14 @@ function RollingNumber({ text, go }: { text: string; go: boolean }) {
             <span
               className="roll-strip"
               style={{
-                transform: go ? `translateY(-${stop}em)` : "translateY(0)",
+                /* One cell per numeral passed. The cell height lives in the
+                   stylesheet as --roll-h, because the window and the strip
+                   are sized by it there and the three have to agree — an
+                   `em` hardcoded here would silently stop landing on the
+                   right digit the moment that value changed. */
+                transform: go
+                  ? `translateY(calc(var(--roll-h, 1.34em) * ${-stop}))`
+                  : "translateY(0)",
                 transitionDelay: `${i * 110}ms`,
               }}
             >

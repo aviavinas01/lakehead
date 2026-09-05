@@ -13,10 +13,10 @@
  * so the section is complete and legible either way — see `JourneyPanel` in
  * components/NextSteps.tsx.
  *
- * Landscape or portrait both work; the panel is a tall rectangle and the
- * photograph covers it, so anything roughly 3:4 or wider is safe. Keep them
- * reasonably dark, or busy only in the upper half: the caption sits along
- * the bottom over a gradient.
+ * The panel shows the photograph as a card, cropped to 4:3, riding in a reel
+ * that slides one card at a time. Landscape suits it best; these are cards
+ * now rather than full-bleed backdrops, so the subject wants to read at
+ * about a third of the screen's width.
  */
 
 export interface JourneyStep {
@@ -29,7 +29,7 @@ export interface JourneyStep {
   color: string;
   /** Path under client/public. */
   image: string;
-  /** One line set over the photograph. Keep it short. */
+  /** One line under the photograph. Keep it short. */
   caption: string;
   /** Where the panel links to. */
   to: string;

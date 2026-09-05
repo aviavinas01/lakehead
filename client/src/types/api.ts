@@ -42,6 +42,21 @@ export type ServiceType = (typeof SERVICES)[number];
 
 export type InquiryStatus = "new" | "contacted" | "closed";
 
+/** Which form an inquiry came from — see server/src/models/Inquiry.ts. */
+export type InquirySource =
+  | "consultation"
+  | "contact"
+  | "about"
+  | "study-abroad"
+  | "unknown";
+
+/** Whether the notification email got out. Written by the server. */
+export interface NotifyRecord {
+  state: "sent" | "failed" | "skipped";
+  at: string;
+  reason?: string;
+}
+
 export interface Inquiry {
   _id: string;
   name: string;
@@ -50,6 +65,11 @@ export interface Inquiry {
   service: ServiceType;
   message: string;
   status: InquiryStatus;
+  /* Optional on the client even though the server defaults it: inquiries
+     taken before this field existed have neither, and the admin has to
+     render them all the same. */
+  source?: InquirySource;
+  notified?: NotifyRecord;
   notes?: string;
   createdAt: string;
 }
