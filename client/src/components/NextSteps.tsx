@@ -66,7 +66,15 @@ const BLOCKS = [...JOURNEY, JOURNEY_CLOSER];
  * something to do on it — a step is read in a moment, a form is filled in.
  * At equal weights the band released almost as soon as the form appeared.
  */
-const WEIGHTS = [...JOURNEY.map(() => 1), 1.8];
+/* The last step carries more than the three before it: it is the end of the
+   sequence and the beat before the form, and at an even weight it went past
+   as quickly as the others and the section felt like it stopped mid-thought.
+   Written from the array's own length so adding a fifth step moves the extra
+   weight onto that one instead of leaving it stranded on the fourth. */
+const WEIGHTS = [
+  ...JOURNEY.map((_, i) => (i === JOURNEY.length - 1 ? 1.6 : 1)),
+  1.8,
+];
 const TOTAL_WEIGHT = WEIGHTS.reduce((a, b) => a + b, 0);
 
 /**
@@ -318,7 +326,13 @@ export default function NextSteps() {
         </div>
 
         <div className="container nsx-inner">
-          <div className="nsx-copy">
+          {/* `data-started` is set the moment the sequence leaves its first
+              step. The heading names the section, which is worth saying on
+              arrival and not worth holding on screen for the whole of it —
+              so it rises away and the steps take the column, which is what
+              makes the band read as one thing moving rather than a fixed
+              title with something changing underneath it. */}
+          <div className="nsx-copy" data-started={panel >= 1 || undefined}>
             <h2>
               Your Journey to Global Education{" "}
               <span className="h-accent">Starts Here</span>

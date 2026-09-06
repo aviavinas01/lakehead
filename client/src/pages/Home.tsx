@@ -180,11 +180,6 @@ export default function Home() {
                 <span className="h-outline">you deserve</span>
               </h2>
             </div>
-            <p className="help-lead">
-              We provide a skilled staff to help you get the most out of your
-              immigration. Our qualified and dependable Immigration Consultants
-              can assist you.
-            </p>
           </div>
           <div className="help-grid" ref={helpGrid}>
             {HELP_CARDS.map((c) => (

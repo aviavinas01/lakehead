@@ -106,11 +106,6 @@ export default function Testimonials() {
           <h2 className="testimonials-title">
             What Our <span className="h-teal">Students</span> Say
           </h2>
-          <p className="testimonials-lead">
-            Every student has a unique journey. Hear from those who have trusted
-            us to guide their study-abroad plans and take the next step toward
-            their international education goals.
-          </p>
         </div>
 
         <div

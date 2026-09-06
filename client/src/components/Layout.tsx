@@ -3,10 +3,15 @@ import Navbar from "./Navbar";
 import Footer from "./Footer";
 import GoogleReviews from "./GoogleReviews";
 import ChatDock from "./ChatDock";
+import HeavyScroll from "./HeavyScroll";
 
 export default function Layout() {
   return (
     <>
+      {/* Gives the wheel weight on every public page. Renders nothing, and
+          stands aside entirely on touch, under reduced motion, and over any
+          inner scroller that can take the scroll itself — see the component. */}
+      <HeavyScroll />
       <Navbar />
       <main>
         <Outlet />

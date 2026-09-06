@@ -249,6 +249,21 @@ export default function Navbar() {
      later, and nothing has to be kept in step with a regular expression. */
   const [overPicture, setOverPicture] = useState(false);
   useEffect(() => {
+    /* THE HOME PAGE OPTS OUT. Everywhere else the see-through bar sits on a
+       single photograph and comes off it cleanly. The home hero is a moving
+       film under a dark scrim, and a bar with no ground of its own over
+       moving pictures is a bar whose links change contrast frame by frame —
+       the wordmark and the nav labels were legible on one shot and washed
+       out on the next, and the dropdown panels opening off a bar you can
+       see through never looked attached to anything.
+       So: solid white, navy type, coloured mark, from the first pixel of
+       the page. Every other page keeps the treatment exactly as it was —
+       this returns early rather than changing what the measurement does. */
+    if (pathname === "/") {
+      setOverPicture(false);
+      return;
+    }
+
     let raf = 0;
 
     const measure = () => {
@@ -295,12 +310,81 @@ export default function Navbar() {
 
   const seeThrough = overPicture && !openMenu && !open;
 
+  /* The bar gets out of the way going down the page and comes back the
+     moment you head up it.
+     WHEN IT IS ALLOWED TO HIDE:
+       - not while a menu is open, or the panel would go with it;
+       - not in the first REVEAL_FLOOR pixels, where "scrolling down" is
+         really just leaving the top of the page;
+       - and not while the bar is see-through over a hero. That last one is
+         the rule for the destination pages: over the picture the bar is
+         part of the hero and has nowhere to hide TO, so it holds still
+         until the photograph is behind you and only then starts sliding.
+         The home page opts out of see-through entirely (see above), so
+         there this is live from the first scroll. */
+  const [hidden, setHidden] = useState(false);
+  useEffect(() => {
+    /* Movement needed before this makes up its mind — below it a trackpad's
+       idle jitter would flap the bar in and out. */
+    const STEP = 6;
+    /* Above the fold the bar always shows. */
+    const REVEAL_FLOOR = 90;
+
+    let last = window.scrollY;
+    let raf = 0;
+
+    const measure = () => {
+      raf = 0;
+      const y = window.scrollY;
+      const moved = y - last;
+      if (Math.abs(moved) < STEP) return;
+      last = y;
+      /* Scrolling up, near the top, over a hero, or with a panel open: show.
+         Everything else: away. */
+      setHidden(moved > 0 && y > REVEAL_FLOOR && !overPicture);
+    };
+
+    const onScroll = () => {
+      if (!raf) raf = requestAnimationFrame(measure);
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, [overPicture]);
+
+  /* A new page starts with the bar present. Without this you could scroll
+     down, follow a link, and land at the top of the next page with no
+     navigation on screen — the scroll handler only reconsiders when the page
+     actually moves, and it has not moved yet. */
+  useEffect(() => {
+    setHidden(false);
+  }, [pathname]);
+
+  /* Anything that wants the bar present says so here rather than racing the
+     scroll handler for the same piece of state. */
+  const away = hidden && !openMenu && !open;
+
   return (
-    <header className={`navbar${seeThrough ? " is-over" : ""}`} ref={headerRef}>
+    <header
+      className={`navbar${seeThrough ? " is-over" : ""}${away ? " is-away" : ""}`}
+      ref={headerRef}
+    >
       {/* Leaving the bar closes any open panel. It lives here rather than on
           the nav item because the panel is a sibling below the strip — closing
           on the item's own mouseleave would snatch it away as the pointer
           travelled down into it. */}
+      {/* EVERYTHING THAT HIDES LIVES IN HERE, and .scroll-progress-v below
+          deliberately does not. That rail is position:fixed, and a transform
+          on an ancestor makes the ancestor its containing block — inside
+          this wrapper it would be dragged off the top of the screen along
+          with the bar instead of staying down the right edge.
+          Transforming a wrapper rather than the <header> also leaves the
+          header's own offsetHeight alone, so --navbar-h keeps its value and
+          the heroes that reach up behind the bar do not jump when it goes. */}
+      <div className="navbar-slide">
       <div className="navbar-main" onMouseLeave={() => setOpenMenu(null)}>
         <div className="container navbar-inner">
           <Link to="/" className="brand" onClick={() => setOpen(false)}>
@@ -415,8 +499,10 @@ export default function Navbar() {
       <div className="scroll-progress" ref={trackH}>
         <span ref={barH} />
       </div>
+      </div>{/* /.navbar-slide — everything below this stays put */}
       {/* Vertical twin of the bar above: fills bottom-to-top along the right
-          edge and meets the horizontal bar at the top-right corner. */}
+          edge and meets the horizontal bar at the top-right corner. It is
+          OUTSIDE .navbar-slide on purpose; see the note up there. */}
       <div className="scroll-progress-v" ref={trackV} aria-hidden="true">
         <span ref={barV} />
       </div>

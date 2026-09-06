@@ -4,7 +4,9 @@ import { PlaneIcon } from "../components/HeroOrbit";
 import { Check, Pin, Arrow, Shot } from "../components/destinationBits";
 import { revealInit } from "../lib/reveal";
 import InquiryForm from "../components/InquiryForm";
-import { contact } from "../config/contact";
+import { contact, OFFICES } from "../config/contact";
+import { TESTS } from "../data/tests";
+import StatMarquee, { type StatItem } from "../components/StatMarquee";
 
 /**
  * Who We Are — /about.
@@ -34,14 +36,48 @@ import { contact } from "../config/contact";
  * the first claims a competitor will check.
  */
 
-/* Placeholders — confirm each figure before publishing. */
-const FIGURES = [
-  { value: "12,000+", label: "Students guided" },
-  { value: "60+", label: "Counsellors and instructors" },
-  { value: "180+", label: "Partner institutions" },
-  { value: "5,000+", label: "Test-prep graduates" },
-  { value: "6", label: "Study destinations" },
-  { value: "14+", label: "Years of practice" },
+/* Placeholders — confirm each figure before publishing.
+
+   The detail line under each one is the marquee's third part: named
+   examples rather than a second statistic. Two of them are COUNTED FROM THE
+   DATA (the tests, the offices) so they cannot drift from the lists they
+   describe; the rest are descriptions and are safe to reword.
+
+   NOTE FOR WHOEVER CONFIRMS THESE: they contradict the home page. That
+   strip claims 1,100+ institution partners and 760,000+ students assisted
+   against the 180+ and 12,000+ below. Both sets cannot be right, and these
+   are the first claims a competitor will check. */
+const FIGURES: StatItem[] = [
+  {
+    figure: "12,000+",
+    label: "Students guided",
+    detail: "Counselling, applications, visas and departure",
+  },
+  {
+    figure: "60+",
+    label: "Counsellors and instructors",
+    detail: OFFICES.map((o) => o.city).join(" · "),
+  },
+  {
+    figure: "180+",
+    label: "Partner institutions",
+    detail: "Universities, colleges and pathway providers",
+  },
+  {
+    figure: "5,000+",
+    label: "Test-prep graduates",
+    detail: TESTS.map((t) => t.name).join(" · "),
+  },
+  {
+    figure: "6",
+    label: "Study destinations",
+    detail: "USA · UK · Australia · Canada · New Zealand · South Korea",
+  },
+  {
+    figure: "14+",
+    label: "Years of practice",
+    detail: "Counselling, preparation and documentation",
+  },
 ];
 
 const WORK = [
@@ -273,18 +309,14 @@ export default function About() {
         </div>
       </section>
 
-      {/* ---- the figures ---- */}
-      <section className="who-figures-band">
-        <div className="container">
-          <div className="who-figures">
-            {FIGURES.map((f) => (
-              <div className="who-figure" key={f.label}>
-                <strong>{f.value}</strong>
-                <span>{f.label}</span>
-              </div>
-            ))}
-          </div>
-        </div>
+      {/* ---- the figures ----
+          The same moving line the home page opens with, rather than a static
+          six-cell grid. Six numbers standing still in two rows read as a
+          table of contents for a page nobody asked for; the same six moving
+          read as one claim after another, and each gets room for the names
+          behind it. See StatMarquee. */}
+      <section className="who-figures-band" aria-label="Lakehead in numbers">
+        <StatMarquee items={FIGURES} />
       </section>
 
       {/* ---- what we actually do ---- */}

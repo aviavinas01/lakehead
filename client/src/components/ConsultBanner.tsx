@@ -23,10 +23,6 @@ export default function ConsultBanner() {
           Get Ready To Begin{" "}
           <span className="h-outline">Your Journey</span>
         </h2>
-        <p className="journey-lead">
-          Explore more, stay informed, and start your journey to academic
-          excellence.
-        </p>
         <Link className="journey-btn" to="/contact">
           Contact Us
           <svg viewBox="0 0 24 24" width="17" height="17" fill="none"

@@ -5,15 +5,15 @@ import { Link } from "react-router-dom";
  * "Your Journey to Global Education" — the destinations grid on the home
  * page: one tile per country, and a last tile that sends you to the form.
  *
- * Each tile is a single link covering the whole card, front and back. Resting
- * on it turns the card over to what that country actually offers; clicking
- * anywhere on it — either face — goes to that country's page. One link rather
- * than a second one hidden on the back is what keeps this usable by keyboard
- * and on a touch screen.
+ * Each tile is a single link covering the whole card. Resting on it puts the
+ * photograph out of focus and brings up what that country actually offers on
+ * top of it; clicking anywhere goes to that country's page. One link rather
+ * than a second one buried in the detail panel is what keeps this usable by
+ * keyboard and on a touch screen.
  *
- * On a touch screen the flip is switched off entirely (see the stylesheet)
- * and the detail is shown on the front instead, because a card that only
- * gives up its content on hover gives up nothing at all to a thumb.
+ * On a touch screen the detail panel is dropped entirely (see the
+ * stylesheet) and the name stays on the front where it always is, because a
+ * card that only gives up its content on hover gives up nothing to a thumb.
  *
  * This replaced a turning globe carrying the same six countries. The globe
  * and its coastline data went with it; `git log` has them if the idea ever
@@ -89,9 +89,9 @@ function Tile({ destination }: { destination: (typeof DESTINATIONS)[number] }) {
 
   return (
     <Link className="dtile" to={destination.to}>
-      {/* The two faces share one box and turn together. This inner element is
-          what rotates, not the link: rotating the link would take its shadow
-          and its focus ring round with it. */}
+      {/* Both layers share one box: the photograph beneath, the detail over
+          it. The link itself is left out of all of it, so its shadow and its
+          focus ring are never caught up in what happens inside. */}
       <span className="dtile-turn">
         <span className="dtile-face dtile-front">
           {missing ? (
@@ -138,12 +138,6 @@ export default function Destinations() {
           Your Journey to Global Education{" "}
           <span className="h-accent">Starts Here</span>
         </h2>
-        <p className="destinations-lead">
-          Explore leading study destinations including Australia, the USA,
-          Canada, the UK, and more. Our experts help you discover the right
-          universities, scholarships, and opportunities to turn your
-          study-abroad plans into reality.
-        </p>
       </div>
 
       <div className="container">

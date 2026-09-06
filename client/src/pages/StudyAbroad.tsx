@@ -5,6 +5,7 @@ import api, { getErrorMessage } from "../api/client";
 import { PlaneIcon } from "../components/HeroOrbit";
 import { Check, Arrow, Shot } from "../components/destinationBits";
 import { useYouTubeFeed } from "../hooks/useYouTubeFeed";
+import RollingFigure from "../components/RollingFigure";
 
 /**
  * Study Abroad — the landing page behind the navbar's "Study Abroad" item,
@@ -354,22 +355,38 @@ export default function StudyAbroad() {
         </div>
       </header>
 
-      <section className="dpage-section">
-        <div className="container">
-          <h2 className="dpage-title">
-            Why students choose{" "}
-            <span className="h-outline">Lakehead</span>
-          </h2>
-          <p className="dpage-section-lead">
-            Guidance built around where you actually want to end up, from
-            people who know each destination properly rather than generally.
-          </p>
-          <div className="sa-credentials">
+      {/* The figures as a band of their own: full width, one flat colour,
+          the copy on the left and the numbers on the right. They used to be
+          four columns of body-sized type under a heading, in among
+          everything else on the page — read straight through, they went
+          past as another paragraph. A band stops the page for them.
+
+          The numbers roll up into place the first time they are scrolled
+          to; see RollingFigure. */}
+      <section className="sa-figures">
+        <div className="container sa-figures-inner">
+          <div className="sa-figures-copy">
+            <h2 className="sa-figures-title">
+              Why students choose Lakehead
+            </h2>
+            <p className="sa-figures-lead">
+              Guidance built around where you actually want to end up, from
+              people who know each destination properly rather than
+              generally.
+            </p>
+            <Link className="sa-figures-btn" to="/contact">
+              Talk to a counsellor
+            </Link>
+          </div>
+
+          <div className="sa-figures-grid">
             {CREDENTIALS.map((c) => (
-              <div className="sa-credential" key={c.label}>
-                <strong>{c.figure}</strong>
-                <span className="sa-credential-label">{c.label}</span>
-                <span className="sa-credential-note">{c.note}</span>
+              <div className="sa-figure" key={c.label}>
+                <strong className="sa-figure-value">
+                  <RollingFigure text={c.figure} />
+                </strong>
+                <span className="sa-figure-label">{c.label}</span>
+                <span className="sa-figure-note">{c.note}</span>
               </div>
             ))}
           </div>

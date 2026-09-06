@@ -30,7 +30,15 @@
 
   /* Landing hero palette */
   --color-hero-ink: #17275c;       /* deep navy headline */
-  --color-hero-red: #e0234e;       /* crimson accents & outline buttons */
+  /* The warm orange-red off the logo — the same family as the topbar pills
+     and the footer, and identical to --color-footer-bg on purpose: one
+     accent, used as ink on white and as a ground under white, so the brand
+     reads as one colour rather than a crimson and an orange that nearly
+     agree. It replaced #e0234e, a cold crimson that sat wrong against every
+     other warm tone on the site.
+     The name is kept because some fifty rules refer to it; it is an
+     orange-red now, not a crimson. */
+  --color-hero-red: #b93815;
 
   --font-display: "Outfit Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-body: "Outfit Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -102,17 +110,42 @@ img { max-width: 100%; display: block; }
 /* Sticky header wrapper — transparent so the top bar's glass effect works;
    the solid white belongs to .navbar-main (the link strip) only. */
 .navbar { position: sticky; top: 0; z-index: 50; }
+/* The bar slides up out of the way going down the page and comes back on the
+   way up — see `hidden` in Navbar.tsx for when it is allowed to.
+
+   The transform is on this WRAPPER and not on .navbar itself, for two
+   reasons. .scroll-progress-v is position:fixed and a sibling of this: a
+   transform on the header would make the header its containing block and
+   take the right-hand rail off the top of the screen along with the bar.
+   And the header keeps its own untransformed height, so --navbar-h stays
+   put and the heroes that reach up behind the bar never jump.
+
+   Long enough to read as the bar leaving rather than blinking off, and
+   eased out at both ends so it does not snap on arrival. */
+.navbar-slide {
+  transition: transform 0.4s cubic-bezier(0.4, 0.1, 0.2, 1);
+}
+.navbar.is-away .navbar-slide { transform: translateY(-100%); }
+/* Nothing moves for anyone who has asked for that. The bar simply stays. */
+@media (prefers-reduced-motion: reduce) {
+  .navbar-slide { transition: none; }
+  .navbar.is-away .navbar-slide { transform: none; }
+}
 .navbar-main {
   background: var(--color-bg); border-bottom: 1px solid var(--color-border);
   position: relative;
   transition: background-color 0.3s ease, border-color 0.3s ease;
 }
-/* The bar carries no ground of its own in two situations: over a destination
-   page's photographic hero (`seeThrough` in Navbar.tsx, dropped the moment
-   you scroll or open a menu), and under the home page's opened hero film
-   Everything inside has to invert with it:
-   the mark is a red PNG, flattened and inverted to white exactly as the
-   footer logo is. */
+/* The bar carries no ground of its own over a destination page's
+   photographic hero — `seeThrough` in Navbar.tsx, dropped the moment you
+   scroll off the picture or open a menu. Everything inside has to invert
+   with it: the mark is a red PNG, flattened and inverted to white exactly
+   as the footer logo is.
+
+   THE HOME PAGE IS NOT ONE OF THESE. It used to be, and its hero is a
+   moving film rather than a still, so the bar's contrast changed frame by
+   frame. Navbar.tsx returns early for "/" — nothing here needs a home-page
+   case because the class simply never goes on. */
 .navbar.is-over .navbar-main { background: transparent; border-bottom-color: transparent; }
 .navbar.is-over .brand-logo { filter: brightness(0) invert(1); }
 /* The wordmark is a gradient clipped to the text, so plain `color` cannot
@@ -430,11 +463,39 @@ img { max-width: 100%; display: block; }
    ============================================================ */
 .destinations { padding: var(--section-y) 0; }
 .dest-head { margin-bottom: 1.75rem; }
+/* ============================================================
+   HOME PAGE SECTION HEADINGS
+
+   Set in caps, and on their own — the paragraph that used to sit under each
+   of these is gone. A heading that says what the section is, followed by a
+   sentence saying the same thing again more slowly, is two things where one
+   will do; the sections below all show rather than tell.
+
+   Caps need looser letter-spacing, not tighter. The negative tracking these
+   carried is right for large mixed-case display type and wrong here: capital
+   letters have no ascenders or descenders to interlock, so pulling them
+   together closes the counters and the line turns into a wall. Sizes come
+   down a step for the same reason — caps read larger than the same point
+   size in mixed case. */
+.destinations-title,
+.help-title,
+.success-title,
+.vt-title,
+.testimonials-title,
+.universities-title,
+.journey-title,
+.nsx h2, .nsx-list h2 {
+  text-transform: uppercase;
+  letter-spacing: 0.005em;
+  font-weight: 800;
+  font-size: clamp(1.6rem, 2.7vw, 2.35rem);
+  line-height: 1.15;
+}
+
 .destinations-title {
   color: var(--color-hero-ink); font-size: clamp(2rem, 3.3vw, 2.9rem);
   letter-spacing: -0.02em; margin-bottom: 0.75rem;
 }
-.destinations-lead { color: var(--color-muted); max-width: 60ch; margin: 0; }
 
 .dest-grid {
   display: grid; gap: clamp(0.75rem, 1.4vw, 1.15rem);
@@ -447,43 +508,42 @@ img { max-width: 100%; display: block; }
 .dtile-cta { grid-column: 1 / -1; }
 
 /* ---- a tile ----
-   The link is the whole card and never turns; the element inside it does.
-   Turning the link itself would carry its shadow and its focus ring round
-   with the card, which looks like a bug and loses the focus ring at exactly
-   the moment a keyboard user needs it. */
+   Hovering does not turn the card over: the photograph stays where it is and
+   goes out of focus, and the detail comes up on top of it. The picture is
+   still the thing you are looking at, just no longer the thing being read. */
 .dtile {
   position: relative; display: block;
   aspect-ratio: 1 / 1;
   border-radius: 16px;
-  perspective: 1400px;
   color: #fff;
   box-shadow: 0 14px 30px -18px rgba(9, 16, 38, 0.5);
 }
 .dtile:focus-visible {
   outline: 3px solid var(--color-hero-red); outline-offset: 3px;
 }
-.dtile-turn {
-  position: absolute; inset: 0;
-  transform-style: preserve-3d;
-  transition: transform 0.62s cubic-bezier(0.3, 0.86, 0.3, 1);
-}
-.dtile:hover .dtile-turn, .dtile:focus-visible .dtile-turn {
-  transform: rotateY(180deg);
-}
-.dtile-face {
-  position: absolute; inset: 0;
-  border-radius: 16px; overflow: hidden;
-  /* The half of the card facing away is not drawn. Without this both faces
-     paint and the back shows through the front as mirror writing. */
-  -webkit-backface-visibility: hidden; backface-visibility: hidden;
-}
-.dtile-back { transform: rotateY(180deg); }
+.dtile-turn { position: absolute; inset: 0; }
+.dtile-face { position: absolute; inset: 0; border-radius: 16px; overflow: hidden; }
 
 /* ---- the front: the photograph and the name ---- */
 .dtile-front img, .dtile-blank {
   position: absolute; inset: 0;
   width: 100%; height: 100%; object-fit: cover; display: block;
+  transition: filter 0.4s ease, transform 0.5s ease;
 }
+/* Scaled up a touch along with the blur. A blur bleeds the edges of an image
+   inward, so an unscaled photograph would show a soft gap at the tile's
+   border where there is nothing left to blur. */
+.dtile:hover .dtile-front img,
+.dtile:focus-visible .dtile-front img,
+.dtile:hover .dtile-blank,
+.dtile:focus-visible .dtile-blank {
+  filter: blur(7px); transform: scale(1.08);
+}
+/* The name and its scrim step aside — the panel coming up says the country
+   again, larger, and twice is once too many. */
+.dtile-name, .dtile-scrim { transition: opacity 0.3s ease; }
+.dtile:hover .dtile-name, .dtile:focus-visible .dtile-name,
+.dtile:hover .dtile-scrim, .dtile:focus-visible .dtile-scrim { opacity: 0; }
 .dtile-blank { background: linear-gradient(150deg, #cfd6e4, #eef0f5); }
 /* No colour wash over the photographs — the pictures carry themselves, and
    a tint per country turned the row into a paint chart. Only enough darkness
@@ -506,13 +566,22 @@ img { max-width: 100%; display: block; }
   text-transform: uppercase; color: #fff;
 }
 
-/* ---- the back: what the country actually offers ---- */
+/* ---- the detail, over the blurred photograph ----
+   Translucent rather than solid, so the picture is still there behind the
+   words. Blurring it was meant to keep it and quieten it; a flat panel on
+   top would have thrown it away. */
 .dtile-back {
   display: flex; flex-direction: column; justify-content: center;
   gap: 0.55rem;
   padding: clamp(1.1rem, 2vw, 1.6rem);
-  background: linear-gradient(155deg, var(--color-hero-ink), #0d1834);
+  background: linear-gradient(
+    155deg,
+    rgba(16, 28, 66, 0.86),
+    rgba(9, 16, 38, 0.92)
+  );
+  opacity: 0; transition: opacity 0.38s ease;
 }
+.dtile:hover .dtile-back, .dtile:focus-visible .dtile-back { opacity: 1; }
 .dtile-back-name {
   font-family: var(--font-display); font-weight: 800;
   font-size: clamp(1rem, 1.5vw, 1.3rem); letter-spacing: -0.02em;
@@ -575,7 +644,6 @@ img { max-width: 100%; display: block; }
    rather than left to fire on tap, where it would swallow the first tap of
    a link people expect to follow. */
 @media (hover: none) {
-  .dtile-turn { transform: none !important; }
   .dtile-back { display: none; }
   .dtile { aspect-ratio: 4 / 3; }
   .dtile-scrim {
@@ -591,8 +659,14 @@ img { max-width: 100%; display: block; }
   .dest-grid { grid-template-columns: 1fr; }
 }
 @media (prefers-reduced-motion: reduce) {
-  /* The turn is the whole point of the tile, so it is kept — instantly. */
-  .dtile-turn { transition: none; }
+  /* The detail still appears; it just stops easing in, and the photograph is
+     blurred without also being scaled. */
+  .dtile-back, .dtile-name, .dtile-scrim,
+  .dtile-front img, .dtile-blank { transition: none; }
+  .dtile:hover .dtile-front img, .dtile:focus-visible .dtile-front img,
+  .dtile:hover .dtile-blank, .dtile:focus-visible .dtile-blank {
+    transform: none;
+  }
   .dtile-cta svg, .dtile-more { transition: none; }
 }
 
@@ -613,7 +687,6 @@ img { max-width: 100%; display: block; }
   color: var(--color-hero-ink); font-size: clamp(2.1rem, 3.5vw, 3.05rem);
   letter-spacing: -0.02em; line-height: 1.2; max-width: 480px; margin-bottom: 0;
 }
-.help-lead { color: var(--color-muted); font-size: 0.95rem; max-width: 440px; justify-self: end; }
 .help-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; }
 .help-card { position: relative; }
 /* Each card fades in from its own side the first time the row is scrolled to
@@ -656,17 +729,22 @@ img { max-width: 100%; display: block; }
 .help-arrow:hover { background: var(--color-hero-red); color: #fff; }
 
 /* ============================================================
-   Success stories — admin-managed video testimonials in a
-   scrollable row. Videos come from the published album titled
-   "Student Reviews" in the admin Media Library; each video's
-   Title is shown as the student's name. Cards play in place.
+   Video testimonials as a plain scrollable row — /study-abroad ONLY.
+
+   The home page used to share this and no longer does: it runs the
+   filmstrip in the .vt block further down. Everything here is still live,
+   so do not fold the two together on the strength of the class names —
+   StudyAbroad.tsx renders .success-head, .success-nav, .video-track and
+   .video-card, and would lose its row.
+
+   Videos come from the YouTube playlist; each video's title is shown as the
+   student's name, and cards play in place.
    ============================================================ */
 .success-stories { padding: var(--section-y) 0 0; }
 .success-title {
   color: var(--color-hero-ink);
   font-size: clamp(2rem, 3.3vw, 2.9rem); letter-spacing: -0.02em;
 }
-.success-lead { color: var(--color-muted); max-width: 960px; margin-bottom: 2rem; }
 /* Copy on the left, arrows top right. They are the same pair of thin round
    buttons the testimonial section uses, reddening on hover the same way —
    see .testimonial-arrow, which is positioned differently but styled to
@@ -675,7 +753,6 @@ img { max-width: 100%; display: block; }
   display: flex; align-items: flex-start; justify-content: space-between;
   gap: 2rem; margin-bottom: 2rem;
 }
-.success-head .success-lead { margin-bottom: 0; }
 .success-nav { display: flex; gap: 0.75rem; flex-shrink: 0; padding-top: 0.4rem; }
 .success-nav button {
   display: grid; place-items: center; width: 42px; height: 42px;
@@ -749,6 +826,219 @@ img { max-width: 100%; display: block; }
 .video-card-play svg { margin-left: 3px; }
 
 /* ============================================================
+   Student stories on the HOME page (components/VideoTestimonials.tsx) —
+   copy down the left, a filmstrip running off the right edge of the screen.
+
+   One card is featured: larger than the rest in both directions, standing
+   above and below their line, title at the top. The others queue to its
+   right at their smaller size with their titles at the foot, and the last of
+   them is cut by the edge of the screen — the strip is meant to read as
+   longer than the window, not as a row that happens to fit.
+
+   THE WHOLE LAYOUT COMES OFF FOUR CUSTOM PROPERTIES: a small card's width
+   and height, and the two multipliers that make the featured one. Change
+   --vt-w and everything else follows, including the distance the track
+   travels per step — which is why there is no measuring code in the
+   component.
+   ============================================================ */
+.vt {
+  --vt-w: clamp(190px, 18vw, 285px);
+  --vt-h: calc(var(--vt-w) * 1.54);
+  --vt-wf: calc(var(--vt-w) * 1.3);
+  --vt-hf: calc(var(--vt-h) * 1.2);
+  --vt-gap: clamp(0.35rem, 0.6vw, 0.6rem);
+  padding: var(--section-y) 0;
+}
+/* NOT a .container. The left column takes the container's own left gutter so
+   the heading lines up with every other heading on the page, and the right
+   column is given the rest — all the way to the edge of the window, with no
+   gutter of its own for the strip to stop at.
+
+   The gutter value is .container's arithmetic written out: the container is
+   40% + 0.6 * 1200px wide and centred, so the space beside it is half of
+   what is left over, plus its 1.5rem of padding. max() is the guard — below
+   about 1200px that goes negative and the padding falls back to the plain
+   gutter. */
+.vt-inner {
+  display: grid;
+  grid-template-columns: minmax(0, 24rem) minmax(0, 1fr);
+  gap: clamp(1.5rem, 4vw, 4rem);
+  padding-left: max(1.5rem, calc((60vw - 720px) / 2 + 1.5rem));
+}
+
+/* ---- the copy column ---- */
+/* A column, so the counter and its arrows can be pushed to the foot of it
+   with margin-top:auto rather than pinned to a height somebody would have to
+   keep in step with the strip beside it. */
+.vt-copy { display: flex; flex-direction: column; align-items: flex-start; }
+.vt-eyebrow {
+  color: var(--color-muted); font-weight: 700;
+  font-size: 0.78rem; letter-spacing: 0.16em; text-transform: uppercase;
+  margin-bottom: 1rem;
+}
+.vt-title {
+  color: var(--color-hero-ink);
+  font-size: clamp(2rem, 3.3vw, 2.9rem); letter-spacing: -0.02em;
+  margin-bottom: 2rem;
+}
+/* The pill. Filled in the page's own accent rather than the reference's
+   yellow, which is a brand colour we do not have — this is the red every
+   other button and arrow on the home page already uses, and white clears
+   4.5:1 on it. */
+.vt-btn {
+  display: inline-block; border-radius: 999px;
+  padding: 1rem 2.1rem;
+  background: var(--color-hero-red); color: #fff;
+  font-family: var(--font-display); font-weight: 700;
+  font-size: 0.78rem; letter-spacing: 0.12em; text-transform: uppercase;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.vt-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 26px rgba(185, 56, 21, 0.32);
+}
+/* Pushed to the foot of the column — and given a top padding as well, so on
+   a short column (or once this stacks on a phone, where auto resolves to
+   nothing) it still stands clear of the button above it. */
+.vt-nav {
+  display: flex; align-items: center; gap: 1rem;
+  margin-top: auto; padding-top: 2.5rem;
+}
+.vt-arrow {
+  display: grid; place-items: center; width: 46px; height: 46px; flex: none;
+  border: none; border-radius: 50%;
+  background: var(--color-hero-red); color: #fff;
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+.vt-arrow:hover:not(:disabled) { transform: scale(1.08); }
+/* Held at the ends rather than wrapping round. The counter says which of how
+   many, so an arrow that did nothing at "06 of 06" would be contradicting
+   the number printed between the two of them. */
+.vt-arrow:disabled {
+  background: var(--color-border); color: var(--color-muted);
+  cursor: default;
+}
+.vt-count {
+  margin: 0; color: var(--color-muted);
+  font-family: var(--font-display); font-weight: 600;
+  font-size: 0.95rem; letter-spacing: 0.08em; white-space: nowrap;
+}
+.vt-count-now { color: var(--color-hero-ink); font-weight: 700; }
+
+/* ---- the strip ----
+   The frame. It ends where the window ends, so the card that runs past it is
+   cut by the screen edge. The vertical padding is what keeps the featured
+   card's shadow clear of the same overflow. */
+.vt-stage { overflow: hidden; padding: 2rem 0; }
+/* One step is one SMALL card plus one gap — see the note in the component
+   for why that is exact rather than an approximation. --vt-i is the only
+   thing the component sets. */
+.vt-track {
+  display: flex; align-items: center; gap: var(--vt-gap);
+  width: max-content;
+  transform: translateX(calc(var(--vt-i, 0) * -1 * (var(--vt-w) + var(--vt-gap))));
+  transition: transform 0.62s cubic-bezier(0.32, 0.84, 0.28, 1);
+}
+.vt-tail { display: flex; align-items: center; gap: var(--vt-gap); }
+/* align-items:center on the track is what makes the featured card stand off
+   the line evenly above and below, rather than growing downward from a
+   shared top edge. */
+.vt-card {
+  position: relative; margin: 0; flex: none;
+  width: var(--vt-w); height: var(--vt-h);
+  border-radius: 4px; overflow: hidden;
+  background: var(--color-nav-bg);
+  transition: width 0.62s cubic-bezier(0.32, 0.84, 0.28, 1),
+              height 0.62s cubic-bezier(0.32, 0.84, 0.28, 1);
+}
+.vt-card[data-featured] {
+  width: var(--vt-wf); height: var(--vt-hf);
+  z-index: 2; box-shadow: 0 26px 60px rgba(23, 39, 92, 0.28);
+}
+.vt-card img, .vt-card iframe {
+  width: 100%; height: 100%; object-fit: cover; display: block; border: 0;
+}
+/* The hqdefault fallback is a 4:3 file with the wide frame letterboxed
+   inside it — covering a portrait card by height would bring those black
+   bars along, so this zooms past them. The frame is 3/4 of that file's
+   height, so 4/3 is the minimum; the rest is margin, because landing on the
+   exact figure leaves a sliver of bar to rounding. */
+.vt-thumb.is-letterboxed { transform: scale(1.4); }
+
+/* The title sits at the FOOT of a queued card and at the HEAD of the
+   featured one — the reference's arrangement, and it earns its keep: the
+   feature stands taller than its neighbours, so a title at its top is clear
+   of the line their titles sit on and the two never read as one row of
+   captions. */
+.vt-name {
+  position: absolute; left: 1.1rem; right: 1.1rem; bottom: 1.1rem; z-index: 2;
+  color: #fff; font-family: var(--font-display); font-weight: 700;
+  font-size: clamp(0.95rem, 1.15vw, 1.2rem); line-height: 1.25;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.5);
+  display: -webkit-box; -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2; overflow: hidden;
+  pointer-events: none;
+}
+.vt-card[data-featured] .vt-name {
+  top: 1.4rem; bottom: auto;
+  font-size: clamp(1.1rem, 1.5vw, 1.5rem);
+}
+/* A scrim under the words, on the side of the card they are actually on. We
+   cannot know how bright a frame the thumbnail is, and a title in white on a
+   pale still is a title nobody can read. */
+.vt-card::after {
+  content: ""; position: absolute; inset: auto 0 0; height: 45%; z-index: 1;
+  background: linear-gradient(0deg, rgba(0, 0, 0, 0.62), transparent);
+  pointer-events: none;
+}
+.vt-card[data-featured]::after {
+  inset: 0 0 auto; height: 40%;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.6), transparent);
+}
+/* Playing: the widescreen player, centred in the tall card, with nothing
+   drawn over it. */
+.vt-card[data-playing] { display: grid; place-items: center; background: #000; }
+.vt-card[data-playing]::after { content: none; }
+.vt-card iframe { height: auto; aspect-ratio: 16 / 9; }
+
+.vt-play {
+  position: absolute; inset: 0; margin: auto; z-index: 3;
+  width: 68px; height: 68px;
+  display: grid; place-items: center; border: none; border-radius: 50%;
+  background: rgba(255, 255, 255, 0.94); color: var(--color-primary);
+  cursor: pointer; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+  transition: transform 0.15s, background 0.15s;
+}
+.vt-play:hover { transform: scale(1.07); background: #fff; }
+.vt-play svg { margin-left: 3px; }
+/* A queued card is one big button that brings itself forward. Invisible, but
+   a real button element — so it is tabbable, it is announced, and it takes a
+   focus ring, all of which a click handler on the figure would have given
+   up. */
+.vt-pick {
+  position: absolute; inset: 0; z-index: 3;
+  border: none; background: none; cursor: pointer;
+  border-radius: inherit;
+}
+.vt-pick:focus-visible { outline: 3px solid #fff; outline-offset: -6px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .vt-track, .vt-card { transition: none; }
+}
+
+/* The two columns stack, and the strip keeps running off the right edge —
+   that is the design, not a wide-screen luxury. Only the copy gets a right
+   gutter back, since without one the heading would run to the screen edge. */
+@media (max-width: 900px) {
+  .vt { --vt-w: clamp(150px, 38vw, 210px); }
+  .vt-inner { grid-template-columns: 1fr; gap: 2rem; }
+  .vt-copy { padding-right: 1.5rem; }
+  .vt-nav { margin-top: 0; padding-top: 1.75rem; }
+  .vt-stage { padding: 1.25rem 0; }
+}
+
+/* ============================================================
    Testimonials — one story at a time (Testimonials.tsx). The
    student being read sits in a large circle in the middle, the
    neighbouring students fade back either side, and the arrows
@@ -777,7 +1067,6 @@ img { max-width: 100%; display: block; }
   content: ""; display: block; width: 54px; height: 2px; margin: 0.9rem auto 0;
   background: var(--color-hero-red); opacity: 0.85;
 }
-.testimonials-lead { color: var(--color-muted); max-width: 760px; margin: 1rem auto 0; }
 
 /* Row of faces, with the arrows parked at either end. Every photo is
    absolutely placed on this track and moves by transform alone, so a change
@@ -817,7 +1106,7 @@ img { max-width: 100%; display: block; }
 /* The student being read: full colour, ringed, and on top of the rest */
 .testimonial-face[data-depth="0"] {
   --x: 0px; --s: 1; z-index: 3; opacity: 1; cursor: default;
-  box-shadow: 0 0 0 4px var(--color-bg), 0 0 0 6px rgba(224, 35, 78, 0.22),
+  box-shadow: 0 0 0 4px var(--color-bg), 0 0 0 6px rgba(185, 56, 21, 0.22),
     0 12px 28px rgba(23, 39, 92, 0.18);
 }
 /* The two rings of neighbours: smaller, warmer, and pushed back */
@@ -1168,6 +1457,23 @@ a.greview-author:hover { text-decoration: underline; }
   .nsx-copy h2 { max-width: none; }
 }
 
+/* The heading leaves once the first step is past, and the steps climb into
+   the room it was taking. The rise is a length rather than a measurement of
+   the heading: it only has to look like the column moved up, and measuring
+   the h2 would mean reading layout on a scroll. */
+.nsx-copy h2 {
+  transition:
+    opacity 0.45s ease,
+    transform 0.6s cubic-bezier(0.16, 0.74, 0.22, 1);
+}
+.nsx-copy[data-started] h2 {
+  opacity: 0; transform: translateY(-28px); pointer-events: none;
+}
+.nsx-steps { transition: transform 0.6s cubic-bezier(0.16, 0.74, 0.22, 1); }
+.nsx-copy[data-started] .nsx-steps {
+  transform: translateY(clamp(-6.5rem, -9vh, -3rem));
+}
+
 /* ---- the steps ----
    Every block is mounted and they share one spot: the one in play sits in
    it, the ones still to come wait below, the ones done with have risen away.
@@ -1421,8 +1727,25 @@ a.greview-author:hover { text-decoration: underline; }
    moment the two cross. */
 .nsx-consult {
   position: absolute; inset: 0; z-index: 2;
+  /* Sat below the middle rather than on it: the heading above has gone by
+     the time this arrives, and a form centred in an empty frame reads as
+     floating. The extra top padding is what drops it. */
   display: grid; align-content: center;
-  padding: clamp(1.25rem, 2.5vw, 2.5rem);
+  /* The right padding lines the form up with the navbar rather than with the
+     window. This panel covers the stack, which is pinned to the window's
+     right edge — so left to itself the form ran past the point where every
+     other line on the page stops.
+
+     The value is .container's own gutter written out: the container is
+     `40% + 0.6 * 1200px` wide and centred, so the space beside it is half of
+     what is left over, plus its own 1.5rem of padding. max() is the guard —
+     below about 1200px that arithmetic goes negative, and the panel falls
+     back to its ordinary padding. */
+  padding:
+    clamp(3rem, 12vh, 7rem)
+    max(clamp(1.25rem, 2.5vw, 2.5rem), calc((60vw - 720px) / 2 + 1.5rem))
+    clamp(1.25rem, 2.5vw, 2.5rem)
+    clamp(1.25rem, 2.5vw, 2.5rem);
   background: var(--color-bg);
   opacity: 0; pointer-events: none;
   transform: translateY(24px);
@@ -1430,8 +1753,23 @@ a.greview-author:hover { text-decoration: underline; }
     opacity 0.5s ease,
     transform 0.62s cubic-bezier(0.32, 0.84, 0.28, 1);
   /* Taller than the frame on a short window: scrolling inside it beats
-     scaling a form down to unreadable. No rail down the side, though. */
-  overflow-y: auto; overscroll-behavior: contain;
+     scaling a form down to unreadable. No rail down the side, though.
+
+     `overscroll-behavior` MUST stay chaining (`auto`). This used to say
+     `contain`, and that killed the page scroll outright: an element with
+     `overflow-y: auto` is a scroll container whether or not it has anything
+     to scroll, and `contain` stops a scroll container handing the wheel on
+     to its ancestor. On a normal-height window the form fits, so this panel
+     had nothing to scroll AND refused to pass the wheel up — and because the
+     panel is `inset: 0` over the whole pinned stack, putting the cursor
+     anywhere near the form froze the page. The section is scroll-driven, so
+     a frozen page also meant a frozen sequence.
+
+     Chaining gives the behaviour that was wanted in the first place: on a
+     short window the form scrolls itself first and the page takes over at
+     its end; on a tall one there is nothing to scroll here and the wheel
+     goes straight to the page. */
+  overflow-y: auto; overscroll-behavior: auto;
   scrollbar-width: none; -ms-overflow-style: none;
 }
 .nsx-consult::-webkit-scrollbar { width: 0; height: 0; display: none; }
@@ -1489,66 +1827,148 @@ a.greview-author:hover { text-decoration: underline; }
   .jp-frame:hover .jp-link { transform: none; }
 }
 
-/* Stats strip below the hero — crimson figures, sitting on the page itself
-   rather than a band of their own. */
-/* Set down from the hero rather than tucked under it: the film above now
-   runs the full height of the first screen, and the figures want to read as
-   the next thing on the page instead of a caption to it. */
-/* Set well down from the film above. The hero runs the full height of the
-   first screen, so these are the first thing past it and want to arrive as
-   their own band rather than as a caption to the video. */
-.stats-strip { padding: clamp(4.5rem, 11vh, 8rem) 0 clamp(2.5rem, 5vh, 4rem); }
-.stats-grid {
-  display: grid; grid-template-columns: repeat(4, 1fr);
-  gap: 2rem; text-align: center;
-}
-.stat strong {
-  display: block; color: #b02a2a; font-family: var(--font-display);
-  font-size: clamp(2rem, 3.2vw, 2.75rem); font-weight: 700; letter-spacing: -0.02em;
-  line-height: 1.1; margin-bottom: 0.4rem;
-}
-/* Direct child only: the label. The rolling figure is built from spans too,
-   and a bare `.stat span` was catching those and dropping them to label size. */
-.stat > span { color: #3d2b2b; font-size: 0.95rem; }
-/* Each figure rolls into place: a one-line window per digit with a tall
-   strip of numerals behind it, slid up until the right one shows. The real
-   figure is in .stat-value for screen readers and sits out of the layout. */
-.stat-value {
-  position: absolute; width: 1px; height: 1px; overflow: hidden;
-  clip-path: inset(50%); white-space: nowrap;
-}
-/* THE CELL HEIGHT IS ONE NUMBER, AND THE COMPONENT USES IT TOO.
-   Each digit is a window one cell tall with a strip of numerals behind it,
-   slid up by a whole number of cells — so the window, the cells and the
-   distance travelled all have to agree. StatsStrip.tsx reads --roll-h for
-   its transform rather than assuming 1em.
+/* ============================================================
+   Stats strip below the hero (components/StatsStrip.tsx) — one long line
+   of large navy figures gliding right to left, forever. Each carries a
+   small label over an orange rule and, under that, the names behind the
+   number: the countries, the tests, the cities.
 
-   It is comfortably more than 1em on purpose: at exactly 1em the window is
-   the height of the font's em box, and the numerals inside it were being
-   shaved top and bottom by the overflow that makes the window a window. */
-.roll { display: inline-flex; --roll-h: 1.34em; }
-.roll-digit { display: inline-block; height: var(--roll-h); overflow: hidden; }
-/* One long, decelerating run. The curve leaves almost all of its easing to
-   the end, so a digit travels fast while it is a blur and settles slowly
-   where the eye can actually follow it — the earlier curve arrived hard and
-   made the landing look like a stop rather than a settle. */
-.roll-strip {
-  display: block;
-  transition: transform 2.4s cubic-bezier(0.12, 0.78, 0.14, 1);
+   It sits on the page itself rather than in a band of its own, and well
+   down from the film above — the hero runs the full height of the first
+   screen, so these are the first thing past it and want to arrive as their
+   own thing rather than as a caption to the video.
+
+   This replaced a four-up grid whose digits rolled into place once, on
+   arrival, and then held still for the rest of the visit. See the note at
+   the top of the component for why, and for how the loop is made seamless.
+   ============================================================ */
+.stats-strip { padding: clamp(4.5rem, 11vh, 8rem) 0 clamp(2.5rem, 5vh, 4rem); }
+
+/* ---- the marquee ----
+   The window. `overflow: hidden` is what turns a track far wider than the
+   screen into a band that shows a slice of itself; without it the track
+   would push the page sideways instead of gliding across it.
+
+   The mask feathers both ends over a couple of centimetres. The alternative
+   is a hard cut, and a hard cut on something permanently in motion slices
+   whichever numeral happens to be at the edge down the middle of its
+   strokes — which reads as a rendering fault rather than as a design. Drop
+   the two mask lines if you want the figures to run flush to the edge. */
+.smq {
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(to right,
+    transparent 0, #000 2.5rem, #000 calc(100% - 2.5rem), transparent 100%);
+  mask-image: linear-gradient(to right,
+    transparent 0, #000 2.5rem, #000 calc(100% - 2.5rem), transparent 100%);
 }
-/* line-height equal to the cell centres each numeral in it, so the extra
-   room is shared above and below rather than all landing under the digit. */
-.roll-strip span, .roll-fixed {
-  display: block; height: var(--roll-h); line-height: var(--roll-h);
+/* `width: max-content` so the track is as wide as its contents rather than
+   as wide as the screen — the percentage in the keyframe below is a
+   percentage OF THE TRACK, and a track clamped to the viewport would slide
+   by half a screen instead of half a list.
+
+   Promoted to its own layer: this animates for as long as the strip is on
+   screen, and repainting a band of large type every frame is exactly the
+   work `will-change` exists to hand to the compositor. */
+.smq-track {
+  display: flex; width: max-content;
+  will-change: transform;
+  animation: smq-run var(--smq-dur, 42s) linear infinite;
 }
-.roll-fixed { display: inline-block; }
-.stats-note { text-align: center; color: #3d2b2b; font-size: 0.8rem; margin-top: 1.25rem; }
+.smq-copy { display: flex; }
+/* Half the track is one whole copy of the list, so at the instant this
+   wraps back to 0 the second copy is standing exactly where the first one
+   started. Nothing moves at the seam, which is what makes the loop endless
+   rather than a lap. */
+@keyframes smq-run {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+/* Stops for anyone reading it — the cursor resting on the band, or a
+   keyboard tabbing into it. A line of type that will not hold still cannot
+   be read, and this one now carries names and not just numbers. */
+.smq:hover .smq-track,
+.smq:focus-within .smq-track { animation-play-state: paused; }
+
+/* ---- one stat ----
+   The divider is a border on the item rather than an element between items,
+   which is what lets the seam between the two copies look like every other
+   join in the line: every item carries its own left edge, so there is no
+   special first or last one to fix up. */
+.smq-stat {
+  display: flex; align-items: center;
+  gap: clamp(0.75rem, 1.4vw, 1.35rem);
+  /* The vertical padding is not decoration — it is clip room. The figure is
+     set at `line-height: 1`, so its line box is exactly one em while the
+     font's own ascent and descent are rather more than that: the tops of
+     the digits and the tail of a comma both hang outside the box. `.smq`
+     clips at its padding edge, so without this the "1,100+" comma came off
+     against a band that is otherwise a clean line of numbers. It also gives
+     the dividers below their height. */
+  padding: clamp(0.6rem, 1.4vh, 1rem) clamp(1.5rem, 3.4vw, 3.25rem);
+  border-left: 1px solid var(--color-border);
+}
+/* The number, and the whole point of the change: set big enough to be the
+   thing you see from across the room. Sized off the window rather than off
+   the digit count, so "760,000+" and "3" stand the same height and the band
+   reads as one row of figures instead of as a chart. */
+.smq-figure {
+  font-family: var(--font-display);
+  font-size: clamp(2.15rem, 4.2vw, 3.6rem);
+  font-weight: 700; letter-spacing: -0.035em; line-height: 1;
+  color: var(--color-hero-ink);
+  white-space: nowrap;
+}
+/* The label, its rule and its examples, stacked beside the figure. */
+.smq-meta { display: flex; flex-direction: column; gap: 0.45rem; }
+.smq-label {
+  font-family: var(--font-display);
+  font-size: clamp(0.8rem, 1vw, 0.95rem); font-weight: 700;
+  line-height: 1.2; color: var(--color-hero-ink);
+  white-space: nowrap;
+}
+/* Short, thick and orange — the one piece of colour in the band. Given a
+   fixed width rather than the label's, so a long label and a short one
+   carry the same mark. */
+.smq-rule {
+  display: block; width: 2.5rem; height: 4px; border-radius: 2px;
+  background: var(--color-topbar-accent);
+}
+/* The detail line: named examples, set quiet and small so it reads as a
+   footnote to the label rather than as a second label. It is the one part
+   of the item allowed to be long, and `nowrap` keeps it on one line — the
+   band is a line of type, and a stat that wrapped to two would stand a head
+   taller than every other stat in the row. */
+.smq-detail {
+  font-size: clamp(0.72rem, 0.85vw, 0.84rem); line-height: 1.3;
+  color: var(--color-muted); white-space: nowrap;
+}
+
+/* Motion this constant is the kind a vestibular disorder reacts to, and it
+   never stops on its own. Turned off entirely: the track holds still and
+   becomes something you push by hand instead, and the duplicate copy goes
+   with the animation that needed it — without the slide it is just the same
+   figures listed twice. */
+@media (prefers-reduced-motion: reduce) {
+  .smq {
+    overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none;
+  }
+  .smq::-webkit-scrollbar { height: 0; display: none; }
+  .smq-track { animation: none; will-change: auto; }
+  .smq-copy[aria-hidden="true"] { display: none; }
+}
+
+.stats-note {
+  text-align: center; color: #3d2b2b; font-size: 0.8rem; margin-top: 1.75rem;
+}
 
 /* ============================================================
    The free-consultation form (components/ConsultCard.tsx).
    Used only inside the journey band's closing panel.
    ============================================================ */
-.consult-card { width: min(100%, 780px); margin: 0 auto; }
+/* Pushed to the right-hand edge of its panel, which the panel has lined up
+   with the container — so the form's edge and the navbar's edge are the same
+   line down the page. */
+.consult-card { width: min(100%, 780px); margin-left: auto; margin-right: 0; }
 .consult-intro { margin-bottom: clamp(1.25rem, 2.5vh, 2rem); }
 .consult-intro h3 {
   margin: 0 0 0.4rem; color: var(--color-hero-ink);
@@ -1631,7 +2051,7 @@ a.greview-author:hover { text-decoration: underline; }
 }
 .consult-submit:hover:not(:disabled) {
   background: #c31740;
-  box-shadow: 0 12px 26px -12px rgba(224, 35, 78, 0.7);
+  box-shadow: 0 12px 26px -12px rgba(185, 56, 21, 0.7);
 }
 .consult-submit:focus-visible {
   outline: 3px solid var(--color-hero-ink); outline-offset: 3px;
@@ -1657,10 +2077,6 @@ a.greview-author:hover { text-decoration: underline; }
   color: var(--color-hero-ink);
   font-size: clamp(2.6rem, 5vw, 4.4rem);
   line-height: 1.08; letter-spacing: -0.03em; margin-bottom: 1.25rem;
-}
-.journey-lead {
-  color: var(--color-muted); font-size: 1.08rem; line-height: 1.75;
-  max-width: 540px; margin: 0 auto 2.25rem;
 }
 /* The same outlined treatment as the consultation form's own button, so the
    two calls to action on the page read as one gesture. It is a link, not a
@@ -1926,10 +2342,14 @@ a.greview-author:hover { text-decoration: underline; }
   /* Hero stacks: copy on top, orbit visual below */
   .hero-inner { grid-template-columns: 1fr; gap: 2rem; padding-top: 2.5rem; }
   .hero-orbit-wrap { --orbit-size: min(400px, 88vw); }
-  /* Stats strip wraps to 2×2; the trust strip stacks */
-  .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
+  /* The stats marquee needs no breakpoint of its own — a line that is
+     already wider than any screen does not care how wide the screen is —
+     but the figures are pulled in a little and the items sit closer, so a
+     phone shows more than one stat at a time rather than one enormous
+     number filling the band. */
+  .smq-figure { font-size: clamp(1.85rem, 7.5vw, 2.35rem); }
+  .smq-stat { padding-inline: clamp(1rem, 5vw, 1.75rem); }
   .help-head { grid-template-columns: 1fr; gap: 1.25rem; }
-  .help-lead { justify-self: start; }
   .help-grid { grid-template-columns: 1fr; }
   /* Smaller circles, and the outer ring tucked closer in, on a phone */
   .testimonial-stage { height: 150px; }
@@ -2191,12 +2611,18 @@ a.greview-author:hover { text-decoration: underline; }
   display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.25rem;
   margin-bottom: 1.75rem;
 }
+/* Same hairline, and a hover that firms the edge rather than lifting the
+   whole card off the page. These are reference cards, not buttons — nothing
+   happens when you click one, so nothing should suggest it might. */
 .dpage-city {
-  background: #fff; border-radius: 14px; padding: 1.4rem;
-  border-left: 3px solid var(--color-hero-red);
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  background: #fff; border: 1px solid var(--color-border);
+  border-radius: 12px; padding: 1.4rem;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
 }
-.dpage-city:hover { transform: translateY(-3px); box-shadow: 0 16px 34px rgba(23, 39, 92, 0.12); }
+.dpage-city:hover {
+  border-color: #c8d1e0;
+  box-shadow: 0 10px 24px -14px rgba(23, 39, 92, 0.35);
+}
 .dpage-city h3 {
   display: flex; align-items: center; gap: 0.5rem;
   color: var(--color-hero-ink); font-size: 1.1rem; margin-bottom: 0.4rem;
@@ -2421,7 +2847,7 @@ a.greview-author:hover { text-decoration: underline; }
 }
 .dpage-course-group h3 {
   color: var(--color-hero-ink); font-size: 1.1rem; margin-bottom: 1.1rem;
-  padding-bottom: 0.75rem; border-bottom: 2px solid var(--color-hero-red);
+  padding-bottom: 0.75rem; border-bottom: 1px solid var(--color-border);
 }
 .dpage-course-group .dpage-checks { margin-bottom: 0; }
 .dpage-checks-2 { grid-template-columns: repeat(2, 1fr); gap: 0.85rem 2rem; }
@@ -2519,23 +2945,130 @@ a.greview-author:hover { text-decoration: underline; }
    ============================================================ */
 
 /* ---- credentials ---- */
-.sa-credentials {
-  display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.25rem;
+/* ============================================================
+   /study-abroad — the key-figures band (pages/StudyAbroad.tsx).
+
+   Full-bleed, one flat colour, copy left and numbers right. It replaced
+   four hairline-topped columns sitting in the page's ordinary flow, which
+   read as another paragraph however large the numerals were set: nothing
+   around them changed, so nothing said "stop here". A band does that on its
+   own, and it is the only place on the page where the navy becomes a
+   ground rather than a text colour.
+
+   The numerals roll into place once, on arrival — see RollingFigure.tsx and
+   the .rollf rules under this block.
+   ============================================================ */
+/* WHY THIS COLOUR AND NOT THE NAVY. The reference band is a bright,
+   saturated ground with dark type on it, and the jolt is the whole effect —
+   the page stops being white and the numbers land on colour. Reaching for
+   --color-hero-ink here got the opposite: the hero directly above is a
+   photograph under a near-opaque rgba(9,16,38,.94) scrim, so a navy band
+   under it read as one continuous dark mass and the figures lost the very
+   separation they were moved into a band to get.
+
+   --color-footer-bg is the palette's other saturated ground, it breaks hard
+   against the navy above it, and white clears 4.5:1 on it — which the
+   orange accent does not, and this band carries small type as well as big
+   numerals. */
+.sa-figures {
+  background: var(--color-footer-bg);
+  padding: clamp(3rem, 7vh, 5.5rem) 0;
 }
-.sa-credential {
-  background: #f4f7fb; border-radius: 16px; padding: 1.75rem 1.5rem;
-  border-bottom: 3px solid var(--color-hero-red);
+/* Copy and figures side by side, the figures given the larger share — they
+   are the reason the band exists. Below the breakpoint the two stack and
+   the numbers keep their 2×2. */
+.sa-figures-inner {
+  display: grid; grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  gap: clamp(2rem, 5vw, 5rem); align-items: center;
 }
-.sa-credential strong {
-  display: block; font-family: var(--font-display); font-weight: 800;
-  font-size: clamp(2rem, 3.2vw, 2.8rem); line-height: 1;
-  color: var(--color-hero-ink); letter-spacing: -0.03em; margin-bottom: 0.6rem;
+.sa-figures-copy { color: #fff; }
+.sa-figures-title {
+  color: #fff; font-size: clamp(1.5rem, 2.4vw, 2.1rem);
+  line-height: 1.25; margin-bottom: 0.9rem; max-width: 22ch;
 }
-.sa-credential-label {
-  display: block; color: var(--color-hero-ink);
-  font-weight: 700; font-size: 1.02rem; margin-bottom: 0.3rem;
+.sa-figures-lead {
+  color: rgba(255, 255, 255, 0.9); font-size: 0.98rem;
+  line-height: 1.6; margin-bottom: 1.75rem; max-width: 42ch;
 }
-.sa-credential-note { display: block; color: var(--color-muted); font-size: 0.88rem; line-height: 1.5; }
+/* The pill: white on the colour, and the one thing in the band you can
+   click. Letter-spaced small caps rather than sentence case, so it reads as
+   a button at a glance and does not compete with the heading above it. */
+.sa-figures-btn {
+  display: inline-block; border-radius: 999px;
+  padding: 1rem 2.25rem;
+  background: #fff; color: var(--color-footer-bg);
+  font-family: var(--font-display); font-weight: 700;
+  font-size: 0.78rem; letter-spacing: 0.12em; text-transform: uppercase;
+  text-align: center;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.sa-figures-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.22);
+}
+/* Two by two, as in the reference. Not four across: at four the numbers
+   have to shrink to fit and the band loses the one thing it is for. */
+.sa-figures-grid {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(1.75rem, 3.5vw, 3rem) clamp(1.5rem, 3vw, 2.5rem);
+}
+/* The numeral. Set big, set tight, and set in white on the band. */
+.sa-figure-value {
+  display: block; font-family: var(--font-display); font-weight: 700;
+  font-size: clamp(2.25rem, 3.8vw, 3.4rem); line-height: 1;
+  letter-spacing: -0.03em; color: #fff; margin-bottom: 0.55rem;
+}
+.sa-figure-label {
+  display: block; color: #fff; font-weight: 600;
+  font-size: 1rem; line-height: 1.35; margin-bottom: 0.25rem;
+}
+/* Held at .88 rather than the .7 this would naturally want: any lighter
+   and the note drops under 4.5:1 against the band, and it is the smallest
+   type in the section. */
+.sa-figure-note {
+  display: block; color: rgba(255, 255, 255, 0.88);
+  font-size: 0.85rem; line-height: 1.5;
+}
+
+/* ---- the rolling numerals (components/RollingFigure.tsx) ----
+
+   THE CELL HEIGHT IS ONE NUMBER AND THE COMPONENT READS IT TOO. Each digit
+   is a window one cell tall with a strip of numerals behind it, slid up by a
+   whole number of cells — so the window, the cells and the distance
+   travelled have to agree, and RollingFigure.tsx takes --rollf-h from here
+   for its transform rather than assuming 1em.
+
+   It is more than 1em on purpose: at exactly 1em the window is the height of
+   the font's em box and the numerals get shaved top and bottom by the very
+   overflow that makes the window a window. */
+.rollf-host { position: relative; display: inline-block; }
+/* The figure as text: present for anything that reads the page, out of the
+   layout for anything that looks at it. */
+.rollf-real {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip-path: inset(50%); white-space: nowrap;
+}
+.rollf { display: inline-flex; --rollf-h: 1.16em; }
+.rollf-digit { display: inline-block; height: var(--rollf-h); overflow: hidden; }
+/* Short and decelerating. This is the "gently and subtly" half of the
+   brief: one turn, a plain ease-out, and under a second from start to
+   settle. The curve it replaced left almost all its easing to the end,
+   which suits a long spin and reads as a lurch on a short one. */
+.rollf-strip {
+  display: block;
+  transition: transform 0.9s cubic-bezier(0.22, 0.68, 0.24, 1);
+}
+/* line-height equal to the cell centres each numeral inside it, so the
+   spare room is shared above and below rather than all landing underneath. */
+.rollf-strip span, .rollf-fixed {
+  display: block; height: var(--rollf-h); line-height: var(--rollf-h);
+}
+.rollf-fixed { display: inline-block; }
+/* Nothing travels. The component already lands the figure immediately in
+   this case; this is the belt to that pair of braces. */
+@media (prefers-reduced-motion: reduce) {
+  .rollf-strip { transition: none; }
+}
 
 /* ---- picture cards ----
    Shared by the destination grid on /study-abroad and the service grid on
@@ -2703,7 +3236,8 @@ a.greview-author:hover { text-decoration: underline; }
 .sa-status .is-bad { color: var(--color-danger); font-weight: 600; }
 
 @media (max-width: 1024px) {
-  .sa-credentials { grid-template-columns: repeat(2, 1fr); }
+  /* Copy over figures; the figures keep their 2×2 underneath. */
+  .sa-figures-inner { grid-template-columns: 1fr; gap: 2.5rem; }
   .dpage-cards { grid-template-columns: repeat(2, 1fr); }
   .sa-form-wrap { grid-template-columns: 1fr; gap: 2.5rem; }
 }
@@ -2711,7 +3245,10 @@ a.greview-author:hover { text-decoration: underline; }
   .sa-support { grid-template-columns: 1fr; gap: 1.5rem; }
 }
 @media (max-width: 560px) {
-  .sa-credentials { grid-template-columns: 1fr; }
+  /* One figure per row: at two columns on a phone the numerals were
+     dropping below the size that makes this a band of figures at all. */
+  .sa-figures-grid { grid-template-columns: 1fr; gap: 1.75rem; }
+  .sa-figures-btn { display: block; }
   .dpage-cards { grid-template-columns: 1fr; }
   .sa-field-row { grid-template-columns: 1fr; }
   .sa-form { padding: 1.35rem; }
@@ -2919,9 +3456,12 @@ a.greview-author:hover { text-decoration: underline; }
   display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
   gap: 1.5rem; margin: 2.5rem 0 3.5rem;
 }
+/* A hairline all the way round instead of a red bar along the bottom. The
+   step's own numeral is already in the accent colour, and one accent per
+   card is plenty. */
 .cc-process-item {
-  background: #fff; border-radius: 16px; padding: 1.6rem 1.5rem;
-  border-bottom: 3px solid var(--color-hero-red);
+  background: #fff; border: 1px solid var(--color-border);
+  border-radius: 12px; padding: 1.6rem 1.5rem;
 }
 .cc-process-n {
   display: block; font-family: var(--font-display); font-weight: 800;
@@ -2949,7 +3489,7 @@ a.greview-author:hover { text-decoration: underline; }
    slanted — an underline the width of the words, in the accent colour. */
 .cc-quote em {
   font-style: normal; color: var(--color-hero-red);
-  box-shadow: inset 0 -0.14em 0 rgba(224, 35, 78, 0.35);
+  box-shadow: inset 0 -0.14em 0 rgba(185, 56, 21, 0.35);
 }
 .cc-quote span {
   display: block; color: rgba(255, 255, 255, 0.68);
@@ -3366,7 +3906,7 @@ a.greview-author:hover { text-decoration: underline; }
 .usa[data-reveal-armed] .usa-body .usa-pull.is-in::before { transform: scaleY(1); }
 .usa-body .usa-pull em {
   font-style: normal; color: var(--color-hero-red);
-  box-shadow: inset 0 -0.12em 0 rgba(224, 35, 78, 0.25);
+  box-shadow: inset 0 -0.12em 0 rgba(185, 56, 21, 0.25);
 }
 @media (prefers-reduced-motion: reduce) {
   .usa-body .usa-pull::before { transition: none; transform: scaleY(1); }
@@ -3407,7 +3947,7 @@ a.greview-author:hover { text-decoration: underline; }
   border: 2px solid var(--color-hero-red); border-radius: 16px;
   padding: 1.4rem 1.6rem; margin: 2.4rem 0;
 }
-.usa-warn-hard { background: rgba(224, 35, 78, 0.05); }
+.usa-warn-hard { background: rgba(185, 56, 21, 0.05); }
 .usa-warn-tag {
   color: var(--color-hero-red) !important;
   font-size: 0.75rem; font-weight: 700; letter-spacing: 0.16em;
@@ -3520,10 +4060,23 @@ a.greview-author:hover { text-decoration: underline; }
      necessarily arrive in the same motion — there is nothing to keep in
      step, which is the whole reason this is one element and not two. */
   .tst-panel .tst-shot { height: 100%; aspect-ratio: auto; border-radius: 0; }
+  /* The text half scrolls itself only when a long type overruns the deck.
+     `overscroll-behavior` stays chaining (`auto`) — see the same note on
+     .nsx-consult. With `contain` the wheel died here: most types fit, so
+     this box had nothing to scroll and still swallowed the event, and since
+     the whole sequence is driven by page scroll, resting the cursor over
+     the words stopped the page and the deck with it. Chaining means a long
+     type scrolls its own text first and then hands the page back. */
   .tst-body {
     padding: clamp(1.5rem, 3vw, 2.75rem);
-    display: flex; flex-direction: column; justify-content: center;
-    overflow-y: auto; overscroll-behavior: contain;
+    /* `safe center` and not plain `center`: a centred flex column that
+       overruns its box overflows in BOTH directions, and the part pushed
+       past the top edge cannot be scrolled back to — so on the long types
+       the count and the heading were simply unreachable. `safe` centres
+       exactly as before while it fits and falls back to the top edge when
+       it does not, which is the only case where centring was wrong. */
+    display: flex; flex-direction: column; justify-content: safe center;
+    overflow-y: auto; overscroll-behavior: auto;
   }
   .tst-body::-webkit-scrollbar { width: 6px; }
   .tst-body::-webkit-scrollbar-thumb {
@@ -3716,7 +4269,7 @@ a.greview-author:hover { text-decoration: underline; }
   /* Struck through, because the layout should say "wrong" before the words
      on the right get a chance to. */
   text-decoration: line-through;
-  text-decoration-color: rgba(224, 35, 78, 0.5);
+  text-decoration-color: rgba(185, 56, 21, 0.5);
   text-decoration-thickness: 2px;
 }
 .usa-body .usa-myth-truth {
@@ -3886,32 +4439,13 @@ a.greview-author:hover { text-decoration: underline; }
 /* ---- the figures band ----
    Navy, full-bleed, and the only place on the page where a number is
    allowed to be the biggest thing in view. */
+/* The figures band on /about. It is the home page's marquee now (see
+   StatMarquee.tsx and the .smq rules), so all this band does is give the
+   line a tinted ground and some air. The .who-figure* rules that used to be
+   here — a six-cell grid with hairline separators — went with the grid. */
 .who-figures-band {
-  background: var(--color-hero-ink); color: #fff;
-  padding: clamp(2.5rem, 5vw, 3.75rem) 0;
-}
-.who-figures {
-  display: grid; grid-template-columns: repeat(6, 1fr);
-  gap: 1.5rem 1rem;
-}
-.who-figure {
-  text-align: center; position: relative;
-  padding: 0 0.5rem;
-}
-/* Hairline rules between the figures rather than around them — a card each
-   would turn six short phrases into a grid of boxes. */
-.who-figure + .who-figure::before {
-  content: ""; position: absolute; left: 0; top: 12%; bottom: 12%;
-  width: 1px; background: rgba(255, 255, 255, 0.16);
-}
-.who-figure strong {
-  display: block; font-family: var(--font-display); font-weight: 800;
-  font-size: clamp(1.7rem, 3vw, 2.6rem); line-height: 1;
-  letter-spacing: -0.03em; color: #fff; margin-bottom: 0.45rem;
-}
-.who-figure span {
-  display: block; color: rgba(255, 255, 255, 0.7);
-  font-size: 0.85rem; line-height: 1.35; letter-spacing: 0.01em;
+  background: #f4f7fb;
+  padding: clamp(2.5rem, 6vh, 4.5rem) 0;
 }
 
 /* ---- what happens under this roof ---- */
@@ -3949,13 +4483,19 @@ a.greview-author:hover { text-decoration: underline; }
   margin-top: 2.5rem;
   display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem;
 }
+/* Hairline all the way round rather than a red bar down one side — the same
+   treatment the city cards and the process steps now use, so the site has
+   one idea of what a card is instead of four. */
 .who-credo-card {
-  background: #fff; border-radius: 18px; padding: 2rem 1.9rem;
-  border-left: 4px solid var(--color-hero-red);
-  transition: transform 0.3s ease, box-shadow 0.3s ease, opacity 0.65s ease;
+  background: #fff; border: 1px solid var(--color-border);
+  border-radius: 12px; padding: 2rem 1.9rem;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease, opacity 0.65s ease;
 }
+/* Firms the edge rather than lifting the card off the page. Nothing happens
+   when you click one of these, so nothing should suggest it might. */
 .who-credo-card.is-in:hover {
-  transform: translateY(-4px); box-shadow: 0 18px 38px rgba(23, 39, 92, 0.12);
+  border-color: #c8d1e0;
+  box-shadow: 0 10px 24px -14px rgba(23, 39, 92, 0.35);
 }
 .who-kicker {
   color: var(--color-hero-red); font-size: 0.76rem; font-weight: 700;
@@ -3982,7 +4522,7 @@ a.greview-author:hover { text-decoration: underline; }
    slanted — an underline the width of the words, in the accent colour. */
 .who-quote em {
   font-style: normal; color: var(--color-hero-red);
-  box-shadow: inset 0 -0.14em 0 rgba(224, 35, 78, 0.35);
+  box-shadow: inset 0 -0.14em 0 rgba(185, 56, 21, 0.35);
 }
 .who-quote span {
   display: block; color: rgba(255, 255, 255, 0.66);
@@ -4166,9 +4706,7 @@ a.greview-author:hover { text-decoration: underline; }
 .who-contact-list a:hover { color: var(--color-hero-red); }
 
 @media (max-width: 1080px) {
-  .who-figures { grid-template-columns: repeat(3, 1fr); }
   /* With three per row the vertical rules would fall in the wrong places */
-  .who-figure + .who-figure::before { display: none; }
   .who-map-split, .who-contact-split { grid-template-columns: 1fr; }
   /* Nothing left beside it to stay in step with */
   .who-process { position: static; }
@@ -4184,7 +4722,6 @@ a.greview-author:hover { text-decoration: underline; }
 }
 
 @media (max-width: 560px) {
-  .who-figures { grid-template-columns: repeat(2, 1fr); }
 }
 
 /* ============================================================
@@ -4445,7 +4982,7 @@ a.rev-score:hover { background: rgba(255, 255, 255, 0.08); }
   position: absolute; inset: 0; margin: auto;
   width: 52px; height: 52px; border-radius: 50%;
   display: grid; place-items: center;
-  background: rgba(224, 35, 78, 0.94); color: #fff;
+  background: rgba(185, 56, 21, 0.94); color: #fff;
   transition: transform 0.25s ease;
 }
 .rev-card-open:hover .rev-video-play { transform: scale(1.08); }
@@ -4628,7 +5165,7 @@ a.rev-score:hover { background: rgba(255, 255, 255, 0.08); }
 .unip-slide-btn {
   display: inline-flex; align-items: center; gap: 0.5rem;
   padding: 0.8rem 1.6rem; border-radius: 999px;
-  background: #fff; color: var(--color-hero-ink);
+  background: #fff; color: var(--color-footer-bg);
   font-family: var(--font-display); font-weight: 700;
   transition: background 0.25s ease, color 0.25s ease, transform 0.2s ease;
 }
@@ -5220,7 +5757,7 @@ a.rev-score:hover { background: rgba(255, 255, 255, 0.08); }
   margin-top: auto; align-self: flex-start;
   display: inline-flex; align-items: center; gap: 0.5rem;
   padding: 0.75rem 1.35rem; border-radius: 999px;
-  background: #fff; color: var(--color-hero-ink);
+  background: #fff; color: var(--color-footer-bg);
   font-family: var(--font-display); font-weight: 700; font-size: 0.95rem;
   transition: background 0.25s ease, color 0.25s ease, transform 0.2s ease;
 }
@@ -5245,7 +5782,7 @@ a.rev-score:hover { background: rgba(255, 255, 255, 0.08); }
    soft underline in the accent colour, same device as the pull quotes. */
 .ctc-h2-accent {
   color: var(--color-hero-red);
-  box-shadow: inset 0 -0.12em 0 rgba(224, 35, 78, 0.28);
+  box-shadow: inset 0 -0.12em 0 rgba(185, 56, 21, 0.28);
 }
 .ctc-form-intro p { color: var(--color-muted); margin-bottom: 1.75rem; }
 .ctc-promises { margin: 0; }
@@ -5438,7 +5975,7 @@ a.rev-score:hover { background: rgba(255, 255, 255, 0.08); }
    slanted — the same soft accent underline the other pages use. */
 .evt-h2-accent {
   color: var(--color-hero-red);
-  box-shadow: inset 0 -0.12em 0 rgba(224, 35, 78, 0.28);
+  box-shadow: inset 0 -0.12em 0 rgba(185, 56, 21, 0.28);
 }
 .evt-kinds-lead { color: var(--color-muted); max-width: 58ch; margin-bottom: 2.25rem; }
 .evt-kinds {
@@ -6095,7 +6632,7 @@ a.rev-score:hover { background: rgba(255, 255, 255, 0.08); }
   .unip-dots button { width: 20px; }
 
   /* Two figures per row is still one too many at this width. */
-  .who-figures, .unip-figures { grid-template-columns: 1fr; }
+  .unip-figures { grid-template-columns: 1fr; }
 
   .container { padding: 0 1.1rem; }
 }
@@ -6298,147 +6835,112 @@ a.rev-score:hover { background: rgba(255, 255, 255, 0.08); }
 }
 
 /* ============================================================
-   Free-counselling pop-up (components/ConsultPopup.tsx) — opens
-   once a session over the home page: navy shape-band header,
-   the offer, and two ways to take it up.
+   The free-counselling prompt (components/ConsultPopup.tsx) —
+   a panel that slides in from the left at the foot of the
+   window, and slides back out the way it came.
    ============================================================ */
-/* Layer 250 sits above the chat dock (90) and the navbar (50) and below the
-   loading splash (300), which must always be the last thing on screen. The
-   blur is the point of the backdrop: the page stays legible enough to be
-   worth coming back to, and out of focus enough to hand the panel the page. */
-.cpop-scrim {
-  position: fixed; inset: 0; z-index: 250;
-  display: grid; place-items: center; padding: 1.25rem;
-  background: rgba(9, 16, 38, 0.55);
-  backdrop-filter: blur(9px) saturate(1.05);
-  -webkit-backdrop-filter: blur(9px) saturate(1.05);
-  animation: cpop-fade 0.26s ease both;
-}
-.cpop-scrim[data-state="out"] { animation: cpop-fade 0.2s ease reverse both; }
-@keyframes cpop-fade { from { opacity: 0; } to { opacity: 1; } }
+/* Square, white, one hairline. No radius, no fill, no second colour: this
+   arrives uninvited, so the least it can do is look like part of the page
+   rather than something pasted over it. Flush into the corner, because a
+   square panel floating a few pixels off two edges reads as a mistake.
 
-.cpop-panel {
-  position: relative; width: min(540px, 100%);
-  max-height: min(90vh, 780px); overflow-y: auto;
-  background: var(--color-bg); border-radius: 22px;
-  box-shadow: 0 40px 90px -30px rgba(9, 16, 38, 0.7);
-  animation: cpop-rise 0.34s cubic-bezier(0.22, 0.9, 0.28, 1) both;
+   Layer 120 puts it above the page and the chat dock's 90 — they are in
+   opposite corners, but a panel that could be half-covered by a button is
+   not worth the risk — and below the review reader (200) and the loading
+   splash (300), which must always be the last things on screen. */
+.cpop {
+  position: fixed; left: 0; bottom: 0; z-index: 120;
+  width: min(680px, calc(100vw - 1.5rem));
+  padding: 2.4rem 2.6rem 2.6rem;
+  background: var(--color-bg);
+  border-top: 1px solid var(--color-border);
+  border-right: 1px solid var(--color-border);
+  box-shadow: 0 -6px 40px -18px rgba(9, 16, 38, 0.28);
+  transform: translateX(-100%);
+  animation: cpop-in 0.46s cubic-bezier(0.22, 0.9, 0.28, 1) forwards;
 }
-.cpop-scrim[data-state="out"] .cpop-panel {
-  animation: cpop-rise 0.2s ease reverse both;
+/* A DIFFERENT KEYFRAME NAME, not the same one reversed. Changing
+   animation-direction on a name that is already running — and has already
+   finished, with `forwards` holding it at its end — does not start the
+   animation again, so the panel simply vanished instead of leaving. Two
+   named animations means the browser sees a new one and runs it. */
+.cpop[data-state="out"] {
+  animation: cpop-out 0.42s cubic-bezier(0.4, 0, 0.7, 0.2) forwards;
 }
-@keyframes cpop-rise {
-  from { opacity: 0; transform: translateY(22px) scale(0.96); }
-  to { opacity: 1; transform: none; }
+@keyframes cpop-in {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(0); }
+}
+@keyframes cpop-out {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-100%); }
 }
 
 .cpop-close {
-  position: absolute; top: 0.9rem; right: 0.9rem; z-index: 2;
-  display: grid; place-items: center; width: 34px; height: 34px;
-  border: none; border-radius: 50%; cursor: pointer;
-  background: rgba(255, 255, 255, 0.16); color: #fff;
-  transition: background-color 0.2s ease, transform 0.2s ease;
+  position: absolute; top: 0.9rem; right: 0.9rem;
+  display: grid; place-items: center; width: 30px; height: 30px;
+  padding: 0; border: 0; background: none; cursor: pointer;
+  color: var(--color-muted);
+  transition: color 0.15s ease;
 }
-.cpop-close:hover { background: #fff; color: var(--color-hero-ink); transform: rotate(90deg); }
-.cpop-close:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.cpop-close:hover { color: var(--color-hero-ink); }
+.cpop-close:focus-visible { outline: 2px solid var(--color-hero-ink); outline-offset: 2px; }
 
-/* ---- the header band ---- */
-/* The arcs are the footer's pattern, cut off by the band's own overflow —
-   whole shapes would read as a row of icons rather than a pattern the panel
-   happens to pass through. */
-.cpop-banner {
-  position: relative; overflow: hidden;
-  padding: 2rem 1.9rem 1.75rem;
-  background: var(--color-hero-ink); color: #fff;
-}
-.cpop-shapes {
-  position: absolute; inset: 0; width: 100%; height: 100%;
-  fill: none; stroke: rgba(255, 255, 255, 0.09);
-  stroke-width: 26; stroke-linecap: round;
-}
 .cpop-eyebrow {
-  position: relative; margin: 0 0 0.6rem;
-  display: inline-block; padding: 0.3rem 0.75rem; border-radius: 999px;
-  background: rgba(255, 255, 255, 0.14);
-  font-size: 0.74rem; font-weight: 600; letter-spacing: 0.08em;
-  text-transform: uppercase; color: #fff;
+  margin: 0 0 0.6rem; color: var(--color-muted);
+  font-size: 0.75rem; font-weight: 600;
+  letter-spacing: 0.12em; text-transform: uppercase;
 }
 .cpop-title {
-  position: relative; margin: 0; color: #fff;
+  margin: 0 0 0.9rem; color: var(--color-hero-ink);
   font-family: var(--font-display); font-weight: 800;
-  font-size: clamp(1.5rem, 4.2vw, 2rem); line-height: 1.18;
-  letter-spacing: -0.025em; max-width: 22ch;
+  font-size: clamp(1.6rem, 2.6vw, 2.15rem);
+  line-height: 1.15; letter-spacing: -0.03em;
+  max-width: 24ch;
 }
-/* One word in the accent, the same device the section headings use */
-.cpop-title span { color: #ff8a6b; font-style: italic; }
-
-/* ---- the body ---- */
-.cpop-body { padding: 1.5rem 1.9rem 1.75rem; }
-.cpop-lead {
-  margin: 0 0 1.1rem; color: #43434d;
-  font-size: 0.98rem; line-height: 1.65;
-}
-.cpop-points { list-style: none; margin: 0 0 1.5rem; padding: 0; display: grid; gap: 0.7rem; }
+/* Plain rules between the points rather than bullets or ticks — the list is
+   three short lines and does not need marking as a list twice. */
+.cpop-points { list-style: none; margin: 0 0 1.75rem; padding: 0; }
 .cpop-points li {
-  display: flex; align-items: flex-start; gap: 0.65rem;
-  font-size: 0.94rem; line-height: 1.5; color: var(--color-text);
-}
-.cpop-tick {
-  flex: none; display: grid; place-items: center;
-  width: 24px; height: 24px; margin-top: 1px; border-radius: 50%;
-  background: rgba(232, 83, 44, 0.12); color: var(--color-topbar-accent);
+  padding: 0.75rem 0; color: #52586a;
+  font-size: 1rem; line-height: 1.5;
+  border-top: 1px solid var(--color-border);
 }
 
-.cpop-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+.cpop-actions { display: flex; flex-wrap: wrap; gap: 0.65rem; }
 .cpop-btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
-  padding: 0.9rem 1.1rem; border-radius: 999px;
-  background: var(--color-topbar-accent); color: #fff;
-  font-family: var(--font-display); font-weight: 700; font-size: 0.95rem;
-  text-align: center; line-height: 1.2;
-  transition: background-color 0.2s ease, transform 0.2s ease;
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  padding: 0.95rem 1.7rem;
+  background: var(--color-hero-ink); color: #fff;
+  font-family: var(--font-display); font-weight: 700; font-size: 1rem;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }
-.cpop-btn:hover { background: var(--color-topbar-accent-hover); color: #fff; transform: translateY(-2px); }
-.cpop-btn:focus-visible { outline: 3px solid var(--color-hero-ink); outline-offset: 2px; }
-.cpop-btn-wa { background: #25d366; }
-.cpop-btn-wa:hover { background: #1fb855; }
-
-.cpop-later {
-  display: block; margin: 1.1rem auto 0; padding: 0.3rem 0.5rem;
-  background: none; border: none; cursor: pointer;
-  color: var(--color-muted); font: inherit; font-size: 0.88rem;
+.cpop-btn:hover { background: #0f1d47; color: #fff; }
+.cpop-btn:focus-visible { outline: 2px solid var(--color-hero-ink); outline-offset: 2px; }
+/* The second way in, said quietly: an outline, the same ink, no third
+   colour brought in to distinguish it. */
+.cpop-btn-quiet {
+  background: none; color: var(--color-hero-ink);
+  border: 1px solid var(--color-border);
 }
-.cpop-later:hover { color: var(--color-text); text-decoration: underline; text-underline-offset: 3px; }
+.cpop-btn-quiet:hover {
+  background: none; color: var(--color-hero-ink);
+  border-color: var(--color-hero-ink);
+}
 
 @media (max-width: 560px) {
-  .cpop-scrim { padding: 1rem; place-items: end center; }
-  /* Anchored to the bottom of a phone, where a thumb is, and squared off at
-     the foot so it reads as a sheet rather than a card floating in a corner. */
-  .cpop-panel { width: 100%; max-height: 88vh; border-radius: 20px; }
-  .cpop-banner { padding: 1.6rem 1.25rem 1.4rem; }
-  .cpop-body { padding: 1.25rem 1.25rem 1.4rem; }
-  /* Side by side, these two become two lines of wrapped text each */
-  .cpop-actions { grid-template-columns: 1fr; }
-  .cpop-points { gap: 0.6rem; margin-bottom: 1.25rem; }
+  .cpop {
+    width: 100%; padding: 1.6rem 1.35rem 1.6rem;
+    border-right: 0;
+  }
+  .cpop-points li { padding: 0.55rem 0; font-size: 0.92rem; }
+  .cpop-actions .cpop-btn { flex: 1 1 auto; justify-content: center; }
 }
 
-/* The entrance is decoration; the dialog itself is not. Anyone who has asked
-   for less motion gets it without the rise, the fade or the spinning cross. */
+/* It still arrives and still leaves; it just stops sliding to do it. */
 @media (prefers-reduced-motion: reduce) {
-  .cpop-scrim, .cpop-panel,
-  .cpop-scrim[data-state="out"], .cpop-scrim[data-state="out"] .cpop-panel { animation: none; }
-  .cpop-close:hover { transform: none; }
-  .cpop-btn:hover { transform: none; }
+  .cpop { animation: none; transform: none; }
+  .cpop[data-state="out"] { animation: none; }
+  .cpop[data-state="out"] { display: none; }
 }
-
-/* Delivery state of the notification email, on each admin inquiry card.
-   Absent entirely on inquiries taken before mail existed — see MailState. */
-.inquiry-mail {
-  display: inline-block; margin-top: 0.5rem;
-  padding: 0.2rem 0.6rem; border-radius: 999px;
-  font-size: 0.78rem; font-weight: 600;
-}
-.inquiry-mail.is-sent { background: #e6f4ea; color: var(--color-success); }
-.inquiry-mail.is-skipped { background: var(--color-surface); color: var(--color-muted); }
-.inquiry-mail.is-failed { background: #fdecea; color: var(--color-danger); }
 
