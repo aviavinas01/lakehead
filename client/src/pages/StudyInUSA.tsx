@@ -5,6 +5,7 @@ import { PlaneIcon } from "../components/HeroOrbit";
 import { Check, Arrow, Shot } from "../components/destinationBits";
 import { armReveals } from "../lib/reveal";
 import TypeStack from "../components/TypeStack";
+import HelpVideo from "../components/HelpVideo";
 
 /**
  * Study in the USA — the long-form guide, built from Lakehead's own master
@@ -1162,6 +1163,9 @@ export default function StudyInUSA() {
           </Link>
         </div>
       </section>
+      {/* The one video for the whole site. Renders nothing until an id
+          is set in config/video.ts. */}
+      <HelpVideo />
     </article>
   );
 }

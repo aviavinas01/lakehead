@@ -8,102 +8,75 @@ import { JOURNEY, JOURNEY_CLOSER, type JourneyStep } from "../data/journey";
  * home page.
  *
  * HOW IT READS. The band holds still while the page scrolls through it. The
- * left column names the step you are on; the right is a strip of
- * photographs that moves as one. Each new step pushes the one before it up
- * and out of the frame while rising into its place — the two travel
- * together, edge to edge, the way a carousel moves rather than the way a
- * window shade drops. After the last step the free-consultation form comes
- * up the same way, which is what the whole sequence has been walking
- * towards.
-
- *
- * This used to be a clip-path reveal: every panel stayed where it was and
- * the new one was simply un-clipped over the top of it. That reads as
- * something opening ON the picture rather than the pictures advancing, and
- * nothing ever appeared to leave.
+ * left column names the step you are on; the right is a column of
+ * photographs. The two are locked together: a step's words and its picture
+ * are at the same point in the same journey at every instant, so the next
+ * step PEEKS in from below — words and photograph together, however far you
+ * have scrolled — and slides on up as you keep going. After the last step
+ * the consultation form comes up the same way, on the same track, with its
+ * own closing line rising beside it.
  *
  * ------------------------------------------------------------------
- * WHY THIS WAS REWRITTEN — the old version jumped from step 1 to step 4.
+ * IT IS SCROLL-LINKED NOW, NOT STEPPED. This used to hold an integer — which
+ * panel is showing — and let CSS transition between whole steps. Scrolling
+ * did not move anything; it crossed a threshold, and the threshold played an
+ * animation. So nothing ever peeked: a step was either arriving under its
+ * own steam or already there, and the wheel had no purchase on it.
  *
- * It ran TWO different pinning mechanisms and picked between them with a
- * media query duplicated in two places: `PIN_QUERY` in the component and a
- * matching pair of `@media` blocks in the stylesheet. The wide path pinned
- * the whole band and measured the section; the narrow path pinned an inner
- * frame and measured a spacer.
- *
- * The gate was `(min-width: 861px) and (min-height: 780px)`, and the height
- * half of that is the problem: a 768px-tall laptop screen, or any window
- * with a bookmarks bar on a 900px display, falls under 780px while still
- * being plainly a wide desktop. Those windows took the narrow path — whose
- * scroll room comes from `.next-steps-room`, a box that the WIDE stylesheet
- * rules leave `display: none`. With no room to travel, `travel` collapsed
- * toward zero, and the first flick of the wheel drove progress straight past
- * 1. Hence step 1, then step 4.
- *
- * So there is one mechanism now, not two. One sticky stage, one measurement,
- * and the scroll room is generated from the data's own length rather than
- * from a CSS box that another breakpoint might hide. Below the breakpoint
- * the pinning is dropped entirely for a plain stacked list — not a second
- * pin to keep in sync, just no pin at all. A layout that cannot be measured
- * cannot be measured wrong.
+ * Now there is one number, `--nsx-pos`, and it is a FRACTION: 2.5 means
+ * halfway between the third step and the fourth, with both half in frame.
+ * Stop scrolling anywhere and it stops there. Everything in the band —
+ * the reel, every line of copy, the form, the fade on the heading — is
+ * calculated from that one property in the stylesheet, so this component
+ * writes exactly one value per frame and nothing else. No per-element style
+ * thrash, and no way for the two columns to disagree about where they are.
  * ------------------------------------------------------------------
+ *
+ * WHAT IS STILL DISCRETE, and why. `active` — the rounded position — drives
+ * only the things that must not change sixty times a second: which card is
+ * emphasised, which panel is `inert`, what takes a click. Those are states,
+ * not positions, and flipping them per frame would be both wasteful and
+ * wrong.
  */
 
-/** Panels: one per step, plus the consultation form at the end. */
+/** The consultation form is the panel after the last step. */
+const CONSULT = JOURNEY.length;
+/** Panels: one per step, plus the form. */
 const PANEL_COUNT = JOURNEY.length + 1;
 
 /**
  * The left column's blocks, in order — the four steps and then the closing
- * line that goes with the form. One array so the column can render all of
- * them at once and slide between them; see the note on `.nsx-steps` below.
+ * line that belongs to the form.
  */
 const BLOCKS = [...JOURNEY, JOURNEY_CLOSER];
 
 /**
- * How much scroll each panel gets, relative to the others.
+ * Viewport heights of scroll it takes to travel from one panel to the next.
  *
- * The form is given more than a step because it is the one panel with
- * something to do on it — a step is read in a moment, a form is filled in.
- * At equal weights the band released almost as soon as the form appeared.
+ * THIS IS THE WEIGHT OF THE WHOLE BAND. Higher is calmer and longer to get
+ * through; lower and a flick crosses two steps before the eye has settled on
+ * either. It is a straight ratio now — one panel of travel per this much
+ * scroll, all the way down — where the old version gave different steps
+ * different shares. Uneven shares made sense when scrolling only tripped
+ * thresholds; on a reel that moves WITH the wheel they would read as the
+ * column mysteriously speeding up and slowing down.
  */
-/* The last step carries more than the three before it: it is the end of the
-   sequence and the beat before the form, and at an even weight it went past
-   as quickly as the others and the section felt like it stopped mid-thought.
-   Written from the array's own length so adding a fifth step moves the extra
-   weight onto that one instead of leaving it stranded on the fourth. */
-const WEIGHTS = [
-  ...JOURNEY.map((_, i) => (i === JOURNEY.length - 1 ? 1.6 : 1)),
-  1.8,
-];
-const TOTAL_WEIGHT = WEIGHTS.reduce((a, b) => a + b, 0);
+const VH_PER_PANEL = 0.55;
 
 /**
- * Scroll distance one unit of weight is worth, as a share of the viewport.
+ * Viewport heights held at the end, with the form landed and nothing moving.
  *
- * THIS IS THE DIAL, and it is a genuine trade in both directions. The band
- * is `100vh + TOTAL_WEIGHT * VH_PER_UNIT * 100vh` tall, so raising it makes
- * each step calmer and the whole section longer to get through. Too high and
- * the section reads as unresponsive — a lot of wheel for one card. Too low
- * and a flick skips a step before its transition has landed.
- *
- * It has been as high as 0.85, which was too much: you could feel the delay
- * between scrolling and anything happening. The card transitions were
- * shortened to match this value, so if you change it, check them too.
+ * The form is the one panel with something to do on it. Without this the
+ * band released the moment it arrived, and the form slid away under the
+ * hands of anyone who started filling it in.
  */
-const VH_PER_UNIT = 0.45;
+const HOLD_VH = 0.85;
 
-/** Cumulative fractions of the way through: [0.2, 0.4, …, 1]. */
-const THRESHOLDS = WEIGHTS.reduce<number[]>((acc, w) => {
-  acc.push((acc[acc.length - 1] ?? 0) + w / TOTAL_WEIGHT);
-  return acc;
-}, []);
+/** Total scroll room the section reserves, in viewport heights. */
+const SCROLL_VH = (PANEL_COUNT - 1) * VH_PER_PANEL + HOLD_VH;
 
-function panelFor(progress: number): number {
-  for (let i = 0; i < THRESHOLDS.length; i++) {
-    if (progress < THRESHOLDS[i]) return i;
-  }
-  return PANEL_COUNT - 1;
-}
+/** The share of that spent moving; the rest is the hold. */
+const MOVE_SHARE = ((PANEL_COUNT - 1) * VH_PER_PANEL) / SCROLL_VH;
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 
@@ -112,11 +85,11 @@ const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v
  * out, not clickable.
  *
  * `aria-hidden` alone is not enough and is actively wrong here: it hides a
- * panel from a screen reader while leaving its link (or, on the last panel,
- * six form fields) in the tab order, so a keyboard user tabs into controls
- * nobody can see. `inert` is the attribute that does both. React 18 has no
- * typing for it, hence the cast; it is a plain HTML attribute and every
- * browser we support honours it.
+ * panel from a screen reader while leaving its link (or, on the form, six
+ * fields) in the tab order, so a keyboard user tabs into controls nobody can
+ * see. `inert` is the attribute that does both. React 18 has no typing for
+ * it, hence the cast; it is a plain HTML attribute and every browser we
+ * support honours it.
  */
 const inertWhenHidden = (shown: boolean) =>
   (shown ? {} : { inert: "" }) as Record<string, string>;
@@ -129,10 +102,8 @@ const Arrow = () => (
 );
 
 /**
- * Where a panel sits relative to the one showing: 0 is in frame, negative
- * has been and gone, positive is still to come. Everything further out than
- * one step parks at the same place just off the frame, so jumping several
- * steps at once slides one panel's width rather than four.
+ * Where a panel sits relative to the one in play: 0 is in frame, negative
+ * has been and gone, positive is still to come.
  */
 function slotFor(offset: number): "past" | "on" | "next" {
   if (offset === 0) return "on";
@@ -140,20 +111,18 @@ function slotFor(offset: number): "past" | "on" | "next" {
 }
 
 /**
- * One photograph in the strip.
+ * One photograph in the column.
  *
- * Position is the only thing that decides how it looks: the stylesheet parks
- * "next" below the frame, "on" in it and "past" above it, and moving between
- * those three is the whole transition. Because every panel is always mounted
- * and always transformed, scrolling back up reverses exactly — the panel
- * that left the top comes back down from the top.
+ * The card does not place itself — the reel moves all of them together,
+ * which is what makes the queue read as a queue. `data-slot` carries
+ * EMPHASIS only: the card in play is a touch larger and steps out of the
+ * column, and it is the only one that takes a click. That is deliberately
+ * still a stepped state with a transition of its own, riding on top of the
+ * continuous travel: the column glides with your wheel, and the card that
+ * arrives blooms into place a beat behind it.
  *
- * Only the panel in frame is reachable. Without that, tabbing through the
- * section would land on four links parked out of sight above and below it.
- *
- * A missing image file leaves the panel as its own colour field carrying
- * the same words — not a broken image and not a grey box. The photographs
- * can be dropped in at any point without touching this.
+ * A missing image file leaves the card as its own colour field carrying the
+ * same words — not a broken image and not a grey box.
  */
 function JourneyPanel({
   step,
@@ -162,18 +131,13 @@ function JourneyPanel({
 }: {
   step: JourneyStep;
   index: number;
-  /** index - the panel showing. See slotFor. */
+  /** index - the panel in play. See slotFor. */
   offset: number;
 }) {
   const [missing, setMissing] = useState(false);
   const slot = slotFor(offset);
 
   return (
-    /* One card in the queue. It does not move itself — the reel moves all of
-       them together, which is what makes the queue read as a queue.
-       `data-slot` is about emphasis and reachability only: the card in play
-       is upright and full strength, its neighbours sit back, and only the
-       one in play can be clicked or tabbed to. */
     <div
       className="jp"
       data-slot={slot}
@@ -209,48 +173,54 @@ function JourneyPanel({
 export default function NextSteps() {
   const section = useRef<HTMLElement>(null);
   const stage = useRef<HTMLDivElement>(null);
-  const [panel, setPanel] = useState(0);
+  const [active, setActive] = useState(0);
 
   /**
-   * Which panel is showing is a pure function of how far the page has
-   * scrolled through the section. One formula, one code path, and every
-   * degenerate case resolves to panel 0 rather than to the end — the old
-   * version's failure was that a collapsed measurement read as "finished".
+   * Turns how far the page has scrolled through the section into the band's
+   * position, and writes it.
    *
-   * Reads happen on an animation frame and write through `setPanel`, which
-   * React skips when the value has not changed — so a burst of scroll events
-   * measures once and re-renders only on an actual panel change.
+   * The write is a single custom property on the stage. Everything visible
+   * is calculated from it in the stylesheet — see the .nsx rules — so a
+   * frame of scrolling costs one property set, not a pass over a dozen
+   * elements. `active` goes through React and therefore only re-renders when
+   * the rounded position actually changes.
    */
   useEffect(() => {
     const el = section.current;
     if (!el) return;
 
     let raf = 0;
+    let lastActive = -1;
 
     const measure = () => {
       raf = 0;
       const stageEl = stage.current;
       if (!stageEl) return;
 
-      /* The stage is `display: none` below the pinning breakpoint, where
-         the stacked list is shown instead. Measuring there would compute a
-         progress for a layout that does not use one — and worse, would
-         churn `panel` on every scroll of a page that ignores it. */
+      /* The stage is `display: none` below the pinning breakpoint, where the
+         stacked list is shown instead. Measuring there would compute a
+         position for a layout that does not use one. */
       if (stageEl.offsetHeight === 0) return;
 
       const rect = el.getBoundingClientRect();
       const travel = rect.height - stageEl.offsetHeight;
 
-      /* Not tall enough to scroll through — which is the case on a phone,
-         where the stage is not pinned at all. Show the first panel and stop;
-         the stacked layout below does not use this index. */
-      if (travel <= 0) {
-        setPanel(0);
-        return;
-      }
+      /* Not tall enough to scroll through. Park at the start; the stacked
+         layout below does not read this. */
+      const progress = travel > 0 ? clamp(-rect.top / travel, 0, 1) : 0;
 
-      const progress = clamp(-rect.top / travel, 0, 1);
-      setPanel(panelFor(progress));
+      /* The hold at the end is what MOVE_SHARE buys: past that share of the
+         section, `pos` is already at its maximum and stays there while the
+         rest of the scroll goes by with the form standing still. */
+      const pos = clamp(progress / MOVE_SHARE, 0, 1) * (PANEL_COUNT - 1);
+
+      stageEl.style.setProperty("--nsx-pos", pos.toFixed(4));
+
+      const next = Math.round(pos);
+      if (next !== lastActive) {
+        lastActive = next;
+        setActive(next);
+      }
     };
 
     const onScroll = () => {
@@ -263,7 +233,7 @@ export default function NextSteps() {
 
     /* The stage's height decides `travel`, and it changes when a photograph
        finally loads or the window is zoomed. Watching it is what keeps the
-       measurement honest without re-running it on every frame. */
+       measurement honest without re-running it every frame. */
     const ro = new ResizeObserver(onScroll);
     ro.observe(el);
     ro.observe(stage.current!);
@@ -276,7 +246,7 @@ export default function NextSteps() {
     };
   }, []);
 
-  const onCloser = panel >= JOURNEY.length;
+  const onCloser = active >= CONSULT;
 
   return (
     <section
@@ -284,9 +254,10 @@ export default function NextSteps() {
       ref={section}
       style={
         {
-          /* The scroll room, generated from the data rather than written
-             down: change JOURNEY's length or WEIGHTS and this follows. */
-          "--nsx-scroll": `${(TOTAL_WEIGHT * VH_PER_UNIT).toFixed(2)}`,
+          /* The scroll room, generated from the panel count and the two
+             constants above rather than written down: add a step to JOURNEY
+             and this follows. */
+          "--nsx-scroll": SCROLL_VH.toFixed(2),
         } as CSSProperties
       }
     >
@@ -295,29 +266,28 @@ export default function NextSteps() {
             right edge, so it takes the right-hand side of the window rather
             than stopping at the container's gutter. The container below
             reserves exactly its width as padding, which is what keeps the
-            copy clear of it without either one measuring the other.
-
-            One custom property moves the whole column: the stylesheet reads
-            --nsx-n as "slide up by this many cards". Every card keeps its
-            own place in the queue. */}
-        <div className="nsx-stack" data-closing={onCloser || undefined}>
-          <div className="nsx-reel" style={{ "--nsx-n": panel } as CSSProperties}>
+            copy clear of it without either one measuring the other. */}
+        <div className="nsx-stack">
+          <div className="nsx-reel">
             {JOURNEY.map((s, i) => (
-              <JourneyPanel key={s.id} step={s} index={i} offset={i - panel} />
+              <JourneyPanel key={s.id} step={s} index={i} offset={i - active} />
             ))}
           </div>
 
-          {/* NOT a card in the queue. The form is what the whole sequence has
-              been walking towards, and it wants the frame to itself — inside
-              the reel it was one card among five, with its neighbours sat
-              either side of it and the queue's mask feathering its edges.
+          {/* NOT a card in the queue, but travelling on the same track and
+              off the same number — so it rises from below and peeks exactly
+              as a card does, and its closing line in the left column rises
+              with it.
 
-              So it sits over the reel instead: full height, opaque, and only
-              once the last step has been read. `data-closing` on the stack is
-              what takes the queue behind it out of sight, so nothing peeks
-              past a form somebody is filling in. */}
+              It is a panel rather than a reel item because it has to be
+              taller and wider than a photograph: six fields and a button do
+              not fit a card sized to sit half a stage high, and shrinking
+              the form to fit the queue would have been the queue deciding
+              how usable the form is. Opaque, so it covers the cards as it
+              comes up over them. */}
           <div
             className="nsx-consult"
+            style={{ "--i": CONSULT } as CSSProperties}
             data-on={onCloser || undefined}
             {...inertWhenHidden(onCloser)}
           >
@@ -326,36 +296,30 @@ export default function NextSteps() {
         </div>
 
         <div className="container nsx-inner">
-          {/* `data-started` is set the moment the sequence leaves its first
-              step. The heading names the section, which is worth saying on
-              arrival and not worth holding on screen for the whole of it —
-              so it rises away and the steps take the column, which is what
-              makes the band read as one thing moving rather than a fixed
-              title with something changing underneath it. */}
-          <div className="nsx-copy" data-started={panel >= 1 || undefined}>
+          {/* `data-started` is the one thing here that stays a threshold:
+              an invisible heading must stop taking clicks, and "taking
+              clicks" has no half-way value to interpolate. Everything
+              about where it SITS comes off --nsx-pos instead. */}
+          <div className="nsx-copy" data-started={active >= 1 || undefined}>
             <h2>
               Your Journey to Global Education{" "}
               <span className="h-accent">Starts Here</span>
             </h2>
 
-            {/* EVERY block is mounted, stacked in one spot, and slides.
-                The previous version keyed this on the active step so React
-                re-mounted it — which meant the outgoing text vanished on the
-                spot and the incoming one appeared from nowhere. Nothing
-                actually moved between the two, which is the flicker.
-
-                Mounted together they can pass each other instead: the one
-                arriving rises into place from below while the one leaving
-                keeps rising and fades out. Same direction, continuous, and
-                it reverses correctly when you scroll back up. */}
+            {/* EVERY block is mounted and stacked in one spot, and each one
+                is placed by its own distance from --nsx-pos. So the column
+                is a reel too, running off the same number as the
+                photographs: block 2 is exactly as far up as photograph 2 is,
+                at every instant and at every scroll speed. There is nothing
+                to keep in step because there is only one thing to be in step
+                with. */}
             <div className="nsx-steps" aria-live="polite">
               {BLOCKS.map((b, i) => (
                 <div
                   className="nsx-step"
                   key={b.title}
-                  data-state={i === panel ? "on" : i < panel ? "past" : "next"}
-                  style={{ "--jp-color": b.color } as CSSProperties}
-                  {...inertWhenHidden(i === panel)}
+                  style={{ "--i": i, "--jp-color": b.color } as CSSProperties}
+                  {...inertWhenHidden(i === active)}
                 >
                   <span className="nsx-step-n" aria-hidden="true">
                     {i < JOURNEY.length ? String(i + 1).padStart(2, "0") : "→"}
@@ -370,12 +334,11 @@ export default function NextSteps() {
       </div>
 
       {/* ---- the phone layout ----
-          No pin, no measurement, no shared index: every step is simply
-          there, in order, with its photograph. This is a separate block
+          No pin, no measurement, no shared position: every step is simply
+          there, in order, with its photograph. This is separate markup
           rather than the same markup restyled because the pinned version's
-          whole structure — one stage, panels stacked on top of each other —
-          has no sensible small-screen form. Only one of the two is ever
-          displayed; the stylesheet decides which. */}
+          whole structure has no sensible small-screen form. Only one of the
+          two is ever displayed; the stylesheet decides which. */}
       <div className="container nsx-list">
         <h2>
           Your Journey to Global Education{" "}

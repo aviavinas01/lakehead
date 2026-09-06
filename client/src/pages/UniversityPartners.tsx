@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { PlaneIcon } from "../components/HeroOrbit";
 import { Check, Arrow, Shot } from "../components/destinationBits";
+import HelpVideo from "../components/HelpVideo";
 import {
   UNIVERSITIES,
   DESTINATIONS,
@@ -467,6 +468,9 @@ export default function UniversityPartners() {
           </Link>
         </div>
       </section>
+      {/* The one video for the whole site. Renders nothing until an id
+          is set in config/video.ts. */}
+      <HelpVideo />
     </article>
   );
 }

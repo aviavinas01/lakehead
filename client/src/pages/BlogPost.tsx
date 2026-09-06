@@ -6,6 +6,7 @@ import Loader from "../components/Loader";
 import { Arrow } from "../components/destinationBits";
 import { renderArticle, readingTime } from "../lib/richText";
 import type { Paginated, Post, PostSummary } from "../types/api";
+import HelpVideo from "../components/HelpVideo";
 
 /**
  * A single article — /blog/:slug.
@@ -313,6 +314,9 @@ export default function BlogPost() {
           </Link>
         </div>
       </section>
+      {/* The one video for the whole site. Renders nothing until an id
+          is set in config/video.ts. */}
+      <HelpVideo />
     </article>
   );
 }

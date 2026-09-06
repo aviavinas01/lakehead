@@ -3,6 +3,7 @@ import { Link, Navigate, useParams } from "react-router-dom";
 import { PlaneIcon } from "../components/HeroOrbit";
 import { Check, Arrow, Shot } from "../components/destinationBits";
 import { SERVICES, findService } from "../data/services";
+import HelpVideo from "../components/HelpVideo";
 
 /**
  * One page, every service. The route is /services/:slug and everything on the
@@ -118,6 +119,9 @@ export default function ServiceDetail() {
           </Link>
         </div>
       </section>
+      {/* The one video for the whole site. Renders nothing until an id
+          is set in config/video.ts. */}
+      <HelpVideo />
     </article>
   );
 }

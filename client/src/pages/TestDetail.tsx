@@ -3,6 +3,7 @@ import { Link, Navigate, useParams } from "react-router-dom";
 import { PlaneIcon } from "../components/HeroOrbit";
 import { Arrow, Shot } from "../components/destinationBits";
 import { TESTS, findTest } from "../data/tests";
+import HelpVideo from "../components/HelpVideo";
 
 /**
  * One page, eight tests — /services/test-preparation/:test.
@@ -133,6 +134,9 @@ export default function TestDetail() {
           </Link>
         </div>
       </section>
+      {/* The one video for the whole site. Renders nothing until an id
+          is set in config/video.ts. */}
+      <HelpVideo />
     </article>
   );
 }

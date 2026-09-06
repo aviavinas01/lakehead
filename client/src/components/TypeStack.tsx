@@ -45,8 +45,12 @@ const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v
 function Panel({ item, index, count }: { item: TypeItem; index: number; count: number }) {
   return (
     <>
+      {/* `still`: these already run their own slow scale (tst-drift), and a
+          CSS animation on `transform` overrides the element's own transform
+          outright — the parallax would be swallowed whole and the frame
+          left showing its edges. One motion per picture. */}
       <figure className="tst-shot">
-        <Shot src={item.image} alt="" />
+        <Shot src={item.image} alt="" still />
       </figure>
       <div className="tst-body">
         <p className="tst-count" aria-hidden="true">

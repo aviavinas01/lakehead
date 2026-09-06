@@ -6,6 +6,7 @@ import { PlaneIcon } from "../components/HeroOrbit";
 import { Check, Arrow, Shot } from "../components/destinationBits";
 import { useYouTubeFeed } from "../hooks/useYouTubeFeed";
 import RollingFigure from "../components/RollingFigure";
+import HelpVideo from "../components/HelpVideo";
 
 /**
  * Study Abroad — the landing page behind the navbar's "Study Abroad" item,
@@ -465,6 +466,9 @@ export default function StudyAbroad() {
           </Link>
         </div>
       </section>
+      {/* The one video for the whole site. Renders nothing until an id
+          is set in config/video.ts. */}
+      <HelpVideo />
     </article>
   );
 }

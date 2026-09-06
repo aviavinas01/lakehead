@@ -114,11 +114,10 @@ img { max-width: 100%; display: block; }
    way up — see `hidden` in Navbar.tsx for when it is allowed to.
 
    The transform is on this WRAPPER and not on .navbar itself, for two
-   reasons. .scroll-progress-v is position:fixed and a sibling of this: a
-   transform on the header would make the header its containing block and
-   take the right-hand rail off the top of the screen along with the bar.
-   And the header keeps its own untransformed height, so --navbar-h stays
-   put and the heroes that reach up behind the bar never jump.
+   reason: the header keeps its own untransformed height, so --navbar-h stays
+   put and the heroes that reach up behind the bar never jump. It also once
+   shielded a position:fixed progress rail from this transform; that rail has
+   since been removed.
 
    Long enough to read as the bar leaving rather than blinking off, and
    eased out at both ends so it does not snap on arrival. */
@@ -156,37 +155,10 @@ img { max-width: 100%; display: block; }
 .navbar.is-over .brand-wordmark span { color: rgba(255, 255, 255, 0.85); }
 .navbar.is-over .nav-item > a { color: #fff; }
 .navbar.is-over .nav-toggle { color: #fff; }
-/* The progress track is a pale tint meant to sit under a white bar; over the
-   photo it reads as a rule ruling off the hero, which is the one thing this
-   whole change is trying to get rid of. At the top of the page the fill is
-   zero-width anyway, so there is nothing to see but the track — drop it. */
-.navbar.is-over .scroll-progress { background: transparent; }
 .brand-logo, .brand-wordmark strong, .brand-wordmark span,
 .nav-item > a, .nav-toggle {
   transition: color 0.3s ease, filter 0.3s ease;
 }
-/* Scroll progress bar under the header — purple while in the page body,
-   footer-colored once the footer is in view. */
-/* The faint-blue track shows the full space the bar fills as you scroll */
-.scroll-progress { height: 3px; background: var(--color-topbar-bg); }
-.scroll-progress span {
-  display: block; height: 100%; transform-origin: left;
-  background: #7b64e0; transition: background 0.35s;
-}
-.scroll-progress.at-footer span { background: var(--color-footer-bg); }
-/* Vertical progress bar on the right edge — same fill fraction and colors
-   as the horizontal one; grows upward to meet it at the top-right corner */
-/* `top` is set inline to the measured header height, so the track begins
-   exactly at the horizontal bar and never extends up past it */
-.scroll-progress-v {
-  position: fixed; right: 0; bottom: 0; width: 3px;
-  background: var(--color-topbar-bg); z-index: 40;
-}
-.scroll-progress-v span {
-  display: block; width: 100%; height: 100%; transform-origin: bottom;
-  background: #7b64e0; transition: background 0.35s;
-}
-.scroll-progress-v.at-footer span { background: var(--color-footer-bg); }
 /* The bar's height comes from this padding plus the logo — the strip was
    slim because the logo used to hang up out of it into the old top bar. */
 .navbar-inner {
@@ -1293,14 +1265,16 @@ a.greview-author:hover { text-decoration: underline; }
   display: flex; gap: clamp(0.5rem, 1.1vw, 0.9rem);
   justify-content: center;
 }
-/* Offset with `left`, NOT `transform`. A transform creates a stacking
-   context, which isolates the blending group inside it — and the logos below
-   depend on multiplying against the band itself. Staggered with a transform,
-   the tiles in these two rows would have nothing to blend with and their
-   white canvases would come back as white rectangles. Relative positioning
-   moves them just as well and isolates nothing. */
-.uni-row:nth-child(1) { position: relative; left: -4%; }
-.uni-row:nth-child(3) { position: relative; left: 4%; }
+/* THE ROW STAGGER IS GONE WITH THE OTHER TWO ROWS. It used to step rows 1
+   and 3 sideways so three equal rows did not read as a spreadsheet; with a
+   single line there is nothing to stagger against, and the offset would
+   just have pushed the one row off centre.
+
+   If it is ever three rows again, put it back as `left` and NOT
+   `transform`: a transform creates a stacking context, which isolates the
+   blending group inside it, and the logos below depend on multiplying
+   against the band itself. Staggered with a transform their white canvases
+   come back as white rectangles. */
 
 /* No tile at all — the marks sit straight on the band. What makes that
    possible is `multiply` on the image below: each logo file is a white
@@ -1407,6 +1381,21 @@ a.greview-author:hover { text-decoration: underline; }
     display: flex; align-items: flex-start;
     position: sticky; top: 0;
     height: 100vh; overflow: hidden;
+    /* ONE CARD, AND THE SPACE UNDER IT. These two numbers decide everything
+       about the queue: how far the column travels per step, and how much of
+       the cards either side is left on screen. The card is deliberately
+       close to HALF the stage, not most of it — an earlier attempt used
+       66vh, which left so little room above and below that the neighbours
+       had nowhere to show.
+
+       THEY LIVE ON THE STAGE, not on the stack, so the copy column inherits
+       them too. That is what lets the words travel exactly one card-pitch
+       per step, the same distance the photographs travel — see
+       --nsx-travel. Declared on the stack, the left column could not see
+       them and had to guess at a matching number, which is precisely how
+       two columns that are supposed to move together drift apart. */
+    --jp-h: clamp(380px, 56vh, 480px);
+    --jp-gap: clamp(1rem, 3vh, 2rem);
   }
   /* svh where it exists — on a phone-sized desktop window the toolbar
      collapsing mid-scroll would otherwise resize the stage under the
@@ -1457,21 +1446,32 @@ a.greview-author:hover { text-decoration: underline; }
   .nsx-copy h2 { max-width: none; }
 }
 
-/* The heading leaves once the first step is past, and the steps climb into
-   the room it was taking. The rise is a length rather than a measurement of
-   the heading: it only has to look like the column moved up, and measuring
-   the h2 would mean reading layout on a scroll. */
+/* HOW MUCH OF THE FIRST PANEL IS BEHIND US — 0 at the top of the band, 1
+   once the first step has fully arrived, and it stays at 1 after that. Every
+   "the heading gets out of the way" effect below is this number times a
+   distance, so they move together by construction.
+
+   It is a clamp rather than a class because the whole band is scroll-linked
+   now: a class flips at a threshold, and a threshold is the thing that used
+   to make the heading jump while the reel glided. */
+.nsx-stage { --nsx-lift: clamp(0, var(--nsx-pos, 0), 1); }
+
+/* The heading leaves as the first step arrives, and the steps climb into the
+   room it was taking. The rise is a length rather than a measurement of the
+   heading: it only has to look like the column moved up, and measuring the
+   h2 would mean reading layout on a scroll.
+
+   No transitions on either: both are positions now, not states, and an
+   easing on top of a scroll-linked value only adds lag. */
 .nsx-copy h2 {
-  transition:
-    opacity 0.45s ease,
-    transform 0.6s cubic-bezier(0.16, 0.74, 0.22, 1);
+  opacity: calc(1 - var(--nsx-lift));
+  transform: translateY(calc(var(--nsx-lift) * -28px));
 }
-.nsx-copy[data-started] h2 {
-  opacity: 0; transform: translateY(-28px); pointer-events: none;
-}
-.nsx-steps { transition: transform 0.6s cubic-bezier(0.16, 0.74, 0.22, 1); }
-.nsx-copy[data-started] .nsx-steps {
-  transform: translateY(clamp(-6.5rem, -9vh, -3rem));
+/* Once it is on its way out it must stop taking clicks, and that IS a state
+   — so it stays a threshold, just a late one. */
+.nsx-copy[data-started] h2 { pointer-events: none; }
+.nsx-steps {
+  transform: translateY(calc(var(--nsx-lift) * clamp(-6.5rem, -9vh, -3rem)));
 }
 
 /* ---- the steps ----
@@ -1485,44 +1485,60 @@ a.greview-author:hover { text-decoration: underline; }
    for most of the climb rather than snapping into position at the end of
    it, and the two easings are what keep the movement from looking linear. */
 .nsx-steps {
-  position: relative; min-height: clamp(210px, 27vh, 290px);
-  /* How far a block travels, in and out. One number drives both directions,
-     so they cannot drift apart.
+  position: relative; min-height: clamp(300px, 38vh, 430px);
+  /* HOW FAR A BLOCK TRAVELS, and it is not a number of its own any more:
+     it is exactly one card-pitch, the same distance the photographs move
+     for the same step. That is the lock — the words and the picture are not
+     merely started at the same moment, they cover the same ground, so they
+     cannot slide out of register at any point in between.
 
-     It starts from well below the frame — far enough that a block is on its
-     way up from off the bottom of the stage rather than nudging into place.
-     .nsx-stage clips at the viewport, so the beginning of the climb happens
-     out of sight and a step appears to come up off the page. Viewport-
-     relative so a tall window gets proportionally more of it. */
-  --nsx-travel: clamp(150px, 24vh, 300px);
+     It also fixed the crowding. At the old 24vh a block travelled less than
+     its own height, so the step arriving and the step leaving overlapped in
+     the middle of every transition and the column read as two paragraphs
+     sitting on top of each other. A full card-pitch is more than a block is
+     tall, so the incoming step comes up off the bottom of the stage with
+     clear air between it and the one going. */
+  --nsx-travel: calc(var(--jp-h, 480px) + var(--jp-gap, 2rem));
 }
+/* EVERY BLOCK IS PLACED BY ITS OWN DISTANCE FROM --nsx-pos, which is what
+   locks the words to their photograph: block 2 is exactly as far up as
+   photograph 2 is, at every instant and at every scroll speed. --i is the
+   block's index, set once in the markup and never changed.
+
+   The distance is (--i - --nsx-pos) travels: 0 when the block is in frame,
+   +1 a full travel below it, -1 a full travel above. So the next block is
+   genuinely half-risen when you are half-way between two steps, rather than
+   waiting off-stage for a threshold to fire it. */
 .nsx-step {
   position: absolute; inset: 0 0 auto 0;
-  opacity: 0; transform: translateY(var(--nsx-travel)); pointer-events: none;
-  /* The fade is much shorter than the move on purpose: a block is legible
-     for the middle of its climb and transparent at both ends, which is what
-     lets it travel this far without two of them ever being readable at once.
-     Duration follows the distance — the same easing over a longer run would
-     otherwise read as faster. */
-  transition:
-    opacity 0.38s ease,
-    transform 0.8s cubic-bezier(0.16, 0.74, 0.22, 1);
+  transform: translateY(calc(
+    (var(--i, 0) - var(--nsx-pos, 0)) * var(--nsx-travel)
+  ));
+  /* A TRIANGULAR WINDOW, and the reason there is no abs() here: CSS has no
+     absolute value we can rely on yet, so this multiplies two clamps that
+     each fade off one side. Full strength when the block is in frame,
+     linearly out to nothing a whole panel away in either direction, and
+     pinned at zero beyond that. Two blocks are part-legible while you are
+     between them, which is the peek. */
+  opacity: calc(
+    clamp(0, 1 + var(--i, 0) - var(--nsx-pos, 0), 1) *
+    clamp(0, 1 - var(--i, 0) + var(--nsx-pos, 0), 1)
+  );
+  /* Only the block in play takes a click; `inert` in the markup covers the
+     tab order and assistive tech. */
+  pointer-events: none;
 }
-.nsx-step[data-state="on"] {
-  opacity: 1; transform: none; pointer-events: auto;
-}
-/* A block ARRIVES by climbing and LEAVES by fading where it stands. Only
-   one direction of travel, so the column never appears to be pulled upward
-   out of the frame — the movement you see is always something coming in,
-   never something being taken away. */
-.nsx-step[data-state="past"] { opacity: 0; transform: none; }
 
 @keyframes nsx-in {
   from { opacity: 0; transform: translateY(18px); }
   to { opacity: 1; transform: none; }
 }
+/* The three parts of a block are set well apart. They used to sit almost
+   touching — numeral, title and paragraph reading as one dense lump — which
+   is a waste of a band that has a whole screen to itself and nothing else
+   in this column to make room for. */
 .nsx-step-n {
-  display: block; margin-bottom: 0.2rem;
+  display: block; margin-bottom: clamp(0.6rem, 1.4vh, 1.2rem);
   font-family: var(--font-display); font-weight: 800; line-height: 1;
   font-size: clamp(2.2rem, 3.6vw, 3.4rem);
   color: var(--jp-color, #3d56c5);
@@ -1534,7 +1550,7 @@ a.greview-author:hover { text-decoration: underline; }
   .nsx-step-n { -webkit-text-stroke: 2px var(--jp-color, #3d56c5); color: transparent; }
 }
 .nsx-step h3 {
-  margin: 0 0 0.75rem; color: var(--jp-color, #3d56c5);
+  margin: 0 0 clamp(1.1rem, 2.6vh, 2rem); color: var(--jp-color, #3d56c5);
   font-size: clamp(1.8rem, 3.2vw, 2.9rem); font-weight: 800;
   line-height: 1.06; letter-spacing: -0.035em;
 }
@@ -1547,7 +1563,7 @@ a.greview-author:hover { text-decoration: underline; }
 }
 .nsx-step p {
   margin: 0; color: #43434d; max-width: 46ch;
-  font-size: clamp(0.98rem, 1.2vw, 1.1rem); line-height: 1.7;
+  font-size: clamp(0.98rem, 1.2vw, 1.1rem); line-height: 1.85;
 }
 
 /* ---- the strip ----
@@ -1575,8 +1591,6 @@ a.greview-author:hover { text-decoration: underline; }
        earlier attempt used 66vh, which left so little room above and below
        that the neighbours had nowhere to show — the queue was there in the
        markup and invisible on screen. */
-    --jp-h: clamp(380px, 56vh, 480px);
-    --jp-gap: clamp(1rem, 3vh, 2rem);
 
     /* NO `overflow: hidden` HERE, on purpose. The card in play steps to the
        left, out past the column, and overflow would cut it off at the edge
@@ -1599,13 +1613,20 @@ a.greview-author:hover { text-decoration: underline; }
   .nsx-reel {
     position: absolute; left: 0; right: 0; top: 50%;
     display: grid; gap: var(--jp-gap);
+    /* --nsx-pos is a FRACTION of a panel, written by NextSteps.tsx once per
+       frame. `top: 50%` puts the column's start at the middle of the stage;
+       the transform backs it up by half a card to centre the first, then by
+       a card-and-gap for every panel travelled. Uniform card heights are
+       what make one multiplication enough.
+
+       NO TRANSITION. There is nothing to ease between any more — the reel
+       is at whatever position the scroll says it is at, and a transition
+       here would put the column permanently a beat behind the wheel, which
+       is exactly the lag this rewrite removes. Smoothness comes from the
+       scroll itself now (see HeavyScroll). */
     transform: translateY(calc(
-      (var(--jp-h) / -2) - var(--nsx-n, 0) * (var(--jp-h) + var(--jp-gap))
+      (var(--jp-h) / -2) - var(--nsx-pos, 0) * (var(--jp-h) + var(--jp-gap))
     ));
-    /* Quick enough to keep up with the wheel. The column has less scroll to
-       cross per step now, so a long glide would land after the reader has
-       already moved on. */
-    transition: transform 0.62s cubic-bezier(0.32, 0.84, 0.28, 1);
     /* The reel moves on almost every scroll through this band. Promoting it
        once is cheaper than the browser deciding to promote and demote it
        repeatedly, and it is a single element, so the memory cost is one
@@ -1692,8 +1713,14 @@ a.greview-author:hover { text-decoration: underline; }
   transition: background 0.25s ease, transform 0.2s ease;
 }
 .jp-frame:hover .jp-link { background: var(--jp-color, #3d56c5); transform: translateX(2px); }
-.jp-frame:hover .jp-shot img { transform: scale(1.04); }
-.jp-shot img { transition: transform 0.7s cubic-bezier(0.22, 0.9, 0.28, 1); }
+/* NO HOVER ZOOM ON THE PICTURE. Every card that carries an image used to
+   scale it a few percent on hover, over half a second or more. Scrolling a
+   grid of them drags the cursor across card after card, so each one in turn
+   starts a long transform transition on a full-bleed photograph — a burst of
+   compositing work landing on exactly the frames that can least afford it,
+   which is what made the page feel like it was catching on the cards. The
+   hover states that cost nothing (the lift, the shadow, the arrow, the
+   colour) all stay; only the picture holds still. */
 .jp-frame:focus-visible { outline: 3px solid var(--jp-color, #3d56c5); outline-offset: 8px; border-radius: 22px; }
 
 /* The card's parts arrive a beat after the card has finished rising, so the
@@ -1723,8 +1750,8 @@ a.greview-author:hover { text-decoration: underline; }
    wants. Here it has the frame to itself.
 
    Opaque, so the queue behind it is covered outright; and the queue is faded
-   anyway (see .nsx-stack[data-closing]) so nothing shows through at the
-   moment the two cross. */
+   opaque, so it simply covers the cards as it comes up over them — there is
+   no fade on the reel to keep in step with it any more. */
 .nsx-consult {
   position: absolute; inset: 0; z-index: 2;
   /* Sat below the middle rather than on it: the heading above has gone by
@@ -1747,11 +1774,17 @@ a.greview-author:hover { text-decoration: underline; }
     clamp(1.25rem, 2.5vw, 2.5rem)
     clamp(1.25rem, 2.5vw, 2.5rem);
   background: var(--color-bg);
-  opacity: 0; pointer-events: none;
-  transform: translateY(24px);
-  transition:
-    opacity 0.5s ease,
-    transform 0.62s cubic-bezier(0.32, 0.84, 0.28, 1);
+  /* ON THE SAME TRACK AS THE CARDS, off the same number. One whole panel of
+     distance is 100% of the stage here, so at --nsx-pos one short of its
+     index the form is exactly one stage below — out of sight under the
+     stage's own overflow — and it rises into frame in step with the wheel,
+     peeking over the bottom edge on the way. Its closing line in the left
+     column is placed by the same arithmetic, so the two arrive together.
+
+     It stays opaque throughout and simply covers the cards as it comes up
+     over them, which is why there is no fade to co-ordinate. */
+  transform: translateY(calc((var(--i, 0) - var(--nsx-pos, 0)) * 100%));
+  pointer-events: none;
   /* Taller than the frame on a short window: scrolling inside it beats
      scaling a form down to unreadable. No rail down the side, though.
 
@@ -1773,13 +1806,9 @@ a.greview-author:hover { text-decoration: underline; }
   scrollbar-width: none; -ms-overflow-style: none;
 }
 .nsx-consult::-webkit-scrollbar { width: 0; height: 0; display: none; }
-.nsx-consult[data-on] { opacity: 1; pointer-events: auto; transform: none; }
-/* The queue steps aside for it. Fading rather than hiding, so scrolling back
-   up brings the cards straight back without a jump. */
-.nsx-stack[data-closing] .nsx-reel {
-  opacity: 0;
-  transition: opacity 0.4s ease;
-}
+/* Landed. Only the CLICKABILITY is a state — where it sits is a position,
+   and that is already handled above. */
+.nsx-consult[data-on] { pointer-events: auto; }
 
 /* The card was sticky, from a layout where it pinned itself beside the
    steps. Inside a panel that is already placed absolutely that means
@@ -1820,10 +1849,12 @@ a.greview-author:hover { text-decoration: underline; }
 @media (prefers-reduced-motion: reduce) {
   /* The reveal is the whole point of the section, so it is kept — but made
      instant, and everything decorative around it stops. */
-  .jp, .nsx-reel { transition: none; }
+  /* The reel has no transition to remove any more — it is scroll-linked,
+     so it only ever moves as much as the reader moves it. What is left is
+     the card's own bloom as it lands, which is a genuine animation. */
+  .jp { transition: none; }
   .nsx-step { transition: none; }
   .jp[data-slot="on"] .jp-foot > * { animation: none; }
-  .jp-shot img, .jp-frame:hover .jp-shot img { transition: none; transform: none; }
   .jp-frame:hover .jp-link { transform: none; }
 }
 
@@ -2365,9 +2396,6 @@ a.greview-author:hover { text-decoration: underline; }
   .video-card { flex-basis: 88%; }
   .success-head { flex-direction: column; gap: 1rem; }
   .success-nav { padding-top: 0; }
-  /* The cascade needs room to step; below this the rows sit square, and the
-     tile count drops instead (columnsFor in the component). */
-  .uni-row:nth-child(1), .uni-row:nth-child(3) { left: 0; }
   /* Three columns at this width, so the tiles cannot follow the desktop
      sizing down — at 58px a row of three left most of a phone screen empty.
      Sized off the viewport here instead, which keeps the row filling the
@@ -2553,10 +2581,11 @@ a.greview-author:hover { text-decoration: underline; }
 .dpage-reason {
   background: #fff; border: 1px solid var(--color-border);
   border-radius: 16px; padding: 1.75rem;
-  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  transition: box-shadow 0.25s ease, border-color 0.25s ease;
 }
+/* Still on hover — see the note on .dpage-card. */
 .dpage-reason:hover {
-  transform: translateY(-4px); border-color: transparent;
+  border-color: transparent;
   box-shadow: 0 18px 40px rgba(23, 39, 92, 0.12);
 }
 .dpage-reason-icon { font-size: 1.9rem; line-height: 1; display: block; margin-bottom: 0.9rem; }
@@ -2747,6 +2776,63 @@ a.greview-author:hover { text-decoration: underline; }
 .dpage-cta-btn svg { transition: transform 0.2s ease; }
 .dpage-cta-btn:hover svg { transform: translateX(3px); }
 
+/* ============================================================
+   The video under the red band (components/HelpVideo.tsx) — one wide
+   rectangle, no heading, on every page that carries a .dpage-cta.
+
+   Deliberately bare. The band directly above has already made the ask, and a
+   heading here would be the page asking twice; a full-width still needs no
+   introducing. Set the video in config/video.ts — with no id the section
+   renders nothing and none of this applies.
+   ============================================================ */
+.hv { background: var(--color-bg); padding: clamp(2.5rem, 6vh, 4.5rem) 0; }
+/* 16:9 and nothing else deciding the height, so the still, the placeholder
+   and the player that replaces them all occupy exactly the same box — no
+   reflow at the moment somebody presses play, which on a page this far down
+   would shove everything under it. */
+.hv-frame {
+  position: relative; aspect-ratio: 16 / 9;
+  border-radius: 10px; overflow: hidden;
+  background: #000;
+}
+.hv-frame img, .hv-frame iframe {
+  width: 100%; height: 100%; display: block; border: 0;
+}
+.hv-still { object-fit: cover; }
+/* The hqdefault fallback is a 4:3 file with the wide frame letterboxed
+   inside it. Covering a 16:9 box by width would bring those bars along top
+   and bottom, so this zooms past them. The frame is 3/4 of that file's
+   height, so 4/3 is the minimum; the rest is margin, because landing on the
+   exact figure leaves a sliver of bar to rounding. */
+.hv-still.is-letterboxed { transform: scale(1.35); }
+
+/* YouTube's own play button, drawn rather than loaded — the facade has to
+   read as a video at a glance, and their rounded red rectangle is the shape
+   everybody already knows. It lightens to full YouTube red on hover the way
+   theirs does. */
+.hv-play {
+  position: absolute; inset: 0; margin: auto;
+  width: 68px; height: 48px;
+  display: grid; place-items: center;
+  border: none; background: none; padding: 0; cursor: pointer;
+}
+.hv-play svg { display: block; }
+.hv-play-bg {
+  fill: #212121; fill-opacity: 0.8;
+  transition: fill 0.2s ease, fill-opacity 0.2s ease;
+}
+.hv-play:hover .hv-play-bg,
+.hv-play:focus-visible .hv-play-bg { fill: #f00; fill-opacity: 1; }
+.hv-play:focus-visible { outline: 3px solid #fff; outline-offset: 6px; }
+
+/* A phone gets the rectangle edge to edge — a 16:9 box inside the container's
+   gutters is small enough that the corners and the padding cost more than
+   they give. */
+@media (max-width: 640px) {
+  .hv .container { padding: 0; }
+  .hv-frame { border-radius: 0; }
+}
+
 @media (max-width: 1024px) {
   .dpage-cities { grid-template-columns: repeat(2, 1fr); }
   .dpage-req-grid { grid-template-columns: repeat(2, 1fr); }
@@ -2782,6 +2868,28 @@ a.greview-author:hover { text-decoration: underline; }
     right: 50%; top: auto; bottom: -1.45rem;
     transform: translateX(50%) rotate(90deg);
   }
+}
+
+/* ---- the editorial photographs drift in their frames ----
+   Added by lib/parallax to every Shot that is allowed one; --px is the only
+   thing that component writes, once per frame, per picture on screen.
+
+   THE SCALE IS NOT DECORATION — it is the overhang the drift travels into.
+   1.12 leaves 6% of the picture hidden above and below the frame, and the
+   drift uses 4% of that in each direction, so the frame never shows its own
+   background at the extremes. Raise DRIFT in lib/parallax and this has to
+   go up with it.
+
+   translate3d rather than translateY: it puts the picture on its own
+   compositor layer, so a frame of scrolling moves an existing texture
+   instead of repainting a photograph. `will-change` would do the same and
+   is deliberately not used — it would hold a layer for every registered
+   image whether or not it is on screen, and there can be eight on a page.
+
+   Every frame that carries one of these clips its overflow already; the
+   hero's is on .dpage-hero rather than on .dpage-hero-bg itself. */
+.px-shot {
+  transform: translate3d(0, var(--px, 0px), 0) scale(1.12);
 }
 
 /* ---- destination pages: photography ----
@@ -2836,9 +2944,7 @@ a.greview-author:hover { text-decoration: underline; }
 }
 .dpage-gallery img, .dpage-gallery .dpage-shot-empty {
   width: 100%; height: 100%; object-fit: cover;
-  transition: transform 0.45s cubic-bezier(0.22, 0.9, 0.28, 1);
 }
-.dpage-gallery figure:hover img { transform: scale(1.06); }
 
 /* ---- course groups ---- */
 .dpage-courses {
@@ -3080,15 +3186,20 @@ a.greview-author:hover { text-decoration: underline; }
   display: flex; flex-direction: column; overflow: hidden;
   background: #fff; border-radius: 18px; color: inherit;
   box-shadow: 0 10px 26px rgba(23, 39, 92, 0.08);
-  transition: transform 0.28s ease, box-shadow 0.28s ease;
+  transition: box-shadow 0.28s ease;
 }
-.dpage-card:hover { transform: translateY(-5px); box-shadow: 0 22px 46px rgba(23, 39, 92, 0.16); }
+/* THE CARD ITSELF DOES NOT MOVE. It used to rise a few pixels on hover, and
+   the whole tile — photograph, heading, the lot — went with it. Scrolling a
+   grid drags the cursor across card after card, so the page ended up full of
+   things bobbing at the reader. The affordance is carried by the shadow
+   deepening and by the one thing that SHOULD move: the arrow on the card's
+   own link, which slides a few pixels the way an arrow ought to. One small
+   moving part per card, not the card. */
+.dpage-card:hover { box-shadow: 0 22px 46px rgba(23, 39, 92, 0.16); }
 .dpage-card-shot { aspect-ratio: 16 / 10; overflow: hidden; }
 .dpage-card-shot img, .dpage-card-shot .dpage-shot-empty {
   width: 100%; height: 100%; object-fit: cover;
-  transition: transform 0.5s cubic-bezier(0.22, 0.9, 0.28, 1);
 }
-.dpage-card:hover .dpage-card-shot img { transform: scale(1.06); }
 .dpage-card-body { padding: 1.4rem 1.5rem 1.6rem; display: flex; flex-direction: column; flex: 1; }
 .dpage-card-body h3 { color: var(--color-hero-ink); font-size: 1.2rem; margin-bottom: 0.4rem; }
 .dpage-card-body p { color: var(--color-muted); font-size: 0.94rem; margin: 0 0 1.1rem; flex: 1; }
@@ -3402,9 +3513,7 @@ a.greview-author:hover { text-decoration: underline; }
 }
 .cc-shot img, .cc-shot .dpage-shot-empty {
   width: 100%; height: 100%; object-fit: cover;
-  transition: transform 0.6s cubic-bezier(0.22, 0.9, 0.28, 1);
 }
-.cc-step:hover .cc-shot img { transform: scale(1.04); }
 
 /* The numeral sits behind the image, half off its corner — big enough to be
    a graphic rather than a label, and outlined so it never fights the copy. */
@@ -3538,9 +3647,7 @@ a.greview-author:hover { text-decoration: underline; }
 .acc-card-shot { aspect-ratio: 16 / 9; overflow: hidden; }
 .acc-card-shot img, .acc-card-shot .dpage-shot-empty {
   width: 100%; height: 100%; object-fit: cover;
-  transition: transform 0.6s cubic-bezier(0.22, 0.9, 0.28, 1);
 }
-.acc-card:hover .acc-card-shot img { transform: scale(1.05); }
 .acc-card-body { padding: 1.75rem; }
 .acc-card-body h3 {
   color: var(--color-hero-ink); font-size: 1.3rem;
@@ -3987,10 +4094,11 @@ a.greview-author:hover { text-decoration: underline; }
 .usa-card {
   background: #fff; border: 1px solid var(--color-border);
   border-radius: 16px; padding: 1.4rem;
-  transition: border-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
 }
+/* Still on hover — see the note on .dpage-card. */
 .usa-card:hover {
-  border-color: transparent; transform: translateY(-3px);
+  border-color: transparent;
   box-shadow: 0 16px 34px rgba(23, 39, 92, 0.12);
 }
 .usa-card h3 { color: var(--color-hero-ink); font-size: 1.08rem; margin-bottom: 0.45rem; }
@@ -4461,9 +4569,7 @@ a.greview-author:hover { text-decoration: underline; }
 }
 .who-work-shot img, .who-work-shot .dpage-shot-empty {
   width: 100%; height: 100%; object-fit: cover;
-  transition: transform 0.6s cubic-bezier(0.22, 0.9, 0.28, 1);
 }
-.who-work-card:hover .who-work-shot img { transform: scale(1.05); }
 .who-work-card h3 {
   color: var(--color-hero-ink); font-size: 1.4rem;
   letter-spacing: -0.025em; margin-bottom: 0.55rem;
@@ -4594,9 +4700,7 @@ a.greview-author:hover { text-decoration: underline; }
 .who-city-shot:nth-child(2) { aspect-ratio: 4 / 5; margin-top: -1.75rem; }
 .who-city-shot img, .who-city-shot .dpage-shot-empty {
   width: 100%; height: 100%; object-fit: cover;
-  transition: transform 0.6s cubic-bezier(0.22, 0.9, 0.28, 1);
 }
-.who-city-shot:hover img { transform: scale(1.05); }
 .who-city-shot figcaption {
   position: absolute; inset: auto 0 0 0; padding: 2.5rem 1.1rem 0.95rem;
   background: linear-gradient(to top, rgba(9, 16, 38, 0.85), rgba(9, 16, 38, 0));
@@ -4881,12 +4985,13 @@ a.rev-score:hover { background: rgba(255, 255, 255, 0.08); }
   margin: 0 0 1.5rem;
   background: #fff; border: 1px solid var(--color-border);
   border-radius: 18px; padding: 1.4rem 1.35rem;
-  transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
 }
+/* Still on hover — see the note on .dpage-card. The play button on a video
+   review still grows, which is the one thing here worth moving. */
 .rev-card:hover {
   border-color: transparent;
   box-shadow: 0 16px 36px rgba(23, 39, 92, 0.13);
-  transform: translateY(-2px);
 }
 /* An openable card is one big button; the padding moves onto the card so
    the whole surface is the hit area rather than a rectangle inside it. */
@@ -4974,10 +5079,12 @@ a.rev-score:hover { background: rgba(255, 255, 255, 0.08); }
    one thumbnail size YouTube always has. Scaling up past the bars is what
    turns it back into a 16:9 still. */
 .rev-video-thumb {
-  width: 100%; height: 100%; object-fit: cover; transform: scale(1.35);
-  transition: transform 0.5s cubic-bezier(0.22, 0.9, 0.28, 1);
+  width: 100%; height: 100%; object-fit: cover;
+  /* NOT decoration: this crops YouTube's letterboxed 4:3 fallback back to a
+     16:9 still, so it stays. What went was the hover step to 1.42 and the
+     easing that carried it — see the note on .jp-shot. */
+  transform: scale(1.35);
 }
-.rev-card-open:hover .rev-video-thumb { transform: scale(1.42); }
 .rev-video-play {
   position: absolute; inset: 0; margin: auto;
   width: 52px; height: 52px; border-radius: 50%;
@@ -5312,10 +5419,11 @@ a.rev-score:hover { background: rgba(255, 255, 255, 0.08); }
 .unip-card {
   background: #fff; border: 1px solid var(--color-border); border-radius: 16px;
   overflow: hidden; display: flex; flex-direction: column;
-  transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
 }
+/* Still on hover — see the note on .dpage-card. */
 .unip-card:hover {
-  border-color: transparent; transform: translateY(-3px);
+  border-color: transparent;
   box-shadow: 0 16px 34px rgba(23, 39, 92, 0.13);
 }
 /* The logos arrive as photographs of wildly different proportions, so each
@@ -5497,9 +5605,7 @@ a.rev-score:hover { background: rgba(255, 255, 255, 0.08); }
 .gal-tile[data-slot="4"] { grid-column: span 2; grid-row: span 2; }
 .gal-tile img {
   width: 100%; height: 100%; object-fit: cover;
-  transition: transform 0.6s cubic-bezier(0.22, 0.9, 0.28, 1);
 }
-.gal-tile:hover img { transform: scale(1.05); }
 .gal-tile:focus-visible { outline: 3px solid var(--color-hero-red); outline-offset: 2px; }
 .gal-tile-cap {
   position: absolute; inset: auto 0 0 0; z-index: 1;
@@ -5592,8 +5698,8 @@ a.rev-score:hover { background: rgba(255, 255, 255, 0.08); }
 @media (prefers-reduced-motion: reduce) {
   /* The ribbon's transform is never applied under this setting (the effect
      bails in the component), so the rows simply sit where the markup puts
-     them. Everything else that moves is switched off here. */
-  .gal-tile img, .gal-tile:hover img { transition: none; transform: none; }
+     them. The tiles' own images need no rule here any more — they no longer
+     move for anybody. */
   .gal-lightbox, .gal-lb-figure img { animation: none; }
 }
 
@@ -5930,10 +6036,11 @@ a.rev-score:hover { background: rgba(255, 255, 255, 0.08); }
   display: grid; grid-template-columns: 210px 1fr; gap: 1.75rem;
   background: #fff; border: 1px solid var(--color-border);
   border-radius: 18px; padding: 1.6rem 1.75rem;
-  transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
 }
+/* Still on hover — see the note on .dpage-card. */
 .evt-card:hover {
-  border-color: transparent; transform: translateY(-2px);
+  border-color: transparent;
   box-shadow: 0 16px 36px rgba(23, 39, 92, 0.12);
 }
 .evt-card-when {
@@ -6062,15 +6169,15 @@ a.rev-score:hover { background: rgba(255, 255, 255, 0.08); }
   display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 0;
   border-radius: 24px; overflow: hidden; margin-bottom: 2rem;
   background: var(--color-hero-ink); color: #fff;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition: box-shadow 0.3s ease;
 }
-.blg-lead:hover { transform: translateY(-3px); box-shadow: 0 24px 48px rgba(23, 39, 92, 0.18); }
+/* Still, like every other card — see the note on .dpage-card. Its own
+   "read this" arrow is what moves. */
+.blg-lead:hover { box-shadow: 0 24px 48px rgba(23, 39, 92, 0.18); }
 .blg-lead-shot { overflow: hidden; min-height: 320px; background: #0f1c44; }
 .blg-lead-shot img {
   width: 100%; height: 100%; object-fit: cover;
-  transition: transform 0.6s cubic-bezier(0.22, 0.9, 0.28, 1);
 }
-.blg-lead:hover .blg-lead-shot img { transform: scale(1.04); }
 .blg-lead-body {
   padding: clamp(1.75rem, 3.5vw, 3rem);
   display: flex; flex-direction: column; justify-content: center;
@@ -6104,18 +6211,19 @@ a.rev-score:hover { background: rgba(255, 255, 255, 0.08); }
   display: flex; flex-direction: column;
   background: #fff; border: 1px solid var(--color-border);
   border-radius: 18px; overflow: hidden; color: inherit;
-  transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
 }
+/* No arrow inside this one, so the border and the shadow carry it alone.
+   That is deliberate rather than an oversight: a card with nothing in it to
+   animate is better left still than given a wobble of its own. */
 .blg-card:hover {
-  border-color: transparent; transform: translateY(-3px);
+  border-color: transparent;
   box-shadow: 0 18px 38px rgba(23, 39, 92, 0.13);
 }
 .blg-card-shot { aspect-ratio: 16 / 10; overflow: hidden; background: var(--color-surface); }
 .blg-card-shot img {
   width: 100%; height: 100%; object-fit: cover;
-  transition: transform 0.6s cubic-bezier(0.22, 0.9, 0.28, 1);
 }
-.blg-card:hover .blg-card-shot img { transform: scale(1.05); }
 /* A post with no cover: its initial, set large on the tint. Keeps the grid
    even without dropping a grey rectangle into it. */
 .blg-noshot {
@@ -6354,9 +6462,10 @@ a.rev-score:hover { background: rgba(255, 255, 255, 0.08); }
 }
 .art-related-card {
   background: #fff; border-radius: 16px; overflow: hidden; color: inherit;
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  transition: box-shadow 0.25s ease;
 }
-.art-related-card:hover { transform: translateY(-3px); box-shadow: 0 16px 34px rgba(23, 39, 92, 0.12); }
+/* Shadow only, same as .blg-card — nothing inside it to move. */
+.art-related-card:hover { box-shadow: 0 16px 34px rgba(23, 39, 92, 0.12); }
 .art-related-card img, .art-related-noshot {
   width: 100%; aspect-ratio: 16 / 10; object-fit: cover; display: block;
 }
@@ -6512,9 +6621,9 @@ a.rev-score:hover { background: rgba(255, 255, 255, 0.08); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .blg-lead, .blg-lead:hover, .blg-card, .blg-card:hover,
-  .art-related-card, .art-related-card:hover { transition: none; transform: none; }
-  .blg-lead-shot img, .blg-card-shot img { transition: none; transform: none; }
+  /* The cards' hover lift is gone for everybody, so there is nothing to
+     switch off here any more; what is left on them is a shadow and a border
+     colour, which are not motion. */
 }
 
 /* ============================================================
@@ -6645,9 +6754,7 @@ a.rev-score:hover { background: rgba(255, 255, 255, 0.08); }
    ============================================================ */
 /* Layer 90 is chosen to sit above the sticky navbar (50) and the mobile
    contact bar (60) but below the review reader (200) and the loading splash
-   (300) — a corner button must never float over a full-screen overlay.
-   The right offset also clears the 3px scroll-progress rail at the very edge
-   of the viewport. */
+   (300) — a corner button must never float over a full-screen overlay. */
 .chatdock {
   position: fixed; right: 1.5rem; z-index: 90;
   bottom: calc(1.5rem + env(safe-area-inset-bottom));

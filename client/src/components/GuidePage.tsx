@@ -5,6 +5,7 @@ import { Check, Arrow, Shot } from "./destinationBits";
 import { armReveals } from "../lib/reveal";
 import TypeStack from "./TypeStack";
 import type { Block, Guide, HeadPart } from "../data/guides/types";
+import HelpVideo from "./HelpVideo";
 
 /**
  * Renders a destination guide from data — see data/guides/types.ts for the
@@ -430,6 +431,9 @@ export default function GuidePage({ guide }: { guide: Guide }) {
           </Link>
         </div>
       </section>
+      {/* The one video for the whole site. Renders nothing until an id
+          is set in config/video.ts. */}
+      <HelpVideo />
     </article>
   );
 }

@@ -7,6 +7,7 @@ import InquiryForm from "../components/InquiryForm";
 import { contact, OFFICES } from "../config/contact";
 import { TESTS } from "../data/tests";
 import StatMarquee, { type StatItem } from "../components/StatMarquee";
+import HelpVideo from "../components/HelpVideo";
 
 /**
  * Who We Are — /about.
@@ -592,6 +593,9 @@ export default function About() {
           </Link>
         </div>
       </section>
+      {/* The one video for the whole site. Renders nothing until an id
+          is set in config/video.ts. */}
+      <HelpVideo />
     </article>
   );
 }

@@ -33,10 +33,11 @@ import { useEffect } from "react";
  *     journey band, the text column in the "types of university" deck, the
  *     mega-panel on a short window — and swallowing the wheel over one of
  *     those would break them exactly the way `overscroll-behavior: contain`
- *     used to. So the ancestors of whatever is under the pointer are walked
- *     first, and if any of them can absorb the scroll in the direction
- *     asked for, this stands aside completely and the browser does its
- *     normal thing, chaining included.
+ *     used to. So the pointer's nearest scroll container is consulted
+ *     first, and if it can absorb the scroll in the direction asked for,
+ *     this stands aside completely and the browser does its normal thing,
+ *     chaining included. That lookup is cached per element — see
+ *     nearestScroller for why that mattered more than it sounds.
  *   · ZOOM. ctrl+wheel is a browser zoom gesture, not a scroll.
  *   · THE KEYBOARD. Space, Page Down, Home, arrow keys and find-on-page all
  *     scroll natively and are left alone. They move the page, this notices
@@ -62,56 +63,93 @@ const SETTLED = 0.5;
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 
 /**
- * Is there something under the pointer that should get this scroll instead?
+ * The nearest scrollable ancestor of an element — remembered, per element,
+ * for as long as the element lives.
  *
- * Walks up from the element the wheel landed on. An ancestor claims the
- * scroll if it is a scroll container, has more content than it can show, AND
- * is not already jammed against the end in the direction being asked for —
- * that last clause is what lets a scroller that has hit its bottom hand the
- * rest of the gesture on to the page.
+ * ------------------------------------------------------------------
+ * WHY THIS IS A CACHE AND NOT A WALK. The first version walked the ancestor
+ * chain on every wheel event, calling getComputedStyle at each level, with a
+ * short time-based memo in front of it. The memo was keyed on the exact
+ * element under the pointer — and that is the one thing that does not hold
+ * still while you scroll, because the page is moving underneath a stationary
+ * cursor. Crossing a card, its body and its paragraph are three different
+ * targets, so the memo missed on almost every event and the full walk ran
+ * again.
+ *
+ * On a page like /services/test-preparation that came to roughly ten
+ * getComputedStyle calls per wheel event, at up to a hundred events a
+ * second. Worse, the parallax writes a style every frame, so the style tree
+ * was always dirty when those calls landed — and getComputedStyle against a
+ * dirty tree forces a full style recalculation then and there. That is a
+ * thousand forced recalculations a second, spent proving something the page
+ * could have answered once: that page has no scroll containers on it at all,
+ * so not one of those walks could ever have claimed anything.
+ *
+ * Now the answer is computed once per element and kept. The hot path is a
+ * WeakMap lookup. The walk that fills it also caches every node it passes,
+ * so once one card has been crossed its whole ancestor chain is known and
+ * the next element terminates after a step or two.
+ * ------------------------------------------------------------------
+ *
+ * WeakMap, so nothing here keeps a detached node alive after a navigation.
+ * `undefined` means "not looked at yet"; `null` means "looked, found none".
  */
-/* The walk costs a getComputedStyle and a layout read per ancestor, and a
-   wheel fires upwards of sixty times a second — left uncached it was doing
-   the one thing this component exists to avoid.
-   ONLY "NOBODY CLAIMED IT" IS REMEMBERED, and only for the same element and
-   the same direction. That answer can go stale only if the DOM changes under
-   a stationary cursor, which is rare and self-corrects within the window. A
-   claim is never cached: a scroller that has just reached its end has to be
-   noticed on the very next notch, or the page would refuse to take over. */
-const MEMO_MS = 120;
-let memoEl: Element | null = null;
-let memoDown = false;
-let memoAt = 0;
+let scrollerOf = new WeakMap<Element, Element | null>();
 
-function innerScrollerClaims(start: EventTarget | null, dy: number): boolean {
-  const down = dy > 0;
-  const now = performance.now();
-  if (
-    start === memoEl &&
-    down === memoDown &&
-    now - memoAt < MEMO_MS
-  ) {
-    return false;
-  }
+function nearestScroller(start: Element): Element | null {
+  const known = scrollerOf.get(start);
+  if (known !== undefined) return known;
 
-  let el = start instanceof Element ? start : null;
+  const chain: Element[] = [];
+  let el: Element | null = start;
+  let found: Element | null = null;
+
   while (el && el !== document.body && el !== document.documentElement) {
+    const cached = scrollerOf.get(el);
+    if (cached !== undefined) {
+      found = cached;
+      break;
+    }
+    chain.push(el);
     const { overflowY } = getComputedStyle(el);
-    if (
-      (overflowY === "auto" || overflowY === "scroll") &&
-      el.scrollHeight > el.clientHeight + 1
-    ) {
-      const room = el.scrollHeight - el.clientHeight;
-      const atTop = el.scrollTop <= 1;
-      const atEnd = el.scrollTop >= room - 1;
-      if (!((dy < 0 && atTop) || (dy > 0 && atEnd))) return true;
+    if (overflowY === "auto" || overflowY === "scroll") {
+      found = el;
+      break;
     }
     el = el.parentElement;
   }
 
-  memoEl = start instanceof Element ? start : null;
-  memoDown = down;
-  memoAt = now;
+  /* Everything passed on the way up shares the answer — including, when the
+     loop stopped on one, the scroller itself, whose nearest scroller is
+     itself. */
+  for (const node of chain) scrollerOf.set(node, found);
+  return found;
+}
+
+/** Can this container still take scroll in this direction? */
+function canTake(el: Element, dy: number): boolean {
+  const room = el.scrollHeight - el.clientHeight;
+  if (room <= 1) return false;
+  return dy < 0 ? el.scrollTop > 1 : el.scrollTop < room - 1;
+}
+
+/**
+ * Is there something under the pointer that should get this scroll instead?
+ *
+ * Layout is read only where a scroll container actually exists — on most of
+ * the site that is nowhere, and the whole check costs one WeakMap hit. When
+ * the nearest container is jammed against its end the search carries on
+ * outward, so a scroller that has hit its bottom hands the rest of the
+ * gesture on rather than swallowing it.
+ */
+function innerScrollerClaims(start: EventTarget | null, dy: number): boolean {
+  let el: Element | null = start instanceof Element ? start : null;
+  while (el) {
+    const scroller = nearestScroller(el);
+    if (!scroller) return false;
+    if (canTake(scroller, dy)) return true;
+    el = scroller.parentElement;
+  }
   return false;
 }
 
@@ -177,14 +215,24 @@ export default function HeavyScroll() {
       target = clamp(target, 0, limit());
     };
 
+    /* A breakpoint can turn a plain box into a scroll container — .tst-body
+       and .nsx-consult only scroll above 981px — so the remembered answers
+       cannot outlive a resize. Throwing the whole map away is right: it
+       refills itself lazily, and a resize is not a moment anyone is judging
+       scroll smoothness. */
+    const onResizeAll = () => {
+      scrollerOf = new WeakMap();
+      onResize();
+    };
+
     window.addEventListener("wheel", onWheel, { passive: false });
     window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onResize);
+    window.addEventListener("resize", onResizeAll);
 
     return () => {
       window.removeEventListener("wheel", onWheel);
       window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onResize);
+      window.removeEventListener("resize", onResizeAll);
       if (raf) cancelAnimationFrame(raf);
     };
   }, []);

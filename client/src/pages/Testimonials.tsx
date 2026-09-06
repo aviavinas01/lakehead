@@ -6,6 +6,7 @@ import { StarRow, GoogleG, SourceBadge } from "../components/reviewBits";
 import { useReviewWall, type WallItem } from "../hooks/useReviewWall";
 import { DESTINATIONS, type ReviewSource } from "../data/testimonials";
 import { GOOGLE_MAPS_URL } from "../api/googleRating";
+import HelpVideo from "../components/HelpVideo";
 
 /**
  * Testimonials & Reviews — /testimonials.
@@ -530,6 +531,9 @@ export default function Testimonials() {
           </Link>
         </div>
       </section>
+      {/* The one video for the whole site. Renders nothing until an id
+          is set in config/video.ts. */}
+      <HelpVideo />
 
       {reading ? <Reader item={reading} onClose={() => setReading(null)} /> : null}
     </article>

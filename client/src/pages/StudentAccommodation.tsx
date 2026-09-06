@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { PlaneIcon } from "../components/HeroOrbit";
 import { Check, Arrow, Shot } from "../components/destinationBits";
 import { revealInit } from "../lib/reveal";
+import HelpVideo from "../components/HelpVideo";
 
 /**
  * Student Accommodation — /services/student-accommodation. A static route,
@@ -297,6 +298,9 @@ export default function StudentAccommodation() {
           </Link>
         </div>
       </section>
+      {/* The one video for the whole site. Renders nothing until an id
+          is set in config/video.ts. */}
+      <HelpVideo />
     </article>
   );
 }

@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Arrow } from "../components/destinationBits";
 import { fetchGallery, type GalleryAlbum, type GalleryImage } from "../api/gallery";
 import { PLACEHOLDER_ALBUMS } from "../data/gallery";
+import HelpVideo from "../components/HelpVideo";
 
 /**
  * Gallery — /gallery.
@@ -388,6 +389,9 @@ export default function Gallery() {
           </Link>
         </div>
       </section>
+      {/* The one video for the whole site. Renders nothing until an id
+          is set in config/video.ts. */}
+      <HelpVideo />
 
       {open && openAlbum ? (
         <Lightbox

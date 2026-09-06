@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { PlaneIcon } from "../components/HeroOrbit";
 import { Arrow, Shot } from "../components/destinationBits";
 import { revealInit } from "../lib/reveal";
+import HelpVideo from "../components/HelpVideo";
 
 /**
  * Admission Guidance — /services/admission-guidance. A static route, so it
@@ -296,6 +297,9 @@ export default function AdmissionGuidance() {
           </Link>
         </div>
       </section>
+      {/* The one video for the whole site. Renders nothing until an id
+          is set in config/video.ts. */}
+      <HelpVideo />
     </article>
   );
 }

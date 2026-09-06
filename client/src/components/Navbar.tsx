@@ -124,11 +124,6 @@ export default function Navbar() {
   const [openSub, setOpenSub] = useState<string | null>(null);
   const [logoMissing, setLogoMissing] = useState(false);
   const headerRef = useRef<HTMLElement>(null);
-  /* The progress bars are driven straight through these refs — see below */
-  const trackH = useRef<HTMLDivElement>(null);
-  const trackV = useRef<HTMLDivElement>(null);
-  const barH = useRef<HTMLSpanElement>(null);
-  const barV = useRef<HTMLSpanElement>(null);
 
   /* Close an open dropdown on Escape or on a click outside the header. */
   useEffect(() => {
@@ -147,62 +142,33 @@ export default function Navbar() {
     };
   }, [openMenu]);
 
-  /* Scroll progress for the bar under the header: 0→1 across the page,
-     switching to the footer color once the footer scrolls into view.
-     Two rules keep this off the critical path of every scroll frame:
-     the page's measurements are taken only when they can actually change
-     (resize / content growth), never inside the frame; and the frame writes
-     to the DOM through refs instead of setting state, so scrolling never
-     re-renders the navbar. Both were costing a forced layout plus a React
-     render on every single frame, which is what made scrolling stutter. */
+  /* PUBLISHES THE BAR'S HEIGHT, and that is now all it does.
+     `--navbar-h` is read all over the stylesheet: the heroes that reach up
+     behind the bar offset themselves by exactly this, and every anchored
+     section uses it for its scroll-margin. Measured rather than guessed —
+     the bar is shorter on mobile, where the logo shrinks.
+
+     THIS USED TO PAINT THE TWO SCROLL-PROGRESS RAILS as well, which meant a
+     scroll listener and a requestAnimationFrame running for the whole life
+     of every page. Both bars are gone, and so is all of that: what is left
+     runs when the window resizes or the bar itself changes size, and never
+     once while you are scrolling. The ResizeObserver watches the header
+     rather than the whole document body, too — the body was observed because
+     the rails needed the page's total height, and it fired on every image
+     that finished loading. */
   useEffect(() => {
-    let raf = 0;
-    let max = 0;
-    let footerTop = Number.POSITIVE_INFINITY;
-
-    /* Every layout read lives here */
-    const measure = () => {
-      max = document.documentElement.scrollHeight - window.innerHeight;
-      const footer = document.querySelector<HTMLElement>("footer.footer");
-      footerTop = footer ? footer.offsetTop : Number.POSITIVE_INFINITY;
-      /* The vertical bar starts where the sticky header ends */
-      const headerH = headerRef.current?.offsetHeight ?? 0;
-      if (trackV.current) {
-        trackV.current.style.top = `${headerH}px`;
-      }
-      /* Published for the destination pages, whose hero reaches up behind
-         this bar by exactly this much. Measured rather than guessed: the bar
-         is shorter on mobile, where the logo shrinks. */
-      document.documentElement.style.setProperty("--navbar-h", `${headerH}px`);
-      paint();
+    const publish = () => {
+      const h = headerRef.current?.offsetHeight ?? 0;
+      document.documentElement.style.setProperty("--navbar-h", `${h}px`);
     };
 
-    /* …and only writes live here */
-    const paint = () => {
-      const p = max > 0 ? Math.min(window.scrollY / max, 1) : 0;
-      if (barH.current) barH.current.style.transform = `scaleX(${p})`;
-      if (barV.current) barV.current.style.transform = `scaleY(${p})`;
-      const atFooter = window.scrollY + window.innerHeight >= footerTop + 40;
-      trackH.current?.classList.toggle("at-footer", atFooter);
-      trackV.current?.classList.toggle("at-footer", atFooter);
-    };
-
-    const onScroll = () => {
-      cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(paint);
-    };
-
-    measure();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", measure);
-    /* Content loading in (images, posts) changes the page height */
-    const ro = new ResizeObserver(measure);
-    ro.observe(document.body);
+    publish();
+    window.addEventListener("resize", publish);
+    const ro = new ResizeObserver(publish);
+    if (headerRef.current) ro.observe(headerRef.current);
 
     return () => {
-      cancelAnimationFrame(raf);
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", measure);
+      window.removeEventListener("resize", publish);
       ro.disconnect();
     };
   }, []);
@@ -376,14 +342,13 @@ export default function Navbar() {
           the nav item because the panel is a sibling below the strip — closing
           on the item's own mouseleave would snatch it away as the pointer
           travelled down into it. */}
-      {/* EVERYTHING THAT HIDES LIVES IN HERE, and .scroll-progress-v below
-          deliberately does not. That rail is position:fixed, and a transform
-          on an ancestor makes the ancestor its containing block — inside
-          this wrapper it would be dragged off the top of the screen along
-          with the bar instead of staying down the right edge.
-          Transforming a wrapper rather than the <header> also leaves the
-          header's own offsetHeight alone, so --navbar-h keeps its value and
-          the heroes that reach up behind the bar do not jump when it goes. */}
+      {/* The part that slides away. It is a wrapper rather than the <header>
+          itself so the header keeps its own untransformed offsetHeight —
+          --navbar-h holds its value and the heroes that reach up behind the
+          bar do not jump when it hides.
+          (It also used to shield a position:fixed progress rail from being
+          dragged off screen by this transform. That rail is gone; the reason
+          above is the one that still holds.) */}
       <div className="navbar-slide">
       <div className="navbar-main" onMouseLeave={() => setOpenMenu(null)}>
         <div className="container navbar-inner">
@@ -496,17 +461,7 @@ export default function Navbar() {
           </div>
         )}
       </div>
-      <div className="scroll-progress" ref={trackH}>
-        <span ref={barH} />
-      </div>
-      </div>{/* /.navbar-slide — everything below this stays put */}
-      {/* Vertical twin of the bar above: fills bottom-to-top along the right
-          edge and meets the horizontal bar at the top-right corner. It is
-          OUTSIDE .navbar-slide on purpose; see the note up there. */}
-      <div className="scroll-progress-v" ref={trackV} aria-hidden="true">
-        <span ref={barV} />
-      </div>
-
+      </div>{/* /.navbar-slide */}
     </header>
   );
 }

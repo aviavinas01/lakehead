@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Arrow } from "../components/destinationBits";
 import { EVENTS, EVENT_KINDS } from "../data/events";
 import { contact } from "../config/contact";
+import HelpVideo from "../components/HelpVideo";
 
 /**
  * Events — /events.
@@ -181,6 +182,9 @@ export default function Events() {
           </a>
         </div>
       </section>
+      {/* The one video for the whole site. Renders nothing until an id
+          is set in config/video.ts. */}
+      <HelpVideo />
     </article>
   );
 }

@@ -3,27 +3,43 @@ import { Link } from "react-router-dom";
 import { UNIVERSITIES } from "../data/universities";
 
 /**
- * Partner logos, as a staggered grid of tiles that hold their position and
- * periodically flip to a different logo.
+ * Partner logos: ONE LINE of marks that hold their position and flicker over
+ * to a different partner now and then.
  *
- * This replaced a marquee. The reason is capacity: a scrolling track shows
- * every logo eventually but only ever a handful at once, and it gets slower
- * to watch as the list grows. A fixed grid shows a stable, composed block —
- * and rotating what is inside each tile means the number of partners is no
- * longer limited by how many tiles fit on screen.
+ * Nothing scrolls and nothing slides. Each slot simply trades its logo for
+ * another on a timer, flipping as it goes, so the line is always still and
+ * never the same twice. That is the whole effect — a steady row that keeps
+ * quietly changing its mind about who is in it.
+ *
+ * WHY ROTATION RATHER THAN A LONGER ROW. A marquee shows every logo
+ * eventually but only a handful at a time, and it gets slower to watch as
+ * the list grows. Swapping what is inside a fixed set of slots means the
+ * number of partners is not limited by how many marks fit across the screen:
+ * eleven logos take turns in seven places, and adding a twelfth changes
+ * nothing about the layout.
+ *
+ * IT WAS THREE ROWS. One line puts the marks on the same footing as every
+ * other band on the page and stops the section reading as a table of
+ * contents; the rotation does the work the extra rows were doing.
  *
  * Add logos by dropping files into client/public/universities/ and adding a
  * line to UNIVERSITIES in data/universities.ts — the same list the partners
- * page renders in full. Nothing else needs changing: the grid works out how
- * many tiles fit, and the rotation covers however many logos exist. A
+ * page renders in full. Nothing else needs changing: the line works out how
+ * many slots fit, and the rotation covers however many logos exist. A
  * missing file falls back to the university's name rather than a broken
  * image, so a typo degrades quietly.
  */
 
 
-const ROWS = 3;
-/** How long a tile holds before another one somewhere flips. */
-const SWAP_MS = 1900;
+/* One line. The rest of this file is written against a row count rather
+   than assuming one, so this is the only change needed to go back to a
+   block — but see the note on the stagger in the stylesheet if you do. */
+const ROWS = 1;
+/** How long the line holds before one of its slots flips.
+    With three rows this was one change in twenty-one places, which read as
+    an occasional twitch. Across seven it is the section's only movement, so
+    it is slowed a little to stay a flicker rather than a strobe. */
+const SWAP_MS = 2400;
 
 /** Tiles per row at a given container width. */
 const columnsFor = (w: number) => (w < 460 ? 3 : w < 700 ? 4 : w < 980 ? 5 : 7);

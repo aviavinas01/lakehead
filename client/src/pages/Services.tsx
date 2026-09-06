@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { PlaneIcon } from "../components/HeroOrbit";
 import { Check, Arrow, Shot } from "../components/destinationBits";
 import { SERVICES } from "../data/services";
+import HelpVideo from "../components/HelpVideo";
 
 /**
  * Student Services — the hub behind the navbar's "Student Services" item.
@@ -166,6 +167,9 @@ export default function Services() {
           </Link>
         </div>
       </section>
+      {/* The one video for the whole site. Renders nothing until an id
+          is set in config/video.ts. */}
+      <HelpVideo />
     </article>
   );
 }
