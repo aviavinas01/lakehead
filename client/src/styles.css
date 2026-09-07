@@ -92,6 +92,39 @@ img { max-width: 100%; display: block; }
 .app-splash .loader, .app-splash .loader > * {
   max-width: 70vw; max-height: 70vw;
 }
+/* ============================================================
+   NO HOVER WHILE THE PAGE IS MOVING.
+
+   A stationary cursor sweeps across every card the page scrolls past, and
+   each one starts its hover transition on the way — a blur on the
+   destination tiles, a filter on the testimonial faces, transforms
+   elsewhere. Several run at once, none of them was asked for, and the
+   repainting is what makes the scroll feel like it is catching.
+
+   `data-scrolling` is set on <html> by HeavyScroll for as long as the page
+   is moving. Turning pointer events off across <main> stops :hover matching
+   at all, so there is nothing to transition and nothing to repaint. The flag
+   clears about a seventh of a second after the page settles, and a cursor
+   that is genuinely resting on a card gets its hover then.
+
+   WHY <main> AND NOT <body>. Two things outside it have to keep working
+   mid-scroll: the navigation, which people reach for while the page is
+   still moving, and the chat dock. Neither is a card and neither costs
+   anything to hover.
+
+   AND WHY THE THREE EXCEPTIONS. HeavyScroll decides whether a scroll
+   belongs to an inner scroller by looking at what is under the pointer.
+   With pointer events off, that lookup would find <html> and the page would
+   take a gesture meant for the form in the journey band or the text column
+   in the university deck — the exact bug the overscroll fix cured. Putting
+   them back explicitly keeps them addressable while everything around them
+   is inert.
+   ============================================================ */
+html[data-scrolling] main { pointer-events: none; }
+html[data-scrolling] .nsx-consult,
+html[data-scrolling] .tst-body,
+html[data-scrolling] .dpage-table-scroll { pointer-events: auto; }
+
 /* Sits over the page while work is in flight; click-blocking on purpose, so
    a form cannot be submitted twice while the first attempt is still running. */
 .app-veil {

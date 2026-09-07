@@ -154,6 +154,51 @@ function innerScrollerClaims(start: EventTarget | null, dy: number): boolean {
 }
 
 export default function HeavyScroll() {
+  /* ------------------------------------------------------------------
+     FLAGGING THE PAGE WHILE IT MOVES, so hover effects stop firing at a
+     cursor that is not choosing anything.
+
+     Scrolling drags a stationary pointer across card after card, and each
+     one it crosses starts its hover transition. On the home page that
+     includes a 7px blur on a full-size photograph — animating a blur is
+     among the most expensive things CSS can be asked to do, it repaints the
+     element on every frame at a new radius, and three or four tiles can be
+     mid-animation at once. That is the drag.
+
+     `data-scrolling` on <html> lets the stylesheet turn pointer events off
+     across <main> for as long as the page is moving. No hover matches, so
+     nothing transitions and nothing repaints; the flag clears a moment
+     after the page settles and hover behaves normally again.
+
+     It is a SEPARATE EFFECT from the damping below because it must run even
+     where the damping does not: someone on reduced motion still has a
+     pointer and still scrolls past cards. Only the fine-pointer test is
+     shared, and for the same reason — a finger has no hover to suppress.
+     ------------------------------------------------------------------ */
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.matchMedia) return;
+    if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+
+    const root = document.documentElement;
+    let idle = 0;
+
+    const onScroll = () => {
+      root.dataset.scrolling = "";
+      clearTimeout(idle);
+      /* Long enough that a slow, continuous scroll does not flicker the
+         flag off between events, short enough that hover feels immediate
+         again once you stop. */
+      idle = window.setTimeout(() => delete root.dataset.scrolling, 140);
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      clearTimeout(idle);
+      delete root.dataset.scrolling;
+    };
+  }, []);
+
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
