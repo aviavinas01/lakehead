@@ -1,4 +1,8 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+  "rewrites": [
+    { "source": "/api/:path*", "destination": "https://lakehead.onrender.com/api/:path*" },
+    { "source": "/uploads/:path*", "destination": "https://lakehead.onrender.com/uploads/:path*" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
 }

@@ -3,7 +3,7 @@ import { env } from "../config/env.js";
 import { User, type UserDocument } from "../models/User.js";
 import { randomBytes } from "node:crypto";
 import { comparePassword, hashPassword } from "../utils/password.js";
-import { ApiError } from "../utils/ApiError.js";
+import { ApiError, newRef } from "../utils/ApiError.js";
 
 /**
  * Failures before an account stops answering, and for how long.
@@ -52,8 +52,9 @@ export const authService = {
        what an attacker sees. The reason goes to stdout, where only somebody
        with access to the host can read it, and the password never does. */
     const wrong = (reason: string) => {
-      console.warn(`[auth] sign-in refused (${reason}) for ${email}`);
-      return ApiError.unauthorized("Invalid email or password");
+      const ref = newRef();
+      console.warn(`[auth] ref=${ref} sign-in refused (${reason}) for ${email}`);
+      return ApiError.unauthorized("Invalid email or password", ref);
     };
 
     /* ONE ACCOUNT. Not "any admin" — this exact address, the one set in the

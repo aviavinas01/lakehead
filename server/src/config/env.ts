@@ -17,6 +17,13 @@ const envSchema = z.object({
      replacement for the first. */
   ADMIN_GATE_CODE: z.string().min(12, "ADMIN_GATE_CODE must be at least 12 characters"),
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
+  /* Set by Render automatically on every deploy — we never write it. It is
+     reported by /api/health so that "is the code I just pushed actually the
+     code running?" is a question with an answer. Without it, a deploy that
+     silently failed and left the previous build serving looks exactly like a
+     deploy that worked, and every symptom gets debugged against source that
+     is not running. */
+  RENDER_GIT_COMMIT: z.string().optional(),
   /* Optional: without these the footer falls back to its static rating */
   GOOGLE_MAPS_API_KEY: z.string().optional(),
   GOOGLE_PLACE_ID: z.string().optional(),

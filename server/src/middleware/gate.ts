@@ -2,7 +2,7 @@ import { createHash, timingSafeEqual } from "node:crypto";
 import type { CookieOptions, RequestHandler } from "express";
 import jwt from "jsonwebtoken";
 import { env, isProd } from "../config/env.js";
-import { ApiError } from "../utils/ApiError.js";
+import { ApiError, newRef } from "../utils/ApiError.js";
 
 /**
  * The door in front of the door.
@@ -89,14 +89,16 @@ export const requirePass: RequestHandler = (req, _res, next) => {
      ITSELF: the password was never even checked, so "invalid email or
      password" is true only in the sense that nothing was valid. */
   if (!token) {
-    console.warn("[auth] sign-in refused (no gate pass — door not used)");
-    return next(ApiError.unauthorized("Invalid email or password"));
+    const ref = newRef();
+    console.warn(`[auth] ref=${ref} sign-in refused (no gate pass — door not used)`);
+    return next(ApiError.unauthorized("Invalid email or password", ref));
   }
   try {
     jwt.verify(token, env.JWT_SECRET);
     next();
   } catch {
-    console.warn("[auth] sign-in refused (gate pass expired or invalid)");
-    next(ApiError.unauthorized("Invalid email or password"));
+    const ref = newRef();
+    console.warn(`[auth] ref=${ref} sign-in refused (gate pass expired or invalid)`);
+    next(ApiError.unauthorized("Invalid email or password", ref));
   }
 };

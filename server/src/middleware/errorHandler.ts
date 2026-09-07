@@ -8,7 +8,13 @@ export const notFound: RequestHandler = (req, res) => {
 
 export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
   if (err instanceof ApiError) {
-    return res.status(err.statusCode).json({ message: err.message });
+    /* The ref, when there is one, is the only thing distinguishing two
+       identical refusals — see newRef in ApiError. It carries no meaning by
+       itself, so echoing it tells a caller nothing it did not already know. */
+    return res.status(err.statusCode).json({
+      message: err.message,
+      ...(err.ref ? { ref: err.ref } : {}),
+    });
   }
 
   // Mongo duplicate key

@@ -28,7 +28,27 @@ import { comparePassword, hashPassword } from "../utils/password.js";
  * password writes nothing at all, so an ordinary restart costs one indexed
  * lookup and one bcrypt compare.
  */
+/**
+ * What happened last time this ran, for /api/health to report.
+ *
+ * "missing" until it has been proved otherwise, so a server that crashed
+ * before reaching the check never claims to be ready.
+ */
+export type AdminState = "missing" | "ready" | "failed";
+let state: AdminState = "missing";
+export const adminState = (): AdminState => state;
+
 export const ensureAdmin = async (): Promise<void> => {
+  try {
+    await run();
+    state = "ready";
+  } catch (err) {
+    state = "failed";
+    throw err;
+  }
+};
+
+const run = async (): Promise<void> => {
   /* The schema lowercases and trims on write, so the stored address is
      already normalised — match it, or a capitalised dashboard value would
      look like a different account and create a duplicate. This is also the
