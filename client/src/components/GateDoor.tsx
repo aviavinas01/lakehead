@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import api, { getErrorMessage } from "../api/client";
+import { markPass } from "../lib/gatePass";
 
 /**
  * The hidden door in the footer.
@@ -82,6 +83,10 @@ export default function GateDoor() {
     setError("");
     try {
       await api.post("/gate", { code: code.trim() });
+      /* Note WHEN the pass runs out, so the sign-in page can say "the door
+         has closed again" instead of "your password is wrong". The pass
+         itself is the httpOnly cookie the server just set — see gatePass. */
+      markPass();
       close();
       navigate("/admin/login");
     } catch (err) {

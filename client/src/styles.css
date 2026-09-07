@@ -2572,6 +2572,19 @@ a.greview-author:hover { text-decoration: underline; }
   outline: 2px solid var(--color-primary); outline-offset: 1px;
 }
 .form-error { color: var(--color-danger); }
+/* Said BEFORE anything is typed, not after it failed: the sign-in page uses
+   this to explain that the door has closed, which is not an error the person
+   has made. Hence the neutral tint rather than the danger colour. */
+.form-note {
+  margin: 0 0 0.25rem; padding: 0.7rem 0.85rem;
+  font-size: 0.85rem; line-height: 1.5;
+  color: var(--color-muted);
+  background: var(--color-surface);
+  border-left: 3px solid var(--color-hero-red);
+  border-radius: 6px;
+}
+.form-note a { color: var(--color-hero-red); }
+.form-hint { margin: 0; font-size: 0.8rem; color: var(--color-muted); }
 .form-success { color: var(--color-success); }
 
 /* Pagination */
