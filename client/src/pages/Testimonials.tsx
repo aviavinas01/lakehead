@@ -301,7 +301,7 @@ export default function Testimonials() {
     <article className="dpage dpage-ruled rev">
       <header className="dpage-hero">
         <div className="dpage-hero-bg">
-          <Shot src="/testimonials/hero.jpg" alt="" />
+          <Shot src="/testimonials/hero.jpg" alt="" priority />
         </div>
         <div className="container dpage-hero-inner">
           <div className="dpage-hero-copy">

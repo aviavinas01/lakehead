@@ -125,6 +125,39 @@ html[data-scrolling] .nsx-consult,
 html[data-scrolling] .tst-body,
 html[data-scrolling] .dpage-table-scroll { pointer-events: auto; }
 
+/* ============================================================
+   THE SKELETON UNDER A PHOTOGRAPH THAT HAS NOT ARRIVED.
+
+   A class on the <img> itself, added by Shot until the file paints and
+   removed the moment it does. An image with nothing decoded yet shows its
+   own background, so this needs no wrapper — which matters, because a dozen
+   rules select these as the direct child of their frame and a wrapper would
+   have detached every one.
+
+   It is a slow, pale sweep rather than a spinner. A spinner says something
+   is wrong; a sweep says something is coming, and it sits at roughly the
+   brightness of the tinted panel a missing photograph falls back to, so the
+   two read as the same family.
+   ============================================================ */
+.shot-load {
+  background-color: #eef1f6;
+  background-image: linear-gradient(
+    100deg,
+    #eef1f6 28%, #f7f9fc 46%, #f7f9fc 54%, #eef1f6 72%
+  );
+  background-size: 220% 100%;
+  animation: shot-shimmer 1.5s ease-in-out infinite;
+}
+@keyframes shot-shimmer {
+  from { background-position: 130% 0; }
+  to { background-position: -30% 0; }
+}
+/* A sweep that never stops is exactly the kind of motion this setting is
+   about. The pale ground stays, so there is still something in the frame. */
+@media (prefers-reduced-motion: reduce) {
+  .shot-load { animation: none; background-image: none; }
+}
+
 /* Sits over the page while work is in flight; click-blocking on purpose, so
    a form cannot be submitted twice while the first attempt is still running. */
 .app-veil {

@@ -292,7 +292,7 @@ export default function GuidePage({ guide }: { guide: Guide }) {
     <article className="dpage usa" ref={root}>
       <header className="dpage-hero">
         <div className="dpage-hero-bg">
-          <Shot src={guide.hero} alt="" />
+          <Shot src={guide.hero} alt="" priority />
         </div>
         <div className="container dpage-hero-inner">
           <div className="dpage-hero-copy">

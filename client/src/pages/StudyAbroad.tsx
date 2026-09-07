@@ -322,7 +322,7 @@ export default function StudyAbroad() {
     <article className="dpage">
       <header className="dpage-hero">
         <div className="dpage-hero-bg">
-          <Shot src="/hero-study-abroad.jpg" alt="" />
+          <Shot src="/hero-study-abroad.jpg" alt="" priority />
         </div>
         <div className="container dpage-hero-inner">
           <div className="dpage-hero-copy">

@@ -35,7 +35,7 @@ export default function ServiceDetail() {
     <article className="dpage dpage-ruled">
       <header className="dpage-hero">
         <div className="dpage-hero-bg">
-          <Shot src={service.image} alt="" />
+          <Shot src={service.image} alt="" priority />
         </div>
         <div className="container dpage-hero-inner">
           <div className="dpage-hero-copy">

@@ -125,7 +125,7 @@ export default function CareerCounselling() {
     <article className="dpage dpage-ruled cc">
       <header className="dpage-hero">
         <div className="dpage-hero-bg">
-          <Shot src="/services/career.jpg" alt="" />
+          <Shot src="/services/career.jpg" alt="" priority />
         </div>
         <div className="container dpage-hero-inner">
           <div className="dpage-hero-copy">

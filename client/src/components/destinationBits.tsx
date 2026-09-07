@@ -67,15 +67,34 @@ export const Arrow = () => (
  *
  * See lib/parallax for the engine, and for why it does not run on touch.
  */
+/**
+ * `fetchpriority`, spelled the way the DOM spells it.
+ *
+ * React 18 has no special handling for this attribute — it is not in its
+ * property list, so the camelCase `fetchPriority` React would want draws an
+ * "unrecognized prop" warning and never reaches the element. Spread in
+ * lowercase it is passed straight through, which is all that was ever
+ * needed. The cast is the same one `inert` takes elsewhere in this codebase,
+ * and for the same reason: a real HTML attribute React has not typed yet.
+ */
+const eagerly = (on?: boolean) =>
+  (on ? { fetchpriority: "high" } : {}) as Record<string, string>;
+
 export function Shot({
   src,
   alt,
   className,
   still,
+  priority,
 }: {
   src: string;
   alt: string;
   className?: string;
+  /** For a photograph that is on screen before anything is scrolled — the
+      hero of a page, and nothing else. It stops the browser deferring the
+      request and asks for it ahead of the queue. See the note by `loading`
+      below for why this is not simply the default. */
+  priority?: boolean;
   /** Opts out of the drift for a photograph that already has motion of its
       own. A CSS animation on `transform` overrides the element's own
       transform outright, so the two cannot share an image: the drift would
@@ -83,6 +102,9 @@ export function Shot({
   still?: boolean;
 }) {
   const [missing, setMissing] = useState(false);
+  /* Drives the shimmer. Starts false and is set the moment the file paints —
+     or immediately, from the ref below, if it was already in cache. */
+  const [loaded, setLoaded] = useState(false);
 
   /* A ref callback rather than an effect: it fires with the node on mount
      and with null when the node goes, which is exactly the register /
@@ -102,7 +124,13 @@ export function Shot({
     (img: HTMLImageElement | null) => {
       undrift.current();
       undrift.current = () => {};
-      if (still || !img || img.closest("a")) return;
+      if (!img) return;
+      /* A CACHED IMAGE MAY HAVE FINISHED BEFORE REACT ATTACHED, in which
+         case `onLoad` has already fired at nobody and would never fire
+         again — the shimmer would sit under a picture that is fully there,
+         for the life of the page. `complete` is how you ask after the fact. */
+      if (img.complete && img.naturalWidth > 0) setLoaded(true);
+      if (still || img.closest("a")) return;
       undrift.current = registerParallax(img);
     },
     [still]
@@ -115,11 +143,25 @@ export function Shot({
   return (
     <img
       ref={drift}
-      className={className}
+      /* The shimmer is a class on the IMAGE, not a wrapper round it. A dozen
+         rules in the stylesheet select `.vg-shot img`, `.dpage-hero-bg img`
+         and their like as direct children, and a wrapper would have quietly
+         detached every one of them. An <img> with nothing decoded yet shows
+         its own background, so the placeholder needs no element of its own. */
+      className={`${className ?? ""}${loaded ? "" : " shot-load"}`.trim()}
       src={src}
       alt={alt}
-      loading="lazy"
+      /* LAZY IS RIGHT FOR ALMOST EVERY PICTURE HERE and wrong for one: the
+         hero. `loading="lazy"` tells the browser it may wait until layout
+         settles before even requesting the file, which on the image somebody
+         is already looking at is the difference between a page that arrives
+         and a page that assembles. Heroes pass `priority`; everything below
+         the fold stays lazy, which is what keeps a twenty-section guide from
+         fetching thirty photographs at once. */
+      loading={priority ? "eager" : "lazy"}
+      {...eagerly(priority)}
       decoding="async"
+      onLoad={() => setLoaded(true)}
       onError={() => setMissing(true)}
     />
   );

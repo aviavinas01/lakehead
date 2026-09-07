@@ -180,7 +180,7 @@ export default function UniversityPartners() {
     <article className="dpage dpage-ruled unip">
       <header className="dpage-hero">
         <div className="dpage-hero-bg">
-          <Shot src="/universities/hero.jpg" alt="" />
+          <Shot src="/universities/hero.jpg" alt="" priority />
         </div>
         <div className="container dpage-hero-inner">
           <div className="dpage-hero-copy">

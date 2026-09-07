@@ -38,7 +38,7 @@ export default function TestDetail() {
     <article className="dpage dpage-ruled">
       <header className="dpage-hero">
         <div className="dpage-hero-bg">
-          <Shot src={test.image} alt="" />
+          <Shot src={test.image} alt="" priority />
         </div>
         <div className="container dpage-hero-inner">
           <div className="dpage-hero-copy">

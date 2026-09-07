@@ -172,7 +172,7 @@ export default function AdmissionGuidance() {
     <article className="dpage dpage-ruled">
       <header className="dpage-hero">
         <div className="dpage-hero-bg">
-          <Shot src="/services/interview.jpg" alt="" />
+          <Shot src="/services/interview.jpg" alt="" priority />
         </div>
         <div className="container dpage-hero-inner">
           <div className="dpage-hero-copy">

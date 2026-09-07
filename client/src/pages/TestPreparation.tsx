@@ -54,7 +54,7 @@ export default function TestPreparation() {
     <article className="dpage dpage-ruled">
       <header className="dpage-hero">
         <div className="dpage-hero-bg">
-          <Shot src="/services/test-prep.jpg" alt="" />
+          <Shot src="/services/test-prep.jpg" alt="" priority />
         </div>
         <div className="container dpage-hero-inner">
           <div className="dpage-hero-copy">

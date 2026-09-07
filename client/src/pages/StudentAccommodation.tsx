@@ -125,7 +125,7 @@ export default function StudentAccommodation() {
     <article className="dpage dpage-ruled acc">
       <header className="dpage-hero">
         <div className="dpage-hero-bg">
-          <Shot src="/services/accommodation.jpg" alt="" />
+          <Shot src="/services/accommodation.jpg" alt="" priority />
         </div>
         <div className="container dpage-hero-inner">
           <div className="dpage-hero-copy">

@@ -232,7 +232,7 @@ export default function About() {
     <article className="dpage dpage-ruled who" ref={root}>
       <header className="dpage-hero">
         <div className="dpage-hero-bg">
-          <Shot src="/about/hero.jpg" alt="" />
+          <Shot src="/about/hero.jpg" alt="" priority />
         </div>
         <div className="container dpage-hero-inner">
           <div className="dpage-hero-copy">

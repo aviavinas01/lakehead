@@ -139,7 +139,17 @@ export default function Home() {
               onError={() => setVideoBroken(true)}
             />
           ) : showPhoto ? (
-            <img src={heroImage} alt="" onError={() => setImageBroken(true)} />
+            <img
+              src={heroImage}
+              alt=""
+              /* The one image on the site that is certainly on screen before
+                 anything is scrolled, and the page's largest paint. Nothing
+                 about it should be deferred. */
+              loading="eager"
+              {...({ fetchpriority: "high" } as Record<string, string>)}
+              decoding="async"
+              onError={() => setImageBroken(true)}
+            />
           ) : (
             <div className="hero-photo-placeholder" />
           )}

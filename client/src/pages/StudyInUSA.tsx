@@ -279,7 +279,7 @@ export default function StudyInUSA() {
     <article className="dpage usa" ref={root}>
       <header className="dpage-hero">
         <div className="dpage-hero-bg">
-          <Shot src="/usa.jpg" alt="" />
+          <Shot src="/usa.jpg" alt="" priority />
         </div>
         <div className="container dpage-hero-inner">
           <div className="dpage-hero-copy">
