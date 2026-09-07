@@ -4,6 +4,7 @@ import { fetchGoogleRating, FALLBACK_RATING, GOOGLE_MAPS_URL } from "../api/goog
 import { SERVICES } from "../data/services";
 import { SOCIALS, type SocialLink } from "../config/contact";
 import type { GoogleRating } from "../types/api";
+import GateDoor from "./GateDoor";
 
 /**
  * Site footer: the brand on the left, three columns of links on the right, a
@@ -166,8 +167,11 @@ export default function Footer() {
       <div className="container footer-main">
         <div className="footer-brand">
           <div className="footer-logo">
-            {/* The mark is a red PNG; the stylesheet turns it white here */}
-            <img src="/drawer-logo.png" alt="" />
+            {/* The mark is a red PNG; the stylesheet turns it white here.
+                It is rendered by GateDoor rather than inline because two
+                clicks on it open the admin door — see that component. To
+                everything else on the page it is the same image it was. */}
+            <GateDoor />
             <span>Lakehead Education</span>
           </div>
           <p className="footer-blurb">

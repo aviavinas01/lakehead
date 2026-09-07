@@ -19,7 +19,8 @@ export default function AdminNav() {
           <Link to="/admin/media">Media</Link>
           <Link to="/admin/tiktok">TikTok</Link>
           <Link to="/admin/inquiries">Inquiries</Link>
-          {user?.role === "admin" && <Link to="/admin/users">Users</Link>}
+          {/* No Users link: there is one account, made at deploy from the
+              environment, and nothing in the app can create another. */}
           <Link to="/" target="_blank">View site</Link>
           <span className="admin-user">{user?.name}</span>
           <button className="btn btn-small" onClick={handleLogout}>Log out</button>

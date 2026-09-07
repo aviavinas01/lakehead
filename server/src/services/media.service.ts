@@ -57,6 +57,44 @@ export const mediaService = {
     });
   },
 
+  /**
+   * Put a new file behind an existing record.
+   *
+   * THE RECORD SURVIVES, AND THAT IS THE POINT. Deleting and re-uploading
+   * would give the picture a new id, drop it to the end of its album and
+   * lose its title, caption and position — so "replace this one" would
+   * silently mean "remove this and add another somewhere else". Here the
+   * document keeps its identity and only the bytes behind it change, so a
+   * photograph swapped in a published gallery lands exactly where the old
+   * one was.
+   *
+   * The old file is unlinked AFTER the record is saved, never before: if the
+   * write fails, the record still points at a file that exists. The reverse
+   * order would leave a live gallery pointing at nothing.
+   */
+  async replaceFile(id: string, file: Express.Multer.File): Promise<MediaDocument> {
+    const media = await this.getById(id);
+    const oldUrl = media.url;
+
+    media.type = mediaTypeFromMime(file.mimetype);
+    media.url = `/uploads/${file.filename}`;
+    media.mimeType = file.mimetype;
+    media.size = file.size;
+    await media.save();
+
+    /* basename() and a join into UPLOADS_DIR, so a url that has been
+       tampered with in the database cannot walk this unlink out of the
+       uploads folder. */
+    const old = path.basename(oldUrl);
+    if (old && old !== path.basename(media.url)) {
+      await fs.unlink(path.join(UPLOADS_DIR, old)).catch(() => {
+        /* Already gone, or never on disk. The record is correct either way,
+           and a stale file is a housekeeping problem, not a broken page. */
+      });
+    }
+    return media;
+  },
+
   async update(
     id: string,
     input: Partial<Pick<IMedia, "title" | "caption" | "order">> & { album?: string | null }

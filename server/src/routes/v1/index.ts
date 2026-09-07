@@ -2,23 +2,28 @@ import { Router } from "express";
 import authRoutes from "./auth.routes.js";
 import postRoutes from "./post.routes.js";
 import inquiryRoutes from "./inquiry.routes.js";
-import userRoutes from "./user.routes.js";
 import albumRoutes from "./album.routes.js";
 import mediaRoutes from "./media.routes.js";
 import googleRatingRoutes from "./googleRating.routes.js";
 import youtubeRoutes from "./youtube.routes.js";
 import tiktokRoutes from "./tiktok.routes.js";
+import gateRoutes from "./gate.routes.js";
 
 const v1 = Router();
 
 v1.use("/auth", authRoutes);
 v1.use("/posts", postRoutes);
 v1.use("/inquiries", inquiryRoutes);
-v1.use("/users", userRoutes);
+/* No /users. The site has exactly one account, created from ADMIN_EMAIL and
+   ADMIN_PASSWORD at boot — see config/seedAdmin.ts. Removing the routes
+   rather than guarding them is the point: a session that is somehow taken
+   over still cannot mint a second way in, because there is no endpoint that
+   makes one. */
 v1.use("/albums", albumRoutes);
 v1.use("/media", mediaRoutes);
 v1.use("/google-rating", googleRatingRoutes);
 v1.use("/youtube", youtubeRoutes);
 v1.use("/tiktok", tiktokRoutes);
+v1.use("/gate", gateRoutes);
 
 export default v1;

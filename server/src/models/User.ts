@@ -8,6 +8,13 @@ export interface IUser {
   password: string;
   role: UserRole;
   active: boolean;
+  /* Consecutive failed sign-ins, reset by the first success. Kept per
+     ACCOUNT rather than per address: the rate limiter on the route already
+     caps attempts from one address, and the attack it cannot see is the
+     same password tried against one account from a hundred of them. */
+  failedLogins: number;
+  /** Set once the count is exceeded; sign-in is refused until it passes. */
+  lockedUntil?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -21,6 +28,11 @@ const userSchema = new Schema<IUser>(
     password: { type: String, required: true, select: false },
     role: { type: String, enum: ["admin", "editor"], default: "editor" },
     active: { type: Boolean, default: true },
+    /* Both select:false — neither belongs in a user object handed to a
+       route, and leaking `lockedUntil` would tell an attacker exactly how
+       long to wait. */
+    failedLogins: { type: Number, default: 0, select: false },
+    lockedUntil: { type: Date, select: false },
   },
   { timestamps: true }
 );

@@ -1,4 +1,9 @@
-import { TikTok, type ITikTok } from "../models/TikTok.js";
+import {
+  TikTok,
+  TIKTOK_CATEGORIES,
+  type ITikTok,
+  type TikTokCategory,
+} from "../models/TikTok.js";
 
 /**
  * The TikTok clips shown on the home page.
@@ -41,6 +46,7 @@ export interface TikTokClip {
   title: string;
   authorName: string;
   thumbnail: string;
+  category: TikTokCategory;
 }
 
 /**
@@ -100,6 +106,7 @@ const shape = (doc: ITikTok & { _id: unknown }): TikTokClip => ({
   title: doc.title,
   authorName: doc.authorName,
   thumbnail: doc.thumbnail,
+  category: doc.category,
 });
 
 /**
@@ -137,9 +144,15 @@ type TikTokDoc = ITikTok & { _id: unknown };
 export const tiktokService = {
   parseVideoId,
 
-  /** The published row, newest-ranked first. Refreshes stale rows behind it. */
-  async listPublished(): Promise<TikTokClip[]> {
-    const docs = (await TikTok.find({ published: true })
+  /**
+   * The published clips for one shelf, newest-ranked first.
+   *
+   * A category is REQUIRED rather than optional-with-everything-as-default.
+   * Each shelf lives on exactly one page, and a call that forgot to say which
+   * would quietly put visa clips under the student testimonials.
+   */
+  async listPublished(category: TikTokCategory): Promise<TikTokClip[]> {
+    const docs = (await TikTok.find({ published: true, category })
       .sort({ order: 1, createdAt: -1 })
       .lean()) as unknown as TikTokDoc[];
     refreshStale(docs);
@@ -147,6 +160,10 @@ export const tiktokService = {
   },
 
   /** Everything, published or not, for the admin screen. */
+  isCategory(v: unknown): v is TikTokCategory {
+    return TIKTOK_CATEGORIES.includes(v as TikTokCategory);
+  },
+
   async listAll(): Promise<(TikTokClip & { published: boolean; order: number })[]> {
     const docs = (await TikTok.find()
       .sort({ order: 1, createdAt: -1 })
@@ -163,7 +180,7 @@ export const tiktokService = {
    * a video that is genuinely private or deleted is caught by the caller,
    * which checks that a title came back.
    */
-  async create(url: string) {
+  async create(url: string, category: TikTokCategory = "testimonial") {
     const videoId = parseVideoId(url);
     if (!videoId) {
       const err = new Error(
@@ -190,12 +207,16 @@ export const tiktokService = {
       authorName: data?.author_name ?? "",
       thumbnail: data?.thumbnail_url ?? "",
       fetchedAt: data ? new Date() : undefined,
+      category,
       published: true,
     });
     return shape(doc as unknown as TikTokDoc);
   },
 
-  async update(id: string, patch: Partial<Pick<ITikTok, "title" | "published" | "order">>) {
+  async update(
+    id: string,
+    patch: Partial<Pick<ITikTok, "title" | "published" | "order" | "category">>
+  ) {
     const doc = await TikTok.findByIdAndUpdate(id, patch, { new: true }).lean();
     if (!doc) {
       const err = new Error("Clip not found") as Error & { statusCode?: number };

@@ -20,6 +20,13 @@ export const upload = asyncHandler(async (req, res) => {
   res.status(201).json({ media });
 });
 
+export const replaceFile = asyncHandler(async (req, res) => {
+  if (!req.file) throw ApiError.badRequest("Choose a file to replace it with");
+  res.json({
+    media: await mediaService.replaceFile(req.params.id as string, req.file),
+  });
+});
+
 export const update = asyncHandler(async (req, res) => {
   res.json({ media: await mediaService.update(req.params.id as string, req.body) });
 });

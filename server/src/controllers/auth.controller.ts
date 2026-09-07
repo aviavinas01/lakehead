@@ -2,6 +2,7 @@ import type { CookieOptions } from "express";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { authService } from "../services/auth.service.js";
 import { isProd } from "../config/env.js";
+import { clearPass } from "../middleware/gate.js";
 
 const cookieOptions: CookieOptions = {
   httpOnly: true,
@@ -20,6 +21,10 @@ const publicUser = (u: { _id: unknown; name: string; email: string; role: string
 export const login = asyncHandler(async (req, res) => {
   const { email, password } = req.body as { email: string; password: string };
   const { user, token } = await authService.login(email, password);
+  /* One pass, one sign-in. Leaving it set would let a shared or borrowed
+     browser retry the password for the next ten minutes without going back
+     through the door. */
+  clearPass(res);
   res.cookie("token", token, cookieOptions).json({ user: publicUser(user) });
 });
 

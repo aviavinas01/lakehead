@@ -31,7 +31,6 @@ import Login from "./pages/admin/Login";
 import Dashboard from "./pages/admin/Dashboard";
 import PostEditor from "./pages/admin/PostEditor";
 import Inquiries from "./pages/admin/Inquiries";
-import Users from "./pages/admin/Users";
 import MediaLibrary from "./pages/admin/MediaLibrary";
 import TikTokClips from "./pages/admin/TikTokClips";
 
@@ -80,8 +79,8 @@ export default function App() {
           <Route path="/admin/media" element={<MediaLibrary />} />
           <Route path="/admin/tiktok" element={<TikTokClips />} />
           <Route path="/admin/inquiries" element={<Inquiries />} />
-          <Route path="/admin/users" element={<Users />} />
         </Route>
+
 
         <Route
           path="*"

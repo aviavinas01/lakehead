@@ -1,10 +1,12 @@
 import { z } from "zod";
+import { TIKTOK_CATEGORIES } from "../models/TikTok.js";
 
 /* The URL is the only thing a person types. Everything else about a clip is
    TikTok's own answer to an oEmbed lookup — see tiktok.service. */
 export const createTikTokSchema = z.object({
   body: z.object({
     url: z.string().trim().min(10).max(500),
+    category: z.enum(TIKTOK_CATEGORIES).optional(),
   }),
 });
 
@@ -15,6 +17,7 @@ export const createTikTokSchema = z.object({
 export const updateTikTokSchema = z.object({
   body: z.object({
     title: z.string().trim().max(300).optional(),
+    category: z.enum(TIKTOK_CATEGORIES).optional(),
     published: z.boolean().optional(),
     order: z.number().int().optional(),
   }),

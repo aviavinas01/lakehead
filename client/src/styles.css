@@ -158,6 +158,81 @@ html[data-scrolling] .dpage-table-scroll { pointer-events: auto; }
   .shot-load { animation: none; background-image: none; }
 }
 
+/* ---- the footer's hidden door (components/GateDoor.tsx) ----
+   The mark keeps the size and the white treatment the plain <img> had, so
+   nothing about the footer looks different. `cursor: default` on purpose:
+   a pointer would advertise that it does something. */
+.gate-mark { display: inline-flex; }
+.gate-mark img { cursor: default; }
+
+.gate-veil {
+  position: fixed; inset: 0; z-index: 320;
+  display: grid; place-items: center;
+  background: rgba(9, 16, 38, 0.72);
+  -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
+  padding: 1.5rem;
+}
+/* No heading, no explanation, no way back except Escape or a click outside.
+   Somebody who has arrived here by accident should learn nothing from it. */
+.gate-box {
+  display: flex; flex-wrap: wrap; gap: 0.6rem;
+  background: var(--color-bg); border-radius: 14px;
+  padding: 1.1rem; width: min(24rem, 100%);
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.4);
+}
+.gate-box input {
+  flex: 1 1 12rem; padding: 0.7rem 0.9rem;
+  border: 1px solid var(--color-border); border-radius: 8px;
+  font: inherit; letter-spacing: 0.18em;
+}
+.gate-box input:focus { outline: 2px solid var(--color-hero-ink); outline-offset: 1px; }
+.gate-box button {
+  padding: 0.7rem 1.3rem; border: none; border-radius: 8px;
+  background: var(--color-hero-ink); color: #fff;
+  font: inherit; font-weight: 600; cursor: pointer;
+}
+.gate-box button:disabled { opacity: 0.5; cursor: default; }
+.gate-error {
+  flex-basis: 100%; margin: 0;
+  color: var(--color-danger); font-size: 0.88rem;
+}
+
+/* ---- media library: what the public gallery is showing ----
+   Amber when the site is still on placeholders, green once real albums are
+   live. It is a statement of fact rather than a warning either way — being
+   on placeholders before anything is uploaded is the correct state, not a
+   problem to fix. */
+.media-status {
+  border-left: 3px solid #b8860b;
+  background: #fdf8ec; border-radius: 0 10px 10px 0;
+  padding: 0.9rem 1.1rem; margin-bottom: 1.5rem;
+}
+.media-status.is-live { border-left-color: #1e7e34; background: #f1f8f2; }
+.media-status p { margin: 0; font-size: 0.94rem; line-height: 1.6; }
+.media-card-actions { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+
+/* ---- one album = one section of the public gallery ---- */
+.media-album {
+  padding: 0.75rem 0; border-bottom: 1px solid var(--color-border);
+}
+.media-album:last-child { border-bottom: none; }
+.media-album-fields {
+  display: flex; gap: 0.75rem; margin-top: 0.5rem; flex-wrap: wrap;
+}
+.media-album-fields label {
+  display: flex; flex-direction: column; gap: 0.2rem; flex: 1 1 18rem;
+}
+.media-album-fields span {
+  font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--color-muted);
+}
+.media-album-fields input {
+  padding: 0.45rem 0.6rem; font: inherit; font-size: 0.9rem;
+  border: 1px solid var(--color-border); border-radius: 6px;
+}
+/* The order box only ever holds a small number. */
+.media-album-order { flex: 0 0 6rem; }
+
 /* Sits over the page while work is in flight; click-blocking on purpose, so
    a form cannot be submitted twice while the first attempt is still running. */
 .app-veil {

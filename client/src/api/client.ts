@@ -12,6 +12,14 @@ declare module "axios" {
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || "/api/v1",
   withCredentials: true,
+  /* THE CSRF DEFENCE, CLIENT HALF. The API refuses any POST/PUT/PATCH/DELETE
+     that does not carry this header — see server middleware/csrf.ts for why
+     that works. It is set here once rather than per call, so a request
+     written later cannot forget it.
+
+     If you ever call the API without axios, this header has to come with
+     you or the request is rejected. */
+  headers: { "X-Requested-By": "lakehead-admin" },
 });
 
 export const getErrorMessage = (err: unknown, fallback = "Something went wrong"): string => {

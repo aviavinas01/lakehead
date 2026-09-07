@@ -11,6 +11,11 @@ const envSchema = z.object({
   CLIENT_URL: z.string().url(),
   ADMIN_EMAIL: z.string().email(),
   ADMIN_PASSWORD: z.string().min(8),
+  /* The code typed into the footer's hidden door. Twelve characters minimum
+     because it is guessable in a way a password is not — it is short, it is
+     shared, and it is typed in front of people. It is a second lock, never a
+     replacement for the first. */
+  ADMIN_GATE_CODE: z.string().min(12, "ADMIN_GATE_CODE must be at least 12 characters"),
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
   /* Optional: without these the footer falls back to its static rating */
   GOOGLE_MAPS_API_KEY: z.string().optional(),

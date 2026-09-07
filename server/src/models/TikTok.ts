@@ -24,6 +24,24 @@ import mongoose, { Schema, type HydratedDocument, type Model } from "mongoose";
  * does not, but the URL does.
  */
 
+/**
+ * Which shelf a clip belongs on, and therefore where on the site it appears.
+ *
+ * FLAT, THOUGH IT READS AS A HIERARCHY. "Testimonials" and "general
+ * information, which divides into three" is two levels in the telling and
+ * four values in practice — and four values that each map to exactly one
+ * page. A parent/child pair of fields would let a clip be filed under
+ * "general" with no sub-section, which is a state no page could render.
+ */
+export const TIKTOK_CATEGORIES = [
+  "testimonial",
+  "study-abroad",
+  "tests",
+  "visas",
+] as const;
+
+export type TikTokCategory = (typeof TIKTOK_CATEGORIES)[number];
+
 export interface ITikTok {
   /** The full tiktok.com URL, as pasted. The one human-entered field. */
   url: string;
@@ -36,6 +54,7 @@ export interface ITikTok {
   thumbnail: string;
   /** When oEmbed was last asked. Drives the refresh, not display. */
   fetchedAt?: Date;
+  category: TikTokCategory;
   published: boolean;
   order: number;
   createdAt: Date;
@@ -54,6 +73,15 @@ const tiktokSchema = new Schema<ITikTok>(
     authorName: { type: String, default: "", trim: true, maxlength: 120 },
     thumbnail: { type: String, default: "" },
     fetchedAt: { type: Date },
+    /* Testimonials by default: it is the shelf most clips belong on, and a
+       clip filed wrongly shows up somewhere harmless rather than beside the
+       visa rules. */
+    category: {
+      type: String,
+      enum: TIKTOK_CATEGORIES,
+      default: "testimonial",
+      index: true,
+    },
     published: { type: Boolean, default: true },
     order: { type: Number, default: 0 },
   },
