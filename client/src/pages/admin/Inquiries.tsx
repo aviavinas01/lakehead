@@ -66,9 +66,9 @@ export default function Inquiries() {
   };
 
   return (
-    <>
+    <div className="adm">
       <AdminNav />
-      <div className="container section">
+      <main className="adm-main">
         <div className="admin-header">
           <h1>Inquiries</h1>
           <select
@@ -128,7 +128,7 @@ export default function Inquiries() {
             )}
           </>
         )}
-      </div>
-    </>
+      </main>
+    </div>
   );
 }

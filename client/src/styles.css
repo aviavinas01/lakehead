@@ -7662,3 +7662,256 @@ a.rev-score:hover { background: rgba(255, 255, 255, 0.08); }
   .cpop[data-state="out"] { display: none; }
 }
 
+
+/* ============================================================
+   THE ADMIN (pages/admin/*) — a reading screen on the site's own palette.
+
+   Nothing here is a new colour. The band is the brand orange-red running
+   into the navy the public headings use; the cards are white on the pale
+   blue-grey tint the site already fills sections with; the figures are set
+   in the display face. It should read as the back of the same building.
+
+   Prefixed `adm-` rather than `admin-` so it cannot collide with the older
+   admin rules further up, which the tables and badges still use.
+   ============================================================ */
+.adm {
+  min-height: 100vh;
+  background: #f4f7fb;
+  padding-bottom: 4rem;
+}
+
+/* ---- the bar ---- */
+.adm-bar {
+  position: sticky; top: 0; z-index: 40;
+  background: rgba(255, 255, 255, 0.86);
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--color-border);
+}
+.adm-bar-inner {
+  display: flex; align-items: center; gap: 1rem;
+  max-width: 1360px; margin: 0 auto;
+  padding: 0.7rem clamp(1rem, 3vw, 2rem);
+}
+.adm-mark { display: inline-flex; flex: none; }
+.adm-mark img { height: 30px; width: auto; }
+
+/* The pills. Centred by the auto margins either side, so the rail sits in
+   the middle however wide the mark and the buttons happen to be. */
+.adm-pills {
+  display: flex; gap: 0.25rem; flex-wrap: wrap;
+  margin: 0 auto; padding: 0.25rem;
+  background: #eef1f6; border-radius: 999px;
+}
+.adm-pills a {
+  padding: 0.5rem 1.1rem; border-radius: 999px;
+  color: var(--color-muted); font-size: 0.88rem; font-weight: 600;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+.adm-pills a:hover { color: var(--color-hero-ink); }
+/* The filled pill is set by NavLink from the route, never by the page. */
+.adm-pills a.is-on {
+  background: var(--color-bg); color: var(--color-hero-ink);
+  box-shadow: 0 1px 3px rgba(23, 39, 92, 0.12);
+}
+
+.adm-bar-end { display: flex; align-items: center; gap: 0.6rem; flex: none; }
+.adm-ghost {
+  border: none; background: none; padding: 0.4rem 0.6rem;
+  color: var(--color-muted); font: inherit; font-size: 0.85rem;
+  cursor: pointer; border-radius: 8px;
+}
+.adm-ghost:hover { color: var(--color-hero-ink); background: #eef1f6; }
+/* The account, as one letter. There is one account, so a name would be a
+   label on a thing there is only one of. */
+.adm-who {
+  display: grid; place-items: center; flex: none;
+  width: 34px; height: 34px; border-radius: 50%;
+  background: var(--color-hero-ink); color: #fff;
+  font-family: var(--font-display); font-weight: 700; font-size: 0.9rem;
+}
+
+.adm-main {
+  max-width: 1360px; margin: 0 auto;
+  padding: clamp(1.25rem, 3vw, 2rem) clamp(1rem, 3vw, 2rem) 0;
+  display: grid; gap: clamp(1rem, 1.8vw, 1.4rem);
+}
+
+/* ---- the band ----
+   The reference's hot gradient, in our own two brand colours rather than
+   its. Orange-red into navy: the two ends of the palette the public site
+   already uses, so this reads as the same brand seen from behind. */
+.adm-hero {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center; gap: clamp(1.5rem, 4vw, 3rem);
+  padding: clamp(1.75rem, 4vw, 3rem);
+  border-radius: 20px; color: #fff;
+  background: linear-gradient(115deg, var(--color-hero-red) 0%, #8f2d12 46%, var(--color-hero-ink) 100%);
+}
+.adm-hero-eyebrow {
+  margin: 0 0 0.6rem; color: rgba(255, 255, 255, 0.78);
+  font-size: 0.88rem;
+}
+.adm-hero h1 {
+  margin: 0 0 1.5rem; color: #fff;
+  font-size: clamp(1.7rem, 3.4vw, 2.8rem); letter-spacing: -0.03em;
+}
+.adm-hero-actions { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+.adm-hero-actions a {
+  padding: 0.65rem 1.3rem; border-radius: 999px;
+  background: #fff; color: var(--color-hero-ink);
+  font-weight: 600; font-size: 0.88rem;
+  transition: transform 0.18s ease;
+}
+.adm-hero-actions a:nth-child(n + 2) {
+  background: rgba(255, 255, 255, 0.16); color: #fff;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.32);
+}
+.adm-hero-actions a:hover { transform: translateY(-2px); }
+
+/* The frosted panel — the reference's card, carrying the one number that is
+   actually waiting on somebody rather than a decorative balance. */
+.adm-glass {
+  display: grid; gap: 0.35rem; justify-items: start;
+  min-width: min(17rem, 100%);
+  padding: 1.35rem 1.6rem; border-radius: 16px;
+  background: rgba(255, 255, 255, 0.14);
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.26);
+  color: #fff;
+  transition: background 0.2s ease;
+}
+.adm-glass:hover { background: rgba(255, 255, 255, 0.2); }
+.adm-glass-top {
+  display: flex; gap: 0.4rem; align-items: baseline;
+  font-size: 0.82rem; color: rgba(255, 255, 255, 0.82);
+}
+.adm-glass-top span:first-child { font-weight: 700; color: #fff; }
+.adm-glass strong {
+  font-family: var(--font-display); font-weight: 700;
+  font-size: clamp(2.2rem, 4vw, 3.2rem); line-height: 1;
+  letter-spacing: -0.035em;
+}
+.adm-glass-note { font-size: 0.8rem; color: rgba(255, 255, 255, 0.72); }
+
+/* ---- the four counts ---- */
+.adm-stats {
+  display: grid; gap: clamp(1rem, 1.8vw, 1.4rem);
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+.adm-stat {
+  display: grid; gap: 0.3rem; align-content: start;
+  padding: 1.35rem 1.5rem;
+  background: var(--color-bg); border-radius: 16px;
+  color: inherit;
+  transition: transform 0.18s ease;
+}
+.adm-stat:hover { transform: translateY(-2px); }
+.adm-stat-label {
+  font-size: 0.85rem; color: var(--color-muted); font-weight: 600;
+}
+.adm-stat strong {
+  font-family: var(--font-display); font-weight: 700;
+  font-size: clamp(1.9rem, 3vw, 2.6rem); line-height: 1.05;
+  letter-spacing: -0.035em; color: var(--color-hero-ink);
+}
+.adm-stat-note { font-size: 0.8rem; color: var(--color-muted); }
+
+/* ---- cards ---- */
+.adm-split {
+  display: grid; gap: clamp(1rem, 1.8vw, 1.4rem);
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+}
+.adm-card {
+  background: var(--color-bg); border-radius: 16px;
+  padding: clamp(1.25rem, 2vw, 1.75rem);
+}
+.adm-card-head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: 1rem; margin-bottom: 0.75rem;
+}
+.adm-card-head h2 {
+  margin: 0; font-size: 1.05rem; color: var(--color-hero-ink);
+  letter-spacing: -0.01em;
+}
+.adm-quiet { color: var(--color-muted); font-size: 0.85rem; margin: 0; }
+.adm-foot { margin-top: 0.9rem; }
+
+/* The headline figure, with its qualifier set back — the reference's trick
+   of letting the number carry and the unit follow quietly. */
+.adm-big {
+  margin: 0 0 1.25rem;
+  font-family: var(--font-display); font-weight: 700;
+  font-size: clamp(2rem, 3.4vw, 2.9rem); line-height: 1;
+  letter-spacing: -0.035em; color: var(--color-hero-ink);
+}
+.adm-big span {
+  font-size: 0.9rem; font-weight: 500; letter-spacing: 0;
+  color: var(--color-muted);
+}
+
+/* ---- the chart ----
+   Twelve bars of plain markup. A charting library for twelve numbers would
+   outweigh the rest of the admin bundle several times over. */
+.adm-chart {
+  display: grid; grid-auto-flow: column; grid-auto-columns: 1fr;
+  align-items: end; gap: clamp(0.3rem, 0.8vw, 0.7rem);
+  height: clamp(140px, 18vh, 210px);
+}
+.adm-bar {
+  display: grid; align-content: end; justify-items: center;
+  gap: 0.5rem; height: 100%;
+}
+.adm-bar-fill {
+  width: 100%; border-radius: 4px 4px 0 0;
+  background: linear-gradient(180deg, var(--color-hero-red), #d9601f);
+  /* A month with nothing in it still gets a sliver, so the row reads as a
+     row of months rather than as a gap where data should be. */
+  min-height: 3px;
+  transition: height 0.5s cubic-bezier(0.22, 0.9, 0.28, 1);
+}
+.adm-bar-fill[data-zero] { background: var(--color-border); }
+.adm-bar-label { font-size: 0.72rem; color: var(--color-muted); }
+
+/* ---- the feed ---- */
+.adm-feed { list-style: none; margin: 0; padding: 0; display: grid; }
+.adm-feed li {
+  display: grid; grid-template-columns: 1fr auto auto;
+  align-items: center; gap: 0.75rem;
+  padding: 0.7rem 0; border-top: 1px solid var(--color-border);
+}
+.adm-feed li:first-child { border-top: none; }
+.adm-feed-who { display: grid; min-width: 0; }
+.adm-feed-who strong {
+  color: var(--color-hero-ink); font-size: 0.94rem;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.adm-feed-who span {
+  font-size: 0.78rem; color: var(--color-muted); text-transform: capitalize;
+}
+.adm-feed time { font-size: 0.78rem; color: var(--color-muted); }
+
+/* ---- shared page furniture ---- */
+.adm-head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 1rem; flex-wrap: wrap;
+}
+.adm-head h1 {
+  margin: 0; font-size: clamp(1.4rem, 2.4vw, 1.9rem);
+  color: var(--color-hero-ink); letter-spacing: -0.02em;
+}
+.adm-btn {
+  padding: 0.6rem 1.2rem; border-radius: 999px;
+  background: var(--color-hero-ink); color: #fff;
+  font-weight: 600; font-size: 0.88rem;
+}
+.adm-btn:hover { background: var(--color-hero-red); }
+
+@media (max-width: 900px) {
+  /* The band stacks, and the pills wrap to their own line rather than
+     squeezing the mark and the buttons out of the row. */
+  .adm-hero { grid-template-columns: 1fr; }
+  .adm-split { grid-template-columns: 1fr; }
+  .adm-bar-inner { flex-wrap: wrap; }
+  .adm-pills { order: 3; width: 100%; margin: 0; justify-content: flex-start; }
+  .adm-bar-end { margin-left: auto; }
+}

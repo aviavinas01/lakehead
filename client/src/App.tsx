@@ -29,6 +29,7 @@ import BlogPost from "./pages/BlogPost";
 import Contact from "./pages/Contact";
 import Login from "./pages/admin/Login";
 import Dashboard from "./pages/admin/Dashboard";
+import Posts from "./pages/admin/Posts";
 import PostEditor from "./pages/admin/PostEditor";
 import Inquiries from "./pages/admin/Inquiries";
 import MediaLibrary from "./pages/admin/MediaLibrary";
@@ -74,6 +75,7 @@ export default function App() {
         <Route path="/admin/login" element={<Login />} />
         <Route element={<ProtectedRoute />}>
           <Route path="/admin" element={<Dashboard />} />
+          <Route path="/admin/posts" element={<Posts />} />
           <Route path="/admin/posts/new" element={<PostEditor />} />
           <Route path="/admin/posts/:id/edit" element={<PostEditor />} />
           <Route path="/admin/media" element={<MediaLibrary />} />

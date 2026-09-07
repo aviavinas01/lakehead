@@ -158,9 +158,9 @@ export default function MediaLibrary() {
   };
 
   return (
-    <>
+    <div className="adm">
       <AdminNav />
-      <div className="container section">
+      <main className="adm-main">
         <div className="admin-header">
           <h1>Media Library</h1>
         </div>
@@ -360,7 +360,7 @@ export default function MediaLibrary() {
             )}
           </>
         )}
-      </div>
-    </>
+      </main>
+    </div>
   );
 }

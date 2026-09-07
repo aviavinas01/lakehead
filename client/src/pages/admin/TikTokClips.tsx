@@ -104,9 +104,9 @@ export default function TikTokClips() {
   };
 
   return (
-    <div className="admin">
+    <div className="adm">
       <AdminNav />
-      <main className="admin-main container">
+      <main className="adm-main">
         <h1>TikTok clips</h1>
         <p className="admin-lead">
           Paste the address of a TikTok video and choose the shelf it belongs
