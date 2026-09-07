@@ -2572,19 +2572,6 @@ a.greview-author:hover { text-decoration: underline; }
   outline: 2px solid var(--color-primary); outline-offset: 1px;
 }
 .form-error { color: var(--color-danger); }
-/* Said BEFORE anything is typed, not after it failed: the sign-in page uses
-   this to explain that the door has closed, which is not an error the person
-   has made. Hence the neutral tint rather than the danger colour. */
-.form-note {
-  margin: 0 0 0.25rem; padding: 0.7rem 0.85rem;
-  font-size: 0.85rem; line-height: 1.5;
-  color: var(--color-muted);
-  background: var(--color-surface);
-  border-left: 3px solid var(--color-hero-red);
-  border-radius: 6px;
-}
-.form-note a { color: var(--color-hero-red); }
-.form-hint { margin: 0; font-size: 0.8rem; color: var(--color-muted); }
 .form-success { color: var(--color-success); }
 
 /* Pagination */
@@ -8092,4 +8079,112 @@ a.rev-score:hover { background: rgba(255, 255, 255, 0.08); }
 .adm-main .media-card-actions { padding: 0.5rem 0.75rem 0.75rem; }
 .adm-main .media-inline-form {
   display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: center;
+}
+
+/* ============================================================
+   Admin sign-in.
+
+   The only admin screen a signed-out person ever sees, so the only one that
+   carries the brand — everything past it is a tool and looks like one.
+
+   Two columns: the form centred in the wide one, the hero film filling the
+   narrow one. The mark is positioned rather than placed in the flow, so the
+   form stays centred on the panel's FULL height instead of on whatever is
+   left below a logo.
+   ============================================================ */
+.alog {
+  min-height: 100vh; min-height: 100dvh;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) clamp(300px, 27%, 620px);
+  background: var(--color-bg);
+}
+
+.alog-panel {
+  position: relative;
+  display: grid; place-items: center;
+  padding: 2rem 1.5rem;
+}
+.alog-brand { position: absolute; top: 2.25rem; left: 2.75rem; }
+/* Same 44px as the mark in the admin bar, so signing in and arriving at the
+   dashboard do not change its size under you. */
+.alog-brand img { display: block; height: 44px; width: auto; }
+
+.alog-form { width: min(100%, 390px); display: grid; gap: 0.85rem; }
+.alog-form h1 {
+  margin: 0; text-align: center;
+  font-size: clamp(1.75rem, 2.4vw, 2.1rem);
+  font-weight: 700; letter-spacing: -0.02em;
+}
+.alog-sub {
+  margin: -0.35rem 0 0.6rem; text-align: center;
+  font-size: 0.9rem; color: var(--color-muted);
+}
+
+.alog-field { display: grid; gap: 0.35rem; }
+.alog-field span { font-size: 0.78rem; font-weight: 500; color: var(--color-muted); }
+.alog-field input {
+  width: 100%; padding: 0.8rem 1rem;
+  font: inherit; font-size: 0.95rem; color: var(--color-text);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border); border-radius: 10px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.alog-field input::placeholder { color: #a1a1aa; }
+.alog-field input:focus {
+  outline: none; border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(38, 38, 46, 0.08);
+}
+
+.alog-go {
+  margin-top: 0.4rem; padding: 0.85rem 1.4rem;
+  font: inherit; font-size: 0.95rem; font-weight: 500;
+  color: #fff; background: var(--color-primary);
+  border: none; border-radius: 999px; cursor: pointer;
+  transition: background 0.15s ease;
+}
+.alog-go:hover:not(:disabled) { background: var(--color-primary-dark); }
+.alog-go:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.alog-error { margin: 0; text-align: center; font-size: 0.85rem; color: var(--color-danger); }
+.alog-hint { margin: 0; text-align: center; font-size: 0.78rem; color: var(--color-muted); }
+/* Said BEFORE anything is typed, and about the door rather than about
+   anything the reader got wrong — hence the neutral tint, not the danger
+   colour. See Login.tsx. */
+.alog-note {
+  margin: 0; padding: 0.7rem 0.85rem;
+  font-size: 0.82rem; line-height: 1.5; color: var(--color-muted);
+  background: var(--color-surface);
+  border-left: 3px solid var(--color-hero-red); border-radius: 8px;
+}
+.alog-note a { color: var(--color-hero-red); }
+
+/* ---- the film ----
+   Absolutely positioned inside an overflow-hidden column so `cover` crops it
+   to whatever shape the column happens to be, at any window size, without
+   the video's own dimensions ever pushing the layout around. */
+.alog-film {
+  position: relative; overflow: hidden;
+  background: var(--color-primary-dark);
+}
+.alog-film video {
+  position: absolute; inset: 0; display: block;
+  width: 100%; height: 100%; object-fit: cover;
+}
+
+/* Narrow enough and the column is a stripe rather than a picture, so it goes
+   and the form takes the full width. A hidden video does not autoplay, and
+   `preload="metadata"` keeps the fetch to the header either way — the clip
+   itself is several megabytes and no phone should be spending that on a
+   decoration it cannot see. */
+@media (max-width: 900px) {
+  .alog { grid-template-columns: 1fr; }
+  .alog-film { display: none; }
+  .alog-brand { top: 1.5rem; left: 1.5rem; }
+  .alog-brand img { height: 34px; }
+  .alog-panel { padding: 5.5rem 1.5rem 2.5rem; }
+}
+
+/* Nothing moves for anyone who has asked for that. */
+@media (prefers-reduced-motion: reduce) {
+  .alog-field input, .alog-go { transition: none; }
 }
