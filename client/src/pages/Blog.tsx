@@ -198,7 +198,7 @@ export default function Blog() {
             <p className="blg-empty">{error}</p>
           ) : !data ? (
             <div className="loader-block">
-              <Loader size={72} />
+              <Loader />
             </div>
           ) : items.length === 0 ? (
             <div className="blg-empty-card">

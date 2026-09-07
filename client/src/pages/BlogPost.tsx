@@ -222,7 +222,7 @@ export default function BlogPost() {
   if (!post) {
     return (
       <div className="loader-block">
-        <Loader size={72} />
+        <Loader />
       </div>
     );
   }

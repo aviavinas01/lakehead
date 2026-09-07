@@ -3,7 +3,9 @@ import Loader from "./Loader";
 import { useLoading } from "../context/LoadingContext";
 
 /**
- * The two places the loading mark appears:
+ * The two places the loading mark appears — the SAME mark at the SAME size
+ * in both, which is why neither passes a size any more. See Loader.
+ *
  *
  *  · a splash over the whole page on the very first visit, held until the
  *    page's own assets have finished loading;
@@ -86,14 +88,14 @@ export default function AppLoading() {
   if (phase !== "done") {
     return (
       <div className={`app-splash${phase === "out" ? " out" : ""}`} aria-live="polite">
-        <Loader size={260} />
+        <Loader />
       </div>
     );
   }
 
   return (
     <div className={`app-veil${veil ? " on" : ""}`} aria-hidden={!veil}>
-      <Loader size={140} />
+      <Loader />
     </div>
   );
 }

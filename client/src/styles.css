@@ -88,10 +88,6 @@ img { max-width: 100%; display: block; }
 }
 /* Fades away to reveal the page underneath, which has been ready all along */
 .app-splash.out { opacity: 0; pointer-events: none; }
-/* The mark is capped against the viewport so it never overruns a phone */
-.app-splash .loader, .app-splash .loader > * {
-  max-width: 70vw; max-height: 70vw;
-}
 /* ============================================================
    NO HOVER WHILE THE PAGE IS MOVING.
 
@@ -244,8 +240,31 @@ html[data-scrolling] .dpage-table-scroll { pointer-events: auto; }
   transition: opacity 0.25s ease, visibility 0.25s;
 }
 .app-veil.on { opacity: 1; visibility: visible; pointer-events: auto; }
-.loader { display: inline-grid; place-items: center; }
-.loader-lottie { display: block; }
+/* ---- the loading mark ----
+   ONE SIZE, DECLARED ONCE. Every place that shows a loader shows this, at
+   this width, because the component takes no size and nothing else sets one.
+   Change the number here and the splash, the veil and the blog lists all
+   move together — which is the only way they can be guaranteed to match.
+
+   A border with one coloured edge, turned by a keyframe. It replaced a
+   Lottie animation and its player: about fifty kilobytes gzipped, in a
+   lazily-loaded chunk, to draw a circle going round. */
+.loader {
+  --loader-size: 52px;
+  display: inline-block; flex: none;
+  width: var(--loader-size); height: var(--loader-size);
+  border: 3px solid var(--color-border);
+  border-top-color: var(--color-hero-red);
+  border-radius: 50%;
+  animation: loader-spin 0.75s linear infinite;
+}
+@keyframes loader-spin { to { transform: rotate(1turn); } }
+/* Slowed rather than stopped. A loading mark that does not move says the
+   page has given up, which is the opposite of what it is there for — so
+   under this setting it turns gently instead of not at all. */
+@media (prefers-reduced-motion: reduce) {
+  .loader { animation-duration: 2.4s; }
+}
 /* Centred block for a page waiting on its own data */
 .loader-block { display: grid; place-items: center; padding: 4rem 0; }
 
