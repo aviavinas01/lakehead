@@ -84,11 +84,19 @@ export const clearPass = (res: import("express").Response): void => {
  */
 export const requirePass: RequestHandler = (req, _res, next) => {
   const token: string | undefined = req.cookies?.[COOKIE];
-  if (!token) return next(ApiError.unauthorized("Invalid email or password"));
+  /* Same sentence to the caller, a real reason to the log — see the note on
+     `wrong` in auth.service. THIS IS THE FAILURE THAT LOOKS LEAST LIKE
+     ITSELF: the password was never even checked, so "invalid email or
+     password" is true only in the sense that nothing was valid. */
+  if (!token) {
+    console.warn("[auth] sign-in refused (no gate pass — door not used)");
+    return next(ApiError.unauthorized("Invalid email or password"));
+  }
   try {
     jwt.verify(token, env.JWT_SECRET);
     next();
   } catch {
+    console.warn("[auth] sign-in refused (gate pass expired or invalid)");
     next(ApiError.unauthorized("Invalid email or password"));
   }
 };

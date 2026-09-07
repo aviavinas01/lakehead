@@ -41,7 +41,20 @@ export const authService = {
        which addresses are real, and that is most of the work of an attack.
        The lock is enforced silently for the same reason: a caller learns
        nothing about whether they are close. */
-    const wrong = () => ApiError.unauthorized("Invalid email or password");
+    /* THE CALLER ALWAYS GETS THE SAME SENTENCE. Telling "no such account"
+       apart from "wrong password" apart from "locked" is telling an attacker
+       which addresses are real and how close they are, and that is most of
+       the work of an attack.
+
+       THE SERVER LOG DOES NOT HAVE TO BE COY. Six separate checks reach this
+       one message, so without a note of which fired, a genuine sign-in
+       problem is unfalsifiable from the outside — the operator sees exactly
+       what an attacker sees. The reason goes to stdout, where only somebody
+       with access to the host can read it, and the password never does. */
+    const wrong = (reason: string) => {
+      console.warn(`[auth] sign-in refused (${reason}) for ${email}`);
+      return ApiError.unauthorized("Invalid email or password");
+    };
 
     /* ONE ACCOUNT. Not "any admin" — this exact address, the one set in the
        environment at deploy. There is no route left that can create a
@@ -49,7 +62,7 @@ export const authService = {
        still hold if somebody wrote a document straight into the database. */
     if (email.trim().toLowerCase() !== env.ADMIN_EMAIL.toLowerCase()) {
       await burnTime();
-      throw wrong();
+      throw wrong("not the configured ADMIN_EMAIL");
     }
 
     if (!user || !user.active || user.role !== "admin") {
@@ -61,11 +74,15 @@ export const authService = {
          into a way to test whether an address is registered — which is the
          first half of an attack on the account behind it. */
       await burnTime();
-      throw wrong();
+      throw wrong(
+        !user ? "no such account" : !user.active ? "account disabled" : "not an admin"
+      );
     }
 
     if (user.lockedUntil && user.lockedUntil.getTime() > Date.now()) {
-      throw wrong();
+      throw wrong(
+        `locked for another ${Math.ceil((user.lockedUntil.getTime() - Date.now()) / 60000)} min`
+      );
     }
 
     if (!(await comparePassword(password, user.password))) {
@@ -79,7 +96,7 @@ export const authService = {
           ? { failedLogins: 0, lockedUntil: new Date(Date.now() + LOCK_MS) }
           : { $inc: { failedLogins: 1 } }
       );
-      throw wrong();
+      throw wrong(`wrong password (${failures} in a row)`);
     }
 
     /* A good password clears the slate. Only written when there is something
