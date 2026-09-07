@@ -1,23 +1,15 @@
-// Run once: npm run seed:admin
+// npm run seed:admin — for a local database, against your own .env.
+//
+// The server now does this itself at every boot (see ensureAdmin, which this
+// calls), so nothing depends on anyone remembering to run it. It is kept
+// because pointing a local .env at a database and running one command is
+// still the quickest way to check what ensureAdmin will do to it.
 import { connectDB, disconnectDB } from "./db.js";
-import { env } from "./env.js";
-import { User } from "../models/User.js";
-import { hashPassword } from "../utils/password.js";
+import { ensureAdmin } from "./ensureAdmin.js";
 
 const seed = async () => {
   await connectDB();
-  const existing = await User.findOne({ email: env.ADMIN_EMAIL });
-  if (existing) {
-    console.log("Admin already exists:", env.ADMIN_EMAIL);
-  } else {
-    await User.create({
-      name: "Admin",
-      email: env.ADMIN_EMAIL,
-      password: await hashPassword(env.ADMIN_PASSWORD),
-      role: "admin",
-    });
-    console.log("Admin user created:", env.ADMIN_EMAIL);
-  }
+  await ensureAdmin();
   await disconnectDB();
 };
 

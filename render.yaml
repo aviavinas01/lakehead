@@ -31,9 +31,15 @@ services:
         sync: false
       - key: CLIENT_URL      # exact Vercel origin, no trailing slash
         sync: false
+      # THESE TWO ARE THE ADMIN ACCOUNT, not a description of one. The
+      # server creates it at boot if it is missing and resets the password
+      # if this value has changed (see config/ensureAdmin.ts), so changing
+      # ADMIN_PASSWORD here and redeploying IS the password reset — there is
+      # no reset email and no second account to grant one.
+      # ADMIN_EMAIL is also the ONLY address allowed to sign in.
       - key: ADMIN_EMAIL
         sync: false
-      - key: ADMIN_PASSWORD
+      - key: ADMIN_PASSWORD   # treat as the live credential it is
         sync: false
       # The code for the hidden door in the site footer. REQUIRED — the
       # server exits at boot without it, which is deliberate: a missing code
