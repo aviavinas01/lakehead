@@ -32,8 +32,7 @@ import Dashboard from "./pages/admin/Dashboard";
 import Posts from "./pages/admin/Posts";
 import PostEditor from "./pages/admin/PostEditor";
 import Inquiries from "./pages/admin/Inquiries";
-import MediaLibrary from "./pages/admin/MediaLibrary";
-import TikTokClips from "./pages/admin/TikTokClips";
+import Media from "./pages/admin/Media";
 
 export default function App() {
   return (
@@ -78,8 +77,10 @@ export default function App() {
           <Route path="/admin/posts" element={<Posts />} />
           <Route path="/admin/posts/new" element={<PostEditor />} />
           <Route path="/admin/posts/:id/edit" element={<PostEditor />} />
-          <Route path="/admin/media" element={<MediaLibrary />} />
-          <Route path="/admin/tiktok" element={<TikTokClips />} />
+          {/* One section, two tabs — both addresses land on it so older
+              links keep working. See pages/admin/Media.tsx. */}
+          <Route path="/admin/media" element={<Media />} />
+          <Route path="/admin/tiktok" element={<Media />} />
           <Route path="/admin/inquiries" element={<Inquiries />} />
         </Route>
 

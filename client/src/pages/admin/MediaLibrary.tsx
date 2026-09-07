@@ -1,12 +1,11 @@
 import { useCallback, useEffect, useState, type FormEvent, useRef } from "react";
 import api, { getErrorMessage } from "../../api/client";
 import { mediaSrc } from "../../api/media";
-import AdminNav from "./AdminNav";
 import { useAuth } from "../../context/AuthContext";
 import type { Album, Media, Paginated } from "../../types/api";
 import { fetchGallery, type GalleryAlbum } from "../../api/gallery";
 
-export default function MediaLibrary() {
+export default function MediaPanel() {
   const { user } = useAuth();
   const [albums, setAlbums] = useState<Album[]>([]);
   const [data, setData] = useState<Paginated<Media> | null>(null);
@@ -158,12 +157,7 @@ export default function MediaLibrary() {
   };
 
   return (
-    <div className="adm">
-      <AdminNav />
-      <main className="adm-main">
-        <div className="admin-header">
-          <h1>Media Library</h1>
-        </div>
+    <>
         {error && <p className="form-error">{error}</p>}
 
         {/* THE QUESTION THIS SCREEN COULD NOT ANSWER BEFORE: is what I am
@@ -192,7 +186,7 @@ export default function MediaLibrary() {
           )}
         </div>
 
-        <div className="card">
+        <div className="adm-card">
           <h2>Albums</h2>
           <form onSubmit={createAlbum} className="media-inline-form">
             <input
@@ -261,7 +255,7 @@ export default function MediaLibrary() {
           )}
         </div>
 
-        <div className="card">
+        <div className="adm-card">
           <h2>Upload picture or video</h2>
           <form onSubmit={uploadFile} className="media-inline-form">
             <input
@@ -287,7 +281,7 @@ export default function MediaLibrary() {
           </form>
         </div>
 
-        <div className="admin-header">
+        <div className="adm-head adm-head-sub">
           <h2>Files</h2>
           <select
             value={albumFilter}
@@ -360,7 +354,6 @@ export default function MediaLibrary() {
             )}
           </>
         )}
-      </main>
-    </div>
+    </>
   );
 }

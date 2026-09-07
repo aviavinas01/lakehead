@@ -69,10 +69,12 @@ export default function Inquiries() {
     <div className="adm">
       <AdminNav />
       <main className="adm-main">
-        <div className="admin-header">
+        <div className="adm-head">
           <h1>Inquiries</h1>
           <select
+            className="adm-select"
             value={filter}
+            aria-label="Filter by status"
             onChange={(e) => {
               setPage(1);
               setFilter(e.target.value as "" | InquiryStatus);
@@ -85,13 +87,13 @@ export default function Inquiries() {
           </select>
         </div>
         {!data ? (
-          <p>Loading…</p>
+          <p className="adm-quiet">Reading…</p>
         ) : data.items.length === 0 ? (
-          <p>No inquiries found.</p>
+          <p className="adm-quiet">Nothing here. The contact form feeds this.</p>
         ) : (
           <>
             {data.items.map((q) => (
-              <div className="card inquiry-card" key={q._id}>
+              <div className="adm-card inquiry-card" key={q._id}>
                 <div className="inquiry-head">
                   <strong>{q.name}</strong>
                   <span className={`badge badge-${q.status}`}>{q.status}</span>

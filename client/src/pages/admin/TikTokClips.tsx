@@ -1,5 +1,4 @@
 import { useEffect, useState, type FormEvent } from "react";
-import AdminNav from "./AdminNav";
 import api, { getErrorMessage } from "../../api/client";
 
 /**
@@ -46,7 +45,7 @@ interface Clip {
 
 type Status = { kind: "idle" | "busy" | "error"; message: string };
 
-export default function TikTokClips() {
+export default function ClipsPanel() {
   const [clips, setClips] = useState<Clip[]>([]);
   const [url, setUrl] = useState("");
   const [category, setCategory] = useState<Category>("testimonial");
@@ -104,10 +103,7 @@ export default function TikTokClips() {
   };
 
   return (
-    <div className="adm">
-      <AdminNav />
-      <main className="adm-main">
-        <h1>TikTok clips</h1>
+    <>
         <p className="admin-lead">
           Paste the address of a TikTok video and choose the shelf it belongs
           on. Each shelf appears on one page:{" "}
@@ -208,7 +204,6 @@ export default function TikTokClips() {
             ))}
           </ul>
         )}
-      </main>
-    </div>
+    </>
   );
 }

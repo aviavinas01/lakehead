@@ -7693,7 +7693,10 @@ a.rev-score:hover { background: rgba(255, 255, 255, 0.08); }
   padding: 0.7rem clamp(1rem, 3vw, 2rem);
 }
 .adm-mark { display: inline-flex; flex: none; }
-.adm-mark img { height: 30px; width: auto; }
+/* Bigger than the 30px it started at. The bar is the one place the mark
+   appears in the admin, and at 30 it read as a favicon rather than as the
+   business's own logo. */
+.adm-mark img { height: 44px; width: auto; }
 
 /* The pills. Centred by the auto margins either side, so the rail sits in
    the middle however wide the mark and the buttons happen to be. */
@@ -7914,4 +7917,147 @@ a.rev-score:hover { background: rgba(255, 255, 255, 0.08); }
   .adm-bar-inner { flex-wrap: wrap; }
   .adm-pills { order: 3; width: 100%; margin: 0; justify-content: flex-start; }
   .adm-bar-end { margin-left: auto; }
+}
+
+/* ---- the media section's two tabs ----
+   Underlined rather than pilled: the bar above already uses pills for
+   sections, and reusing the same shape one level down would say these are
+   sections too. A tab is a view of the section you are already in. */
+.adm-tabs {
+  display: flex; gap: 0.35rem; flex-wrap: wrap;
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: 0.25rem;
+}
+.adm-tabs a {
+  padding: 0.7rem 1rem; margin-bottom: -1px;
+  border-bottom: 2px solid transparent;
+  color: var(--color-muted); font-weight: 600; font-size: 0.9rem;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+.adm-tabs a:hover { color: var(--color-hero-ink); }
+.adm-tabs a.is-on {
+  color: var(--color-hero-ink);
+  border-bottom-color: var(--color-hero-red);
+}
+
+/* A heading inside a section, under the page's own. */
+.adm-head-sub { margin-top: 0.5rem; }
+.adm-head-sub h2 {
+  margin: 0; font-size: 1.05rem; color: var(--color-hero-ink);
+  letter-spacing: -0.01em;
+}
+
+/* ---- form controls, one shape everywhere ---- */
+.adm-select,
+.adm-main select,
+.adm-main input[type="text"],
+.adm-main input[type="url"],
+.adm-main input[type="email"],
+.adm-main input[type="number"],
+.adm-main input:not([type]) {
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--color-border); border-radius: 10px;
+  background: var(--color-bg); font: inherit; font-size: 0.92rem;
+  color: var(--color-text);
+}
+.adm-main input:focus-visible,
+.adm-main select:focus-visible {
+  outline: 2px solid var(--color-hero-ink); outline-offset: 1px;
+  border-color: transparent;
+}
+/* The file picker keeps the browser's own control — restyling it costs a
+   label-and-hidden-input dance for a button people already recognise. */
+.adm-main input[type="file"] { border: none; padding: 0; background: none; }
+
+.adm-main .btn-small,
+.adm-main .tta-add button,
+.adm-main .tta-actions button {
+  padding: 0.5rem 0.95rem; border-radius: 999px;
+  border: 1px solid var(--color-border); background: var(--color-bg);
+  font: inherit; font-size: 0.84rem; font-weight: 600;
+  color: var(--color-hero-ink); cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+.adm-main .btn-small:hover,
+.adm-main .tta-actions button:hover {
+  border-color: var(--color-hero-ink);
+}
+.adm-main .tta-add button {
+  background: var(--color-hero-ink); color: #fff; border-color: transparent;
+}
+.adm-main .btn-danger,
+.adm-main .tta-actions .tta-del {
+  color: var(--color-danger); border-color: #f0c8c2;
+}
+
+/* ---- the tables ---- */
+.adm-main .admin-table { width: 100%; border-collapse: collapse; }
+.adm-main .admin-table th {
+  text-align: left; padding: 0 0.75rem 0.75rem;
+  font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--color-muted); font-weight: 700;
+  border-bottom: 1px solid var(--color-border);
+}
+.adm-main .admin-table td {
+  padding: 0.85rem 0.75rem; border-bottom: 1px solid var(--color-border);
+  font-size: 0.92rem;
+}
+.adm-main .admin-table tr:last-child td { border-bottom: none; }
+.adm-main .admin-table tbody tr { transition: background 0.15s ease; }
+.adm-main .admin-table tbody tr:hover { background: #f8fafc; }
+
+/* ---- badges, in the palette rather than beside it ---- */
+.adm-main .badge {
+  display: inline-block; padding: 0.2rem 0.65rem; border-radius: 999px;
+  font-size: 0.74rem; font-weight: 700; letter-spacing: 0.03em;
+  text-transform: capitalize;
+}
+.adm-main .badge-published,
+.adm-main .badge-closed { background: #e8f3ec; color: #1e7e34; }
+.adm-main .badge-draft,
+.adm-main .badge-contacted { background: #eef1f6; color: var(--color-muted); }
+/* "New" is the only badge that is asking for something, so it is the only
+   one that uses the brand colour. */
+.adm-main .badge-new { background: #fbeae4; color: var(--color-hero-red); }
+
+/* ---- an inquiry ---- */
+.adm-main .inquiry-card { display: grid; gap: 0.6rem; }
+.adm-main .inquiry-head {
+  display: flex; align-items: center; gap: 0.75rem;
+}
+.adm-main .inquiry-head strong {
+  font-family: var(--font-display); font-size: 1.05rem;
+  color: var(--color-hero-ink);
+}
+.adm-main .inquiry-meta {
+  margin: 0; font-size: 0.82rem; color: var(--color-muted);
+}
+.adm-main .inquiry-card > p:not([class]) {
+  margin: 0; font-size: 0.94rem; line-height: 1.65;
+  padding: 0.85rem 1rem; background: #f8fafc; border-radius: 10px;
+}
+.adm-main .inquiry-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+/* ---- the media grid ---- */
+.adm-main .media-grid {
+  display: grid; gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+}
+.adm-main .media-card {
+  padding: 0; overflow: hidden; border-radius: 12px;
+  border: 1px solid var(--color-border); background: var(--color-bg);
+  display: grid; gap: 0;
+}
+.adm-main .media-card img,
+.adm-main .media-card video {
+  width: 100%; aspect-ratio: 4 / 3; object-fit: cover; display: block;
+}
+.adm-main .media-title {
+  margin: 0; padding: 0.6rem 0.75rem 0;
+  font-size: 0.85rem; font-weight: 600; color: var(--color-hero-ink);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.adm-main .media-card-actions { padding: 0.5rem 0.75rem 0.75rem; }
+.adm-main .media-inline-form {
+  display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: center;
 }

@@ -1,4 +1,4 @@
-import { NavLink, Link, useNavigate } from "react-router-dom";
+import { NavLink, Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
 /**
@@ -12,11 +12,20 @@ import { useAuth } from "../../context/AuthContext";
  * of every admin route and every screen would light up the first pill.
  */
 
-const LINKS = [
+interface NavItem {
+  to: string;
+  label: string;
+  end?: boolean;
+  /** Extra path prefixes that should also light this pill. */
+  match?: string[];
+}
+
+const LINKS: NavItem[] = [
   { to: "/admin", label: "Dashboard", end: true },
   { to: "/admin/posts", label: "Posts" },
-  { to: "/admin/media", label: "Media" },
-  { to: "/admin/tiktok", label: "TikTok" },
+  /* One pill for both media tabs. `match` is the prefix list that lights it
+     up, because the section answers to two addresses. */
+  { to: "/admin/media", label: "Media", match: ["/admin/media", "/admin/tiktok"] },
   { to: "/admin/inquiries", label: "Inquiries" },
 ];
 
@@ -26,6 +35,7 @@ const initial = (name?: string) => (name?.trim()?.[0] ?? "L").toUpperCase();
 export default function AdminNav() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
 
   const handleLogout = async () => {
     await logout();
@@ -45,7 +55,11 @@ export default function AdminNav() {
               key={l.to}
               to={l.to}
               end={l.end}
-              className={({ isActive }) => (isActive ? "is-on" : undefined)}
+              className={({ isActive }) =>
+                isActive || l.match?.some((m) => pathname.startsWith(m))
+                  ? "is-on"
+                  : undefined
+              }
             >
               {l.label}
             </NavLink>
