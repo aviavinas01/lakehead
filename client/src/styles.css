@@ -3454,44 +3454,57 @@ a.greview-author:hover { text-decoration: underline; }
 }
 
 /* ---- the editorial photographs drift in their frames ----
-   Added by lib/parallax to every Shot that is allowed one; --px is the only
-   thing that component writes, once per frame, per picture on screen.
+   --px and --px-t are the only things lib/parallax writes, once per frame,
+   per picture on screen. Everything below is how they are spent.
+
+   NOT `transform`, ON PURPOSE — these are the independent transform
+   properties, and the difference is the whole robustness story here.
+
+   `transform` is ONE property. Any other rule that sets it on the same
+   element replaces this outright: the drift does not blend, it disappears,
+   and it does so silently with nothing in devtools to say a parallax was
+   ever meant to be here. That is not hypothetical — `.usa-band img` scales
+   its photograph on reveal, and that Shot has to pass `still` to keep the
+   two from colliding. This rule used to double its class (`.px-shot.px-shot`)
+   purely to out-rank selectors like `.vg-shot img`, which is an arms race
+   that only holds until somebody writes a slightly more specific selector.
+
+   `translate`, `rotate` and `scale` are three separate properties that the
+   browser composes in that order and THEN applies `transform` on top. So a
+   page can give one of these pictures its own transform and the drift still
+   runs. There is nothing left to out-rank, and the doubled class is gone
+   with the problem it existed for.
+
+   Three values on `translate` rather than two: the third is z, which is what
+   makes it a 3D translate and puts the picture on its own compositor layer —
+   what `translate3d` was doing before. A frame of scrolling then moves an
+   existing texture instead of repainting a photograph. `will-change` would
+   do the same and is deliberately not used: it would hold a layer for every
+   registered image whether or not it is on screen, and there can be eight.
 
    THE SCALE IS NOT DECORATION — it is the overhang the drift travels into.
-   1.12 leaves 6% of the picture hidden above and below the frame, and the
-   drift uses 4% of that in each direction, so the frame never shows its own
-   background at the extremes. Raise DRIFT in lib/parallax and this has to
-   go up with it.
+   1.3 leaves 15% of the picture hidden above and below the frame and the
+   drift uses 10% of it each way, so the frame never shows its own background
+   at the extremes. Raise DRIFT in lib/parallax and this has to go up with
+   it. It must also stay in step with ZOOM there, which HeroKnockout reads to
+   line its cut-out headline up with the moving photograph.
 
-   translate3d rather than translateY: it puts the picture on its own
-   compositor layer, so a frame of scrolling moves an existing texture
-   instead of repainting a photograph. `will-change` would do the same and
-   is deliberately not used — it would hold a layer for every registered
-   image whether or not it is on screen, and there can be eight on a page.
+   The class itself is put on by React, in Shot — never by the engine. See
+   registerParallax for what went wrong when the engine added it.
 
    Every frame that carries one of these clips its overflow already; the
    hero's is on .dpage-hero rather than on .dpage-hero-bg itself. */
-/* The class is doubled ON PURPOSE. `.px-shot` alone is one class, and every
-   rule that sizes these pictures is a class plus a tag — `.dpage-hero-bg
-   img`, `.vg-shot img`, `.cc-shot img` and a dozen more — which outranks
-   it. None of them happens to set a transform today, so it worked; the day
-   one does, the drift would vanish with nothing to show why. Doubling the
-   class costs nothing and settles it.
-
-   The 1.3 must stay in step with ZOOM in lib/parallax, which HeroKnockout
-   reads to line its cut-out headline up with the moving photograph. */
-.px-shot.px-shot {
-  transform:
-    translate3d(0, var(--px, 0px), 0)
-    /* THE TILT IS OPT-IN AND COSTS NOTHING WHEN IT IS OFF. --px-t is the
-       picture's signed progress through the window, written for every
-       parallax image; --px-tilt is the largest angle THIS picture is
-       allowed to lean, and it defaults to zero — so every image on the site
-       composes a rotateX of 0deg unless a rule somewhere gives it an angle.
-       The frame has to carry a `perspective` for the lean to read as depth
-       rather than as a squash; see .vg-shot. */
-    rotateX(calc(var(--px-t, 0) * var(--px-tilt, 0deg)))
-    scale(1.3);
+.px-shot {
+  translate: 0 var(--px, 0px) 0;
+  /* THE TILT IS OPT-IN AND COSTS NOTHING WHEN IT IS OFF. --px-t is the
+     picture's signed progress through the window, written for every parallax
+     image; --px-tilt is the largest angle THIS picture is allowed to lean,
+     and it defaults to zero — so every image on the site resolves to 0deg
+     unless a rule somewhere gives it an angle. The frame has to carry a
+     `perspective` for the lean to read as depth rather than as a squash;
+     see .vg-shot. */
+  rotate: x calc(var(--px-t, 0) * var(--px-tilt, 0deg));
+  scale: 1.3;
 }
 
 /* ---- destination pages: photography ----

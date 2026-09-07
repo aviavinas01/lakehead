@@ -147,19 +147,29 @@ function stop() {
 }
 
 /**
- * Give a photograph its drift. Returns the undo, for the effect cleanup.
+ * Give a photograph its drift. Returns the undo, or NULL if it declined —
+ * because the device or the reader has asked not to have it, or the image
+ * has no frame to move inside.
  *
- * Refuses quietly — returning a no-op — when the device or the reader has
- * asked not to have it, or when the image has no frame to move inside.
+ * THE CALLER PUTS `px-shot` ON THE ELEMENT, NOT THIS. That is why the answer
+ * is null rather than a no-op: the caller has to be able to tell.
+ *
+ * This used to add the class itself, with `classList.add`, and that was a
+ * real bug rather than a matter of taste. React owns the `className`
+ * attribute of an element it renders, and it does not merge — when the
+ * attribute's value changes between renders it WRITES THE WHOLE STRING. Any
+ * class added imperatively is gone at that moment. The Shot component gained
+ * a loading shimmer that lives in its className, so every picture dropped
+ * `px-shot` the instant it finished loading, silently, everywhere, and kept
+ * receiving `--px` updates for a transform rule that no longer matched it.
  */
-export function registerParallax(img: HTMLElement | null): () => void {
-  if (!img || !allowed()) return () => {};
+export function registerParallax(img: HTMLElement | null): (() => void) | null {
+  if (!img || !allowed()) return null;
   const frame = img.parentElement;
-  if (!frame) return () => {};
+  if (!frame) return null;
 
   if (frames.size === 0) start();
   frames.set(img, frame);
-  img.classList.add("px-shot");
   io?.observe(img);
   schedule();
 
@@ -167,7 +177,6 @@ export function registerParallax(img: HTMLElement | null): () => void {
     io?.unobserve(img);
     frames.delete(img);
     onScreen.delete(img);
-    img.classList.remove("px-shot");
     img.style.removeProperty("--px");
     img.style.removeProperty("--px-t");
     if (frames.size === 0) stop();

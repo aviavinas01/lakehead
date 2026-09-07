@@ -105,6 +105,12 @@ export function Shot({
   /* Drives the shimmer. Starts false and is set the moment the file paints —
      or immediately, from the ref below, if it was already in cache. */
   const [loaded, setLoaded] = useState(false);
+  /* Whether this picture actually got the drift, which decides whether it
+     carries `px-shot` below. It is STATE, and not a `classList.add` from the
+     engine, because React rewrites the whole className attribute whenever
+     its value changes and wipes anything added behind its back — which is
+     precisely how the effect died. See registerParallax. */
+  const [drifting, setDrifting] = useState(false);
 
   /* A ref callback rather than an effect: it fires with the node on mount
      and with null when the node goes, which is exactly the register /
@@ -124,14 +130,22 @@ export function Shot({
     (img: HTMLImageElement | null) => {
       undrift.current();
       undrift.current = () => {};
-      if (!img) return;
+      if (!img) {
+        setDrifting(false);
+        return;
+      }
       /* A CACHED IMAGE MAY HAVE FINISHED BEFORE REACT ATTACHED, in which
          case `onLoad` has already fired at nobody and would never fire
          again — the shimmer would sit under a picture that is fully there,
          for the life of the page. `complete` is how you ask after the fact. */
       if (img.complete && img.naturalWidth > 0) setLoaded(true);
-      if (still || img.closest("a")) return;
-      undrift.current = registerParallax(img);
+      if (still || img.closest("a")) {
+        setDrifting(false);
+        return;
+      }
+      const off = registerParallax(img);
+      undrift.current = off ?? (() => {});
+      setDrifting(off !== null);
     },
     [still]
   );
@@ -148,7 +162,9 @@ export function Shot({
          and their like as direct children, and a wrapper would have quietly
          detached every one of them. An <img> with nothing decoded yet shows
          its own background, so the placeholder needs no element of its own. */
-      className={`${className ?? ""}${loaded ? "" : " shot-load"}`.trim()}
+      className={[className, drifting && "px-shot", !loaded && "shot-load"]
+        .filter(Boolean)
+        .join(" ")}
       src={src}
       alt={alt}
       /* LAZY IS RIGHT FOR ALMOST EVERY PICTURE HERE and wrong for one: the
