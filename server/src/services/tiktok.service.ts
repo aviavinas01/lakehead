@@ -159,11 +159,12 @@ export const tiktokService = {
     return docs.map(shape);
   },
 
-  /** Everything, published or not, for the admin screen. */
+  /** Narrows an unknown query value to a real shelf name. */
   isCategory(v: unknown): v is TikTokCategory {
     return TIKTOK_CATEGORIES.includes(v as TikTokCategory);
   },
 
+  /** Everything, published or not, for the admin screen. */
   async listAll(): Promise<(TikTokClip & { published: boolean; order: number })[]> {
     const docs = (await TikTok.find()
       .sort({ order: 1, createdAt: -1 })

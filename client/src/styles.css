@@ -1188,6 +1188,12 @@ html[data-scrolling] .dpage-table-scroll { pointer-events: auto; }
   -webkit-line-clamp: 2; overflow: hidden;
   pointer-events: none;
 }
+/* The handle, under the title on a TikTok card. YouTube items pass no
+   author, so this simply never renders for them. */
+.vt-by {
+  display: block; margin-top: 0.25rem;
+  color: rgba(255, 255, 255, 0.72); font-weight: 500; font-size: 0.8rem;
+}
 .vt-card[data-featured] .vt-name {
   top: 1.4rem; bottom: auto;
   font-size: clamp(1.1rem, 1.5vw, 1.5rem);
@@ -1208,7 +1214,56 @@ html[data-scrolling] .dpage-table-scroll { pointer-events: auto; }
    drawn over it. */
 .vt-card[data-playing] { display: grid; place-items: center; background: #000; }
 .vt-card[data-playing]::after { content: none; }
-.vt-card iframe { height: auto; aspect-ratio: 16 / 9; }
+/* A YOUTUBE video is 16:9, so its player is a band across a tall card with
+   black either side. SCOPED to the YouTube shelves on purpose: this rule
+   used to apply to every player, which meant TikTok's vertical video was
+   being squeezed into a widescreen letterbox — a sliver of picture in the
+   middle of a portrait card. */
+.vt:not(.vt-tiktok) .vt-card iframe { height: auto; aspect-ratio: 16 / 9; }
+
+/* ============================================================
+   THE TIKTOK SHELVES — vertical, and cropped to the video.
+   ============================================================ */
+
+/* 9:16, TikTok's own shape, rather than the 1:1.54 the YouTube cards use.
+   Everything else about the strip — the featured card's size, the distance
+   the track slides — is derived from --vt-w and --vt-h, so changing the
+   height here moves the whole shelf into proportion with no other edit. */
+.vt-tiktok { --vt-h: calc(var(--vt-w) * 1.778); }
+
+/* ---- cropping TikTok's chrome ----
+   TIKTOK PUBLISHES NO BARE PLAYER. Their /embed/v2/ iframe always carries a
+   header with the handle and a caption block with the sound and the buttons,
+   and there is no documented parameter to turn either off. Nor is there a
+   legitimate way to pull the video file itself and play it directly — it is
+   not a public URL, and scraping one would break the first time they rotate
+   their signing, quite apart from their terms.
+
+   So the player is made TALLER THAN THE CARD and the card's overflow does
+   the rest: the chrome falls outside the frame and the video fills it. The
+   two numbers below are the whole adjustment, and they are the dials if
+   TikTok changes the height of either band.
+
+   --ttk-zoom  how much taller the player is than the card, which is what
+               pushes the header and caption past its edges
+   --ttk-shift the caption below is deeper than the header above, so the
+               video does not sit centred in its own chrome; this nudges the
+               crop up to compensate */
+.vt-tiktok {
+  --ttk-zoom: 1.74;
+  --ttk-shift: -3.5%;
+}
+/* Block rather than the centring grid the YouTube cards use: the iframe
+   places itself here, and `place-items: center` on a box smaller than its
+   child fights the transform below. */
+.vt-tiktok .vt-card[data-playing] { display: block; overflow: hidden; }
+.vt-tiktok .vt-card iframe {
+  position: absolute; left: 0; top: 50%;
+  width: 100%; height: calc(100% * var(--ttk-zoom));
+  aspect-ratio: auto;
+  transform: translateY(calc(-50% + var(--ttk-shift)));
+  border: 0;
+}
 
 .vt-play {
   position: absolute; inset: 0; margin: auto; z-index: 3;
@@ -2085,99 +2140,10 @@ a.greview-author:hover { text-decoration: underline; }
   .jp-frame:hover .jp-link { transform: none; }
 }
 
-/* ============================================================
-   TikTok clips (components/TikTokRow.tsx) — a shelf of portrait cards on
-   the home page, and its admin screen at the foot of this block.
-
-   9:16 IS THE SHAPE THE WHOLE THING IS BUILT ROUND. Every clip is shot
-   vertical, so the card is too, and the row scrolls sideways rather than
-   wrapping — a grid of tall cards leaves a page of holes.
-   ============================================================ */
-.ttk { padding: var(--section-y) 0; }
-.ttk-head { margin-bottom: 2rem; }
-.ttk-eyebrow {
-  color: var(--color-hero-red); font-family: var(--font-display);
-  font-weight: 700; font-size: 0.78rem;
-  letter-spacing: 0.16em; text-transform: uppercase; margin-bottom: 0.9rem;
-}
-.ttk-title {
-  color: var(--color-hero-ink);
-  font-size: clamp(1.7rem, 3vw, 2.6rem); letter-spacing: -0.02em; margin: 0;
-}
-
-/* A plain scrollable shelf. No arrows and no driven track: these are clips
-   to browse past, not a sequence to be walked through, and a trackpad or a
-   touch already scrolls a row like this. The scrollbar is hidden because the
-   cards running off the edge say the row continues more clearly than a rail
-   under them does. */
-.ttk-row {
-  display: flex; gap: clamp(0.75rem, 1.4vw, 1.25rem);
-  overflow-x: auto; scroll-snap-type: x proximity;
-  scrollbar-width: none; -ms-overflow-style: none;
-  padding-bottom: 0.25rem;
-}
-.ttk-row::-webkit-scrollbar { display: none; }
-
-.ttk-card {
-  position: relative; flex: none; margin: 0;
-  width: clamp(200px, 21vw, 290px);
-  aspect-ratio: 9 / 16;
-  border-radius: 14px; overflow: hidden;
-  background: var(--color-hero-ink);
-  scroll-snap-align: start;
-}
-.ttk-card img, .ttk-card iframe {
-  width: 100%; height: 100%; object-fit: cover; display: block; border: 0;
-}
-/* A still whose signature has expired leaves the card as its own colour
-   field carrying the same words — not a torn image. */
-.ttk-blank {
-  position: absolute; inset: 0;
-  background: linear-gradient(150deg, #17275c, #0d1638);
-}
-/* Playing: TikTok's own player fills the card, and nothing is drawn over it
-   — their controls need the whole frame. */
-.ttk-card[data-playing] { background: #000; }
-.ttk-card[data-playing]::after { content: none; }
-
-/* The scrim, and the words on it. Sized generously because TikTok titles are
-   captions rather than headlines and run long; two lines and then it stops. */
-.ttk-card::after {
-  content: ""; position: absolute; inset: auto 0 0; height: 55%;
-  background: linear-gradient(0deg, rgba(9, 16, 38, 0.85), transparent);
-  pointer-events: none;
-}
-.ttk-cap {
-  position: absolute; inset: auto 0.9rem 0.9rem; z-index: 2;
-  color: #fff; font-family: var(--font-display); font-weight: 600;
-  font-size: 0.92rem; line-height: 1.35;
-  display: -webkit-box; -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3; overflow: hidden;
-  pointer-events: none;
-}
-.ttk-who {
-  display: block; margin-top: 0.3rem;
-  color: rgba(255, 255, 255, 0.72); font-weight: 500; font-size: 0.8rem;
-}
-.ttk-play {
-  position: absolute; inset: 0; margin: auto; z-index: 3;
-  width: 54px; height: 54px;
-  display: grid; place-items: center; border: none; border-radius: 50%;
-  background: rgba(255, 255, 255, 0.94); color: var(--color-primary);
-  cursor: pointer; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
-  transition: transform 0.15s, background 0.15s;
-}
-.ttk-play:hover { transform: scale(1.07); background: #fff; }
-.ttk-play svg { margin-left: 2px; }
-
-@media (max-width: 560px) {
-  .ttk-card { width: 62vw; }
-  /* No hover on a touch screen, so the caption is simply always up — it
-     already is, but the play button wants to be reachable rather than
-     centred under a thumb. */
-}
-
-/* ---- the admin screen (pages/admin/TikTokClips.tsx) ---- */
+/* ---- the admin screen (pages/admin/TikTokClips.tsx) ----
+   The public shelves are Filmstrip now (.vt-*), shared with the YouTube
+   stories — the standalone .ttk-* row this file used to carry went with
+   components/TikTokRow.tsx. */
 .tta-add { display: flex; gap: 0.75rem; margin: 1.5rem 0 1rem; flex-wrap: wrap; }
 .tta-add input {
   flex: 1 1 26rem; padding: 0.7rem 0.9rem;
@@ -2220,6 +2186,11 @@ a.greview-author:hover { text-decoration: underline; }
 .tta-url {
   color: var(--color-muted); font-size: 0.85rem;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.tta-meta { display: flex; gap: 0.6rem; align-items: center; min-width: 0; }
+.tta-meta select {
+  padding: 0.3rem 0.4rem; font: inherit; font-size: 0.82rem;
+  border: 1px solid var(--color-border); border-radius: 6px; flex: none;
 }
 .tta-actions { flex: none; display: flex; gap: 0.5rem; }
 .tta-actions button {

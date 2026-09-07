@@ -4,6 +4,7 @@ import { PlaneIcon } from "../components/HeroOrbit";
 import { Check, Arrow, Shot } from "../components/destinationBits";
 import { TESTS } from "../data/tests";
 import HelpVideo from "../components/HelpVideo";
+import TikTokStrip from "../components/TikTokStrip";
 
 /**
  * Test Preparation — /services/test-preparation, and the parent of the
@@ -180,6 +181,15 @@ export default function TestPreparation() {
           </aside>
         </div>
       </section>
+
+      {/* Beside the writing it explains rather than on the home page —
+          somebody with this question is already here. Renders nothing until
+          a clip in this category is published. */}
+      <TikTokStrip
+        category="tests"
+        eyebrow="On TikTok"
+        heading={<>The tests, <span className="h-accent">in short</span></>}
+      />
 
       <section className="dpage-cta">
         <div className="container dpage-cta-inner">

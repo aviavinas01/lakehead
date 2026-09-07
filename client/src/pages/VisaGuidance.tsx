@@ -4,6 +4,7 @@ import { PlaneIcon } from "../components/HeroOrbit";
 import { Check, Arrow, Shot } from "../components/destinationBits";
 import { armReveals } from "../lib/reveal";
 import HelpVideo from "../components/HelpVideo";
+import TikTokStrip from "../components/TikTokStrip";
 
 /**
  * Visa Guidance — /services/visa-guidance. A static route, so it takes over
@@ -200,6 +201,15 @@ export default function VisaGuidance() {
           </aside>
         </div>
       </section>
+
+      {/* Beside the writing it explains rather than on the home page —
+          somebody with this question is already here. Renders nothing until
+          a clip in this category is published. */}
+      <TikTokStrip
+        category="visas"
+        eyebrow="On TikTok"
+        heading={<>Visas, <span className="h-accent">answered</span></>}
+      />
 
       <section className="dpage-cta">
         <div className="container dpage-cta-inner">

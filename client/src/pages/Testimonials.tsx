@@ -7,6 +7,7 @@ import { useReviewWall, type WallItem } from "../hooks/useReviewWall";
 import { DESTINATIONS, type ReviewSource } from "../data/testimonials";
 import { GOOGLE_MAPS_URL } from "../api/googleRating";
 import HelpVideo from "../components/HelpVideo";
+import TikTokStrip from "../components/TikTokStrip";
 
 /**
  * Testimonials & Reviews — /testimonials.
@@ -519,6 +520,20 @@ export default function Testimonials() {
           </div>
         </div>
       </section>
+
+      {/* The student clips, in the same shelf the home page uses for the
+          YouTube stories. This is the page they belong on: somebody reading
+          reviews is already looking for other students' accounts. Renders
+          nothing until a testimonial clip is published. */}
+      <TikTokStrip
+        category="testimonial"
+        eyebrow="On TikTok"
+        heading={
+          <>
+            Short stories from <span className="h-accent">our students</span>
+          </>
+        }
+      />
 
       <section className="dpage-cta">
         <div className="container dpage-cta-inner">

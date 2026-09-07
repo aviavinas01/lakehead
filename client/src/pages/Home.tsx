@@ -9,7 +9,6 @@ import LegacyBand from "../components/LegacyBand";
 import Destinations from "../components/Destinations";
 import ConsultPopup from "../components/ConsultPopup";
 import VideoTestimonials from "../components/VideoTestimonials";
-import TikTokRow from "../components/TikTokRow";
 import Testimonials from "../components/Testimonials";
 import ConsultBanner from "../components/ConsultBanner";
 import UniversityPartners from "../components/UniversityPartners";
@@ -238,12 +237,6 @@ export default function Home() {
       <NextSteps />
 
       <VideoTestimonials />
-
-      {/* Its own row rather than mixed into the filmstrip above: the two
-          sources fail differently — a feed that can go briefly empty against
-          a curated list that can go stale — and one bad day should not empty
-          the other. Renders nothing until there is a clip. */}
-      <TikTokRow />
 
       <ConsultBanner />
 

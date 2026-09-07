@@ -7,6 +7,7 @@ import { Check, Arrow, Shot } from "../components/destinationBits";
 import { useYouTubeFeed } from "../hooks/useYouTubeFeed";
 import RollingFigure from "../components/RollingFigure";
 import HelpVideo from "../components/HelpVideo";
+import TikTokStrip from "../components/TikTokStrip";
 
 /**
  * Study Abroad — the landing page behind the navbar's "Study Abroad" item,
@@ -451,6 +452,15 @@ export default function StudyAbroad() {
       <StudentStories />
 
       <EnquirySection />
+
+      {/* Beside the writing it explains rather than on the home page —
+          somebody with this question is already here. Renders nothing until
+          a clip in this category is published. */}
+      <TikTokStrip
+        category="study-abroad"
+        eyebrow="On TikTok"
+        heading={<>Studying abroad, <span className="h-accent">explained</span></>}
+      />
 
       <section className="dpage-cta">
         <div className="container dpage-cta-inner">

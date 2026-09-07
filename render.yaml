@@ -35,6 +35,11 @@ services:
         sync: false
       - key: ADMIN_PASSWORD
         sync: false
+      # The code for the hidden door in the site footer. REQUIRED — the
+      # server exits at boot without it, which is deliberate: a missing code
+      # would otherwise mean an unguarded sign-in page. 12+ characters.
+      - key: ADMIN_GATE_CODE
+        sync: false
       # The curated Success Stories playlist. Preferred source.
       - key: YOUTUBE_PLAYLIST_ID
         sync: false
