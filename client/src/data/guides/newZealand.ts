@@ -49,18 +49,7 @@ export const NEW_ZEALAND_GUIDE: Guide = {
           note: "Nearly twice the land, about a sixth of the people. Two main islands, a handful of cities, and a great deal of space between them — which is a large part of why the country feels the way it does.",
         },
         { t: "p", text: "Practically, this means your city matters. Auckland is the largest and busiest and carries the highest rents; Wellington is the capital and the most compact; Christchurch and Dunedin are smaller, cheaper and more student-shaped. The distances between them are real but manageable." },
-        {
-          t: "choice",
-          tag: "Quick choice",
-          question: "What sort of place suits you?",
-          resting: "This does not choose an institution. It narrows the list by cost and pace, which is most of the work.",
-          options: [
-            { key: "A", label: "Auckland — the biggest, the busiest", reply: "The largest job market and the most going on, with rents to match. Budget accommodation first." },
-            { key: "B", label: "Wellington — the capital, but walkable", reply: "Compact, cultural, and small enough to cross on foot. Windy, and everyone will tell you so." },
-            { key: "C", label: "Somewhere smaller and cheaper", reply: "Look at Christchurch, Dunedin, Hamilton and Palmerston North. Genuinely student cities, and your money lasts considerably longer." },
-            { key: "D", label: "Wherever the right course is", reply: "The right instinct. Eight universities is a short enough list to compare properly on programme rather than postcode." },
-          ],
-        },
+        { t: "p", text: "Deciding what sort of place suits you does not choose an institution, but it narrows the list by cost and pace, which is most of the work. Auckland is the biggest and busiest, with the largest job market and the most going on — and rents to match, so budget accommodation first. Wellington is the capital and still small enough to cross on foot: compact, cultural, and windy, as everyone will tell you. If you want somewhere smaller and cheaper, look at Christchurch, Dunedin, Hamilton and Palmerston North, which are genuinely student cities where your money lasts considerably longer. And if you would rather just follow the right course, eight universities is a short enough list to compare properly on programme rather than postcode." },
       ],
     },
     {
@@ -120,15 +109,7 @@ export const NEW_ZEALAND_GUIDE: Guide = {
       head: ["Intakes, and the ", { text: "six-month rule", as: "accent" }],
       blocks: [
         { t: "p", text: "Start roughly six months before your deadline. Sit your language and aptitude tests about three months out, leaving the final three months to complete the application accurately — and run the visa application alongside interviews rather than after them." },
-        {
-          t: "cards",
-          items: [
-            { title: "January", text: "The main intake. Start the admission process around six months ahead, and aim to have the visa application in by October or November." },
-            { title: "July", text: "The second main intake, and a good option if you need longer to prepare your application or your English score." },
-            { title: "September & November", text: "Offered by some universities for some programmes. Worth asking about if neither main intake suits you." },
-            { title: "March – July", text: "Vocational courses often open admissions across these months rather than following the university calendar." },
-          ],
-        },
+        { t: "p", text: "January is the main intake: start the admission process around six months ahead, and aim to have the visa application in by October or November. July is the second main intake and a good option if you need longer to prepare your application or your English score. Some universities offer September and November starts for particular programmes, worth asking about if neither main intake suits you. Vocational courses often open admissions between March and July rather than following the university calendar." },
         { t: "quip", text: "Most universities set several deadlines within one intake, so there is usually a version of the timeline that fits. There is rarely a version that fits if you start in December for a January start." },
       ],
     },
@@ -137,14 +118,7 @@ export const NEW_ZEALAND_GUIDE: Guide = {
       label: "Entry requirements",
       head: ["What each level ", { text: "asks for", as: "accent" }],
       blocks: [
-        {
-          t: "cards",
-          items: [
-            { title: "Bachelor’s programmes", text: "Entry is comparatively straightforward and does not demand an exceptional secondary record. You will need an English proficiency score — we run preparation for IELTS and PTE." },
-            { title: "Master’s programmes", text: "Generally around 50–60% in your bachelor's degree, plus a portfolio and certificates evidencing work relevant to your field. GMAT, GRE, IELTS or TOEFL as the programme requires." },
-            { title: "Doctoral programmes", text: "A strong master's result, and often one to two years of documented experience. Business and management streams usually want a GRE or GMAT alongside IELTS or TOEFL." },
-          ],
-        },
+        { t: "p", text: "Entry requirements vary by level rather than by institution. Entry to a bachelor’s programme is comparatively straightforward and does not demand an exceptional secondary record, though you will need an English proficiency score — we run preparation for both IELTS and PTE. Master’s programmes generally want around fifty to sixty per cent in your bachelor’s degree, plus a portfolio and certificates evidencing work relevant to your field, with GMAT, GRE, IELTS or TOEFL as the programme requires. Doctoral study asks for a strong master’s result and often one to two years of documented experience; business and management streams usually want a GRE or GMAT alongside IELTS or TOEFL." },
         { t: "p", text: "Documents you will usually need, whichever level you are applying at:" },
         {
           t: "checks",
@@ -182,12 +156,7 @@ export const NEW_ZEALAND_GUIDE: Guide = {
             "What do I want to be doing the year after I graduate?",
           ],
         },
-        {
-          t: "priorities",
-          tag: "60-second shortlist check",
-          question: "What actually matters to you?",
-          items: ["Programme strength", "Total cost", "Work rights after", "City", "Class size", "Scholarship", "Distance study", "Nepali community"],
-        },
+        { t: "p", text: "Before you shortlist anything, name what actually matters to you: programme strength, total cost, work rights afterwards, the city, class size, a scholarship, whether distance study is possible, the size of the Nepali community. Almost nobody wants all eight equally, and the two or three you would not trade away are what a shortlist should be built from." },
       ],
     },
     {
@@ -213,7 +182,7 @@ export const NEW_ZEALAND_GUIDE: Guide = {
           ],
           note: "Indicative monthly costs, excluding tuition. Immigration New Zealand also sets a minimum funds figure you must evidence for your visa — confirm the current one before you apply.",
         },
-        { t: "callout", title: "Work it out properly, early", text: "We will build a budget against your actual programme fee, the city you are moving to, insurance, and the funds you have to evidence for the visa — which is the number that catches people out.", cta: "Build my budget" },
+        { t: "p", text: "Work the money out properly before you commit to anything. Tuition for your actual programme, the city you are moving to, insurance, and the funds you have to evidence for the visa — that last one is what catches people out. A national average fits nobody, and we would rather build the real number with you than let you discover it later." },
       ],
     },
     {
@@ -222,14 +191,7 @@ export const NEW_ZEALAND_GUIDE: Guide = {
       head: ["Scholarships in ", { text: "New Zealand", as: "accent" }],
       blocks: [
         { t: "p", text: "A considerable number of scholarships are open to international students, from government-funded programmes through to awards run by individual universities. Eligibility varies sharply." },
-        {
-          t: "cards",
-          items: [
-            { title: "Government scholarships", text: "New Zealand Development Scholarship, Regional Development Scholarship, Pacific Scholarship, ASEAN Scholar Awards, Short Term Training Scholarship, Commonwealth Scholarship." },
-            { title: "Undergraduate awards", text: "Tongarewa Scholarship, International Student Excellence Scholarship, AUT International Excellence Scholarships, UC International First-Year Undergraduate Scholarship, Beca Engineering in Society Scholarships." },
-            { title: "Also worth checking", text: "Scholarships for women, for minority students, sports scholarships, merit-based awards, and named memorial awards such as the Dr Russell Smith and Eamon Molloy scholarships." },
-          ],
-        },
+        { t: "p", text: "On the funding itself, the government schemes are the ones to check first — the New Zealand Development Scholarship, the Regional Development Scholarship, the Pacific Scholarship, the ASEAN Scholar Awards, the Short Term Training Scholarship and the Commonwealth Scholarship. At undergraduate level there is the Tongarewa Scholarship, the International Student Excellence Scholarship, the AUT International Excellence Scholarships, the UC International First-Year Undergraduate Scholarship and the Beca Engineering in Society Scholarships. Beyond those, it is worth checking awards for women and for minority students, sports scholarships, merit-based awards, and named memorial awards such as the Dr Russell Smith and Eamon Molloy scholarships." },
         { t: "quip", text: "With only eight universities, you can realistically read every single one's scholarship page in an afternoon. Very few students do. Be one of them." },
       ],
     },

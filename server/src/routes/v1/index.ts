@@ -7,6 +7,7 @@ import albumRoutes from "./album.routes.js";
 import mediaRoutes from "./media.routes.js";
 import googleRatingRoutes from "./googleRating.routes.js";
 import youtubeRoutes from "./youtube.routes.js";
+import tiktokRoutes from "./tiktok.routes.js";
 
 const v1 = Router();
 
@@ -18,5 +19,6 @@ v1.use("/albums", albumRoutes);
 v1.use("/media", mediaRoutes);
 v1.use("/google-rating", googleRatingRoutes);
 v1.use("/youtube", youtubeRoutes);
+v1.use("/tiktok", tiktokRoutes);
 
 export default v1;

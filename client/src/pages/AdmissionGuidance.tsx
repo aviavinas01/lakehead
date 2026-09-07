@@ -169,7 +169,7 @@ export default function AdmissionGuidance() {
   }, []);
 
   return (
-    <article className="dpage">
+    <article className="dpage dpage-ruled">
       <header className="dpage-hero">
         <div className="dpage-hero-bg">
           <Shot src="/services/interview.jpg" alt="" />

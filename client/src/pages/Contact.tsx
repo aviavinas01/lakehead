@@ -49,7 +49,7 @@ export default function Contact() {
   const index = OFFICES.findIndex((o) => o.id === office.id);
 
   return (
-    <article className="dpage ctc">
+    <article className="dpage dpage-ruled ctc">
       {/* ---- header ---- */}
       <header className="ctc-head">
         <div className="container">

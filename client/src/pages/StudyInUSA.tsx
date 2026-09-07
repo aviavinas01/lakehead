@@ -54,14 +54,6 @@ const SECTIONS = [
   { id: "roadmap", label: "Your roadmap" },
 ];
 
-const CULTURE = [
-  { title: "Speak up", text: "At many U.S. universities, students are encouraged to ask questions, share opinions and participate in discussions." },
-  { title: "Talk to professors", text: "Office hours are a normal way to ask questions, discuss assignments or seek academic guidance." },
-  { title: "Meet the world", text: "American campuses can be highly multicultural. Your classmates may come from many countries and backgrounds." },
-  { title: "Manage your time", text: "You may have more independence than you are used to. Freedom comes with responsibility for deadlines and coursework." },
-  { title: "Take academic integrity seriously", text: "Understand plagiarism, citations, collaboration rules and exam policies before you start." },
-  { title: "Ask for help", text: "Academic advisers, tutoring centres, writing centres and international student offices are there to support students." },
-];
 
 const UNI_TYPES = [
   {
@@ -157,10 +149,6 @@ const CHOOSE_QUESTIONS = [
   "Does the university's location make sense for my career goals?",
 ];
 
-const PRIORITIES = [
-  "Program strength", "Total cost", "Scholarship", "City/location",
-  "Campus size", "Research", "Internship opportunities", "International-student support",
-];
 
 const ADMISSIONS = [
   "Academic transcripts and qualifications.",
@@ -172,19 +160,7 @@ const ADMISSIONS = [
   "Application fees where applicable.",
 ];
 
-const SCHOLARSHIP_KINDS = [
-  { name: "Merit-based scholarships", text: "Often based on your academic performance. A strong GPA can help, and some universities may also consider scores such as the SAT or other standardised tests, where applicable." },
-  { name: "Need-based financial aid", text: "Some universities provide financial support based on a student's or family's financial situation. These can have specific eligibility rules and documentation requirements." },
-  { name: "Talent & achievement scholarships", text: "Good at sports, music, art, leadership, or something else that makes your application stand out? Some universities offer scholarships based on specific talents and achievements." },
-  { name: "The scholarship essay", text: "Sometimes your numbers get you noticed — but your essay helps tell your story. Achievements, goals, experiences, leadership and how well you present yourself can all play a role, depending on the scholarship." },
-];
 
-const WORK = [
-  { name: "On-campus jobs", text: "Eligible F-1 students can generally work up to 20 hours per week while classes are in session, and may be allowed to work more during official school breaks, subject to applicable rules. Think library, dining hall, campus office or other university facilities." },
-  { name: "CPT — Curricular Practical Training", text: "Allows eligible students to gain practical experience related to their course through qualifying internships, cooperative education or similar training while studying. A Computer Science student might use CPT for an eligible internship in their field." },
-  { name: "OPT — Optional Practical Training", text: "Allows eligible F-1 students to gain work experience related to their field of study. Eligible students can generally receive up to 12 months of OPT per qualifying education level, subject to the applicable rules." },
-  { name: "STEM OPT extension", text: "Graduates with eligible STEM degrees may qualify for an additional 24-month extension — potentially up to 36 months of post-completion OPT in total." },
-];
 
 const LIFE = [
   "Student clubs and organisations", "Sports and fitness", "Cultural and international groups",
@@ -245,87 +221,14 @@ const Quip = ({ children }: { children: ReactNode }) => (
 
 const Band = ({ src, caption }: { src: string; caption?: string }) => (
   <figure className="usa-band" data-reveal>
-    <Shot src={src} alt="" />
+    {/* `still`: the band already scales its own photograph from 1.14 down to
+        1 as it reveals, and that rule is a class-plus-tag selector, so it
+        outranks the drift and would swallow it silently. One motion per
+        picture — same rule as the TypeStack shots. */}
+    <Shot src={src} alt="" still />
     {caption && <figcaption>{caption}</figcaption>}
   </figure>
 );
-
-/** Section 3's prompt — written as something to do, so it does something. */
-function QuickChoice() {
-  const OPTIONS = [
-    { key: "A", label: "Big city, public transport, lots happening", reply: "Then weigh transport and rent early — city campuses often cost more but put employers and internships on your doorstep." },
-    { key: "B", label: "Quieter college town, campus-centred life", reply: "Costs are often lower and the campus becomes your social world. Check how you would travel out when you want to." },
-    { key: "C", label: "Somewhere warm, please — my jacket has suffered enough", reply: "Entirely fair. Climate shapes four years of your life; the south and southwest are worth a look." },
-    { key: "D", label: "I honestly have no idea yet", reply: "Which is completely fine, and more common than the other three put together. It is exactly what a first counselling session is for." },
-  ];
-  const [picked, setPicked] = useState<string | null>(null);
-  const chosen = OPTIONS.find((o) => o.key === picked);
-
-  return (
-    <div className="prompt" data-reveal>
-      <p className="prompt-tag">Quick choice</p>
-      <h3>Which sounds more like you?</h3>
-      <div className="prompt-options">
-        {OPTIONS.map((o) => (
-          <button
-            key={o.key}
-            type="button"
-            className={picked === o.key ? "is-on" : undefined}
-            onClick={() => setPicked(picked === o.key ? null : o.key)}
-            aria-pressed={picked === o.key}
-          >
-            <span aria-hidden="true">{o.key}</span>
-            {o.label}
-          </button>
-        ))}
-      </div>
-      <p className="prompt-reply" role="status" aria-live="polite">
-        {chosen
-          ? chosen.reply
-          : "Your answer does not choose a university for you, but it gives you a useful filter for location, cost and lifestyle."}
-      </p>
-    </div>
-  );
-}
-
-/** Section 7's prompt, joke intact: pick all eight and it says so. */
-function ShortlistCheck() {
-  const [picked, setPicked] = useState<string[]>([]);
-  const toggle = (p: string) =>
-    setPicked((cur) => (cur.includes(p) ? cur.filter((x) => x !== p) : [...cur, p]));
-
-  const reply =
-    picked.length === 0
-      ? "Circle your top three priorities."
-      : picked.length === PRIORITIES.length
-        ? "Congratulations — you have invented a wish list, not a shortlist."
-        : picked.length > 3
-          ? `That is ${picked.length}. A shortlist means giving something up; try narrowing it to three.`
-          : picked.length === 3
-            ? "Three. That is a shortlist you can actually filter universities with."
-            : `${picked.length} so far — keep going.`;
-
-  return (
-    <div className="prompt" data-reveal>
-      <p className="prompt-tag">60-second shortlist check</p>
-      <h3>What actually matters to you?</h3>
-      <div className="prompt-chips">
-        {PRIORITIES.map((p) => (
-          <button
-            key={p}
-            type="button"
-            className={picked.includes(p) ? "is-on" : undefined}
-            onClick={() => toggle(p)}
-            aria-pressed={picked.includes(p)}
-          >
-            {p}
-          </button>
-        ))}
-      </div>
-      <p className="prompt-reply" role="status" aria-live="polite">{reply}</p>
-    </div>
-  );
-}
 
 export default function StudyInUSA() {
   const [active, setActive] = useState(SECTIONS[0].id);
@@ -526,7 +429,19 @@ export default function StudyInUSA() {
               &ldquo;Which university <em>and which place</em>?&rdquo;
             </p>
 
-            <QuickChoice />
+            <p data-reveal>
+              It is worth asking yourself early which of these sounds most
+              like you, because the answer filters more of the list than any
+              ranking will. A big city, with everything on the doorstep and a
+              cost of living to match. A proper campus town, where the
+              university is the place and you will know your professors.
+              Somewhere warm, because climate shapes four years of your life
+              and your jacket has suffered enough. Or no idea at all —
+              which is completely fine, and more common than the other three
+              put together. None of it chooses a university for you. All of it
+              narrows the field by location, cost and lifestyle, which is most
+              of the decision.
+            </p>
           </section>
 
           {/* 4 */}
@@ -544,15 +459,21 @@ export default function StudyInUSA() {
               A little independence feels great. A deadline at 11:59 PM still
               remains a deadline at 11:59 PM.
             </Quip>
-
-            <div className="usa-cards" data-reveal>
-              {CULTURE.map((c) => (
-                <div className="usa-card" key={c.title}>
-                  <h3>{c.title}</h3>
-                  <p>{c.text}</p>
-                </div>
-              ))}
-            </div>
+            <p data-reveal>
+              A few habits are worth knowing before you arrive. Speak up:
+              at many U.S. universities students are expected to ask
+              questions, share opinions and take part in discussion rather
+              than listen quietly. Talk to your professors — office hours
+              are a normal, expected way to ask questions or seek guidance,
+              not an imposition. Expect a genuinely multicultural room, with
+              classmates from many countries. Expect more independence than
+              you are used to, and the responsibility for deadlines that comes
+              with it. Take academic integrity seriously, and understand
+              plagiarism, citation, collaboration rules and exam policy before
+              you start rather than after. And ask for help: academic
+              advisers, tutoring and writing centres and the international
+              student office exist for exactly that.
+            </p>
 
             <p className="usa-pull" data-reveal>
               The goal is not to become &ldquo;American.&rdquo; The goal is to
@@ -571,18 +492,11 @@ export default function StudyInUSA() {
               everyone. A strong decision starts with your course, budget,
               academic profile, career goals and preferred lifestyle.
             </p>
-            <div className="prompt prompt-quiet" data-reveal>
-              <p className="prompt-tag">Try this</p>
-              <h3>Finish this sentence before you continue</h3>
-              <p className="usa-fill">
-                &ldquo;I am considering the USA because
-                <span className="usa-blank" aria-hidden="true" />.&rdquo;
-              </p>
-              <p className="prompt-reply">
-                If your only answer is &ldquo;because everyone is going,&rdquo;
-                keep reading. We can do better than that.
-              </p>
-            </div>
+            <p className="usa-pull" data-reveal>
+              Finish this sentence before you read on. &ldquo;I am considering
+              the USA because&hellip;&rdquo; If the only answer is because
+              everyone is going, keep reading. We can do better than that.
+            </p>
           </section>
 
           <Band src="/usa/classroom.jpg" caption="Ask questions. It is expected of you." />
@@ -699,7 +613,16 @@ export default function StudyInUSA() {
               A ranking can be one data point. It should not be your entire
               decision.
             </p>
-            <ShortlistCheck />
+            <p data-reveal>
+              Before a shortlist means anything, name what actually matters to
+              you: program strength, total cost, a scholarship, the city,
+              campus size, research, internship opportunities, the support an
+              institution gives international students. Nobody wants all eight
+              equally — and if you find yourself insisting you do, that is
+              the answer telling you the shortlist has not been thought about
+              yet. The two or three you would not trade away are the ones to
+              build from.
+            </p>
           </section>
 
           {/* 8 */}
@@ -829,14 +752,19 @@ export default function StudyInUSA() {
               Yes, scholarships exist. And no, they&rsquo;re not all awarded for
               the same reason.
             </p>
-            <div className="usa-cards" data-reveal>
-              {SCHOLARSHIP_KINDS.map((s) => (
-                <div className="usa-card" key={s.name}>
-                  <h3>{s.name}</h3>
-                  <p>{s.text}</p>
-                </div>
-              ))}
-            </div>
+            <p data-reveal>
+              The funding falls into a few kinds. Merit-based awards turn on
+              academic performance, where a strong GPA helps and some
+              universities also weigh standardised scores such as the SAT
+              where they apply. Need-based aid turns instead on your or your
+              family's financial situation, with its own eligibility rules and
+              documentation. Talent and achievement scholarships exist for
+              sport, music, art, leadership or whatever else makes an
+              application stand out. And then there is the essay, which is
+              worth treating as its own piece of work — your numbers get
+              you noticed, but the essay is where achievements, goals,
+              experience and how you present yourself actually do their work.
+            </p>
             <DidYouKnow>
               <p>
                 A high SAT score, strong GPA, excellent English test score,
@@ -933,14 +861,22 @@ export default function StudyInUSA() {
               Yes — F-1 students can have certain opportunities to work and gain
               practical experience. But there are rules.
             </p>
-            <div className="usa-cards" data-reveal>
-              {WORK.map((w) => (
-                <div className="usa-card" key={w.name}>
-                  <h3>{w.name}</h3>
-                  <p>{w.text}</p>
-                </div>
-              ))}
-            </div>
+            <p data-reveal>
+              There are four routes worth understanding, and all of them are
+              governed by rules that change. Eligible F-1 students can
+              generally work on campus up to twenty hours a week while classes
+              are in session, and sometimes more during official breaks —
+              the library, dining hall, a campus office. CPT, Curricular
+              Practical Training, allows practical experience related to your
+              course through qualifying internships or cooperative education
+              while you study; a computer science student might use it for an
+              eligible internship in their field. OPT, Optional Practical
+              Training, allows work experience related to your field of study,
+              generally up to twelve months per qualifying education level.
+              And graduates with eligible STEM degrees may qualify for a
+              further twenty-four months on top, potentially thirty-six months
+              of post-completion OPT in total.
+            </p>
             <div className="usa-warn usa-warn-hard" data-reveal>
               <p className="usa-warn-tag">Important</p>
               <p>
@@ -1055,18 +991,12 @@ export default function StudyInUSA() {
               Your degree is important. Your experience, skills, network and
               ability to communicate those skills matter too.
             </p>
-            <div className="prompt prompt-quiet" data-reveal>
-              <p className="prompt-tag">Career check-in</p>
-              <h3>Ask yourself once each semester</h3>
-              <p className="usa-fill">
-                &ldquo;What did I add to my CV this term besides another
-                semester?&rdquo;
-              </p>
-              <p className="prompt-reply">
-                A project, club role, research task, volunteering, internship,
-                competition or new skill all count.
-              </p>
-            </div>
+            <p className="usa-pull" data-reveal>
+              Ask yourself once a semester: &ldquo;What did I add to my CV this
+              term besides another semester?&rdquo; A project, a club role, a
+              research task, volunteering, an internship, a competition or a
+              new skill all count.
+            </p>
           </section>
 
           {/* 19 */}

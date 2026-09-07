@@ -49,18 +49,7 @@ export const CANADA_GUIDE: Guide = {
           note: "Canada is roughly 68 times the size of Nepal — with a population of about 40 million, against Nepal's 30 million. Most of those people live in a thin band near the southern border, which is why a country this size can feel surprisingly empty.",
         },
         { t: "p", text: "The practical consequence is that your province matters as much as your university. Tuition differs by province. Rent differs enormously. Post-graduation opportunities differ. And a city like Vancouver has a completely different climate from a city like Winnipeg — same country, entirely different winter." },
-        {
-          t: "choice",
-          tag: "Quick choice",
-          question: "What sort of Canada are you imagining?",
-          resting: "None of these picks a university. All of them narrow the list by cost, weather and lifestyle — which is most of the decision.",
-          options: [
-            { key: "A", label: "Toronto or Vancouver — the big ones", reply: "Great cities, serious job markets, and the highest rents in the country by a distance. Budget for accommodation first and everything else second." },
-            { key: "B", label: "A mid-sized city — Calgary, Ottawa, Halifax", reply: "Often the sweet spot. Real cities with real employers, and rent that leaves you money to live on." },
-            { key: "C", label: "Somewhere I can actually afford", reply: "Look at Quebec, Saskatchewan, Manitoba and smaller Ontario cities. Your money goes considerably further, and the universities are not lesser for it." },
-            { key: "D", label: "Wherever the right course is", reply: "The correct instinct. Find the programme first, then check what living there actually costs before you commit." },
-          ],
-        },
+        { t: "p", text: "It is worth deciding early what sort of Canada you are imagining, because it narrows the list by cost, weather and lifestyle — which is most of the decision. Toronto and Vancouver are great cities with serious job markets and the highest rents in the country by a distance; budget accommodation first and everything else second. Mid-sized cities like Calgary, Ottawa and Halifax are often the sweet spot: real employers, and rent that leaves you money to live on. If affordability is the priority, look at Quebec, Saskatchewan, Manitoba and the smaller Ontario cities — your money goes considerably further and the universities are not lesser for it. And if your instinct is simply to follow the right course, that is the correct one; just check what living there actually costs before you commit." },
       ],
     },
     {
@@ -69,15 +58,7 @@ export const CANADA_GUIDE: Guide = {
       head: ["How Canadian education ", { text: "actually works", as: "accent" }],
       blocks: [
         { t: "p", text: "Education in Canada is run by the provinces, not the federal government. There is no single national system, and that is worth knowing before you start comparing." },
-        {
-          t: "cards",
-          items: [
-            { title: "Universities", text: "Degree-granting institutions offering bachelor’s, master’s and doctoral study. Research-heavy at the larger ones, and often with co-op programmes built into the degree." },
-            { title: "Colleges & institutes", text: "Practical, career-focused, often two or three years. Frequently the better choice if you want to be employable quickly, and many have transfer agreements into degree programmes." },
-            { title: "Co-op programmes", text: "Paid work terms alternating with study terms, built into the degree itself. Canada does this better than almost anywhere, and it is the single most useful thing on a graduate CV." },
-            { title: "Quebec’s CEGEP", text: "Quebec runs a two-year pre-university stage between school and university. If you are looking at Quebec, this changes the shape of your whole application." },
-          ],
-        },
+        { t: "p", text: "Universities grant degrees — bachelor’s, master’s and doctoral — and the larger ones are research-heavy, often with co-op built into the degree. Colleges and institutes are practical and career-focused, usually two or three years, and frequently the better choice if you want to be employable quickly; many hold transfer agreements into degree programmes. Co-op itself deserves naming separately: paid work terms alternating with study terms, built into the qualification. Canada does this better than almost anywhere, and it is the single most useful thing you can put on a graduate CV. Quebec adds one more layer — CEGEP, a two-year pre-university stage between school and university, which changes the shape of your whole application if Quebec is where you are looking." },
         { t: "pull", text: "If a programme offers a co-op option, take it seriously. Paid, credited, relevant work experience before you graduate is worth more than most people realise at eighteen." },
         { t: "band", src: "/canada/campus-band.jpg", caption: "Ten provinces, three territories, two official languages." },
       ],
@@ -103,12 +84,7 @@ export const CANADA_GUIDE: Guide = {
             "What do I want to be doing the year after I graduate?",
           ],
         },
-        {
-          t: "priorities",
-          tag: "60-second shortlist check",
-          question: "What actually matters to you?",
-          items: ["Programme strength", "Total cost", "Co-op option", "City", "Climate", "Scholarship", "Nepali community", "After-study options"],
-        },
+        { t: "p", text: "Before you shortlist anything, name what actually matters to you: programme strength, total cost, whether co-op is available, the city, the climate, a scholarship, the size of the Nepali community, what your options look like after you graduate. Almost nobody wants all eight equally, and the two or three you would not trade away are what a shortlist should be built from." },
       ],
     },
     {
@@ -162,7 +138,7 @@ export const CANADA_GUIDE: Guide = {
           note: "Indicative monthly living costs, excluding tuition. Treat them as a starting point for comparison between cities, not a budget.",
         },
         { t: "quip", text: "Look at that table again. The gap between Toronto and Quebec City is about C$700 a month — roughly C$8,400 a year. Over a four-year degree that is more than most scholarships are worth." },
-        { t: "callout", title: "Get a real number before you commit", text: "We will help you build a budget against the actual fees for your programme, the city you are moving to, and the cover you are required to hold — not a national average.", cta: "Build my budget" },
+        { t: "p", text: "Work the money out properly before you commit to anything. Tuition for your actual programme, the city you are moving to, insurance, and the funds you have to evidence for the visa — that last one is what catches people out. A national average fits nobody, and we would rather build the real number with you than let you discover it later." },
       ],
     },
     {
@@ -171,15 +147,7 @@ export const CANADA_GUIDE: Guide = {
       head: ["Scholarships and ", { text: "funding", as: "accent" }],
       blocks: [
         { t: "p", text: "Universities and federal programmes both offer scholarships to international students — Canada-ASEAN and Canada-CARICOM among them, alongside a great many institution-specific awards. Requirements and selection differ from one to the next, but most ask for some version of the same four documents." },
-        {
-          t: "cards",
-          items: [
-            { title: "Proof of identity", text: "A passport or national identity card, in date and with a usable photo." },
-            { title: "Proof of enrolment", text: "The official confirmation from the institution where you hold a full-time place." },
-            { title: "Letter of intent", text: "In English or French: the programme you have chosen, why Canada, why that institution, and how it fits the career you are working toward." },
-            { title: "Letter of support", text: "From a professor, instructor or director on official letterhead, describing your work and what the scholarship would let you do." },
-          ],
-        },
+        { t: "p", text: "The documents themselves are straightforward once you know what they are: proof of identity — a passport or national identity card, in date and with a usable photo; proof of enrolment, meaning the official confirmation from the institution where you hold a full-time place; a letter of intent in English or French setting out the programme you have chosen, why Canada, why that institution and how it fits the career you are working toward; and a letter of support from a professor, instructor or director on official letterhead describing your work and what the scholarship would let you do." },
         { t: "quip", text: "Most students look only at the big national scholarships and miss the departmental ones, which are smaller, far less competitive, and frequently unclaimed. Check the department page, not just the university’s scholarship portal." },
       ],
     },

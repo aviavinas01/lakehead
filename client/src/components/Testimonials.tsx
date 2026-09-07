@@ -75,32 +75,6 @@ export default function Testimonials() {
 
   return (
     <section className="testimonials section">
-      {/* Watermark: a dashed flight path looping its way off to the left,
-          behind the content. The viewBox is cropped to the path's own bounds
-          so the artwork fills the box the CSS gives it. */}
-      <svg
-        className="testimonials-decor"
-        viewBox="0 84 300 92"
-        fill="none"
-        aria-hidden="true"
-      >
-        <defs>
-          {/* Solid through the loops, easing off at either tail */}
-          <linearGradient id="testimonials-trail" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0" stopColor="currentColor" stopOpacity="0.6" />
-            <stop offset="0.15" stopColor="currentColor" stopOpacity="1" />
-            <stop offset="0.87" stopColor="currentColor" stopOpacity="1" />
-            <stop offset="1" stopColor="currentColor" stopOpacity="0" />
-          </linearGradient>
-        </defs>
-        <path
-          d="M296 170c-28-2-46-6-60-16-22-14-34-44-18-60 14-14 38-4 34 22-4 24-36 38-62 42-24 4-44 2-64-8-20-10-26-34-13-45 11-9 27 0 23 18-4 16-26 25-48 27-30 3-60-2-84-12"
-          stroke="url(#testimonials-trail)"
-          strokeWidth="2.2"
-          strokeLinecap="round"
-          strokeDasharray="7 9"
-        />
-      </svg>
       <div className="container">
         <div className="testimonials-head">
           <h2 className="testimonials-title">

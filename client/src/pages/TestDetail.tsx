@@ -35,7 +35,7 @@ export default function TestDetail() {
   const others = TESTS.filter((t) => t.slug !== test.slug);
 
   return (
-    <article className="dpage">
+    <article className="dpage dpage-ruled">
       <header className="dpage-hero">
         <div className="dpage-hero-bg">
           <Shot src={test.image} alt="" />

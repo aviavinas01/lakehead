@@ -48,18 +48,7 @@ export const SOUTH_KOREA_GUIDE: Guide = {
           note: "South Korea is smaller than Nepal — and holds about 52 million people, roughly one and a half times Nepal's population. Around half of them live in the Seoul metropolitan area.",
         },
         { t: "p", text: "That density is why the transport works the way it does. Korea's rail and metro network is extensive, fast and genuinely cheap, which means a student in Daejeon can be in Seoul for the afternoon without it being an expedition. Distance is not the obstacle it is in Canada or Australia." },
-        {
-          t: "choice",
-          tag: "Quick choice",
-          question: "Seoul, or somewhere else?",
-          resting: "Whichever you pick, the transport means the rest of the country is closer than you think.",
-          options: [
-            { key: "A", label: "Seoul — I want the full thing", reply: "The most universities, the most going on, and the highest rents. Half the country is there for a reason, but budget accordingly." },
-            { key: "B", label: "Busan — coastal, second city", reply: "A completely different feel: beaches, a slower pace, and considerably cheaper than the capital." },
-            { key: "C", label: "Daejeon, Daegu or Pohang", reply: "Research-heavy cities with strong technical institutions. Quieter, cheaper, and often where the serious labs are." },
-            { key: "D", label: "Wherever my programme is", reply: "Correct instinct. The country is small enough that location is a lifestyle question rather than a logistical one." },
-          ],
-        },
+        { t: "p", text: "Seoul or somewhere else is worth thinking about early, though the transport means the rest of the country is closer than you think whichever you choose. Seoul has the most universities, the most going on and the highest rents — half the country lives there for a reason, but budget accordingly. Busan is the coastal second city and a completely different feel: beaches, a slower pace, and considerably cheaper than the capital. Daejeon, Daegu and Pohang are research-heavy cities with strong technical institutions — quieter, cheaper, and often where the serious labs are. And if your instinct is to follow your programme wherever it is, the country is small enough that location is a lifestyle question rather than a logistical one." },
       ],
     },
     {
@@ -67,17 +56,7 @@ export const SOUTH_KOREA_GUIDE: Guide = {
       label: "Why Korea",
       head: ["Why students ", { text: "choose Korea", as: "accent" }],
       blocks: [
-        {
-          t: "cards",
-          items: [
-            { title: "Strong academic opportunities", text: "Respected universities and specialised institutions across engineering, technology, business, science, medicine, humanities and a great deal more." },
-            { title: "Technology and innovation", text: "Korea is recognised globally for research, engineering and innovation. If IT, artificial intelligence, electronics, robotics or the sciences interest you, there is real depth here." },
-            { title: "An international environment", text: "Korean universities take students from around the world, so you will study alongside a wide mix of cultures rather than in a bubble." },
-            { title: "Competitive study costs", text: "Compared with many Western destinations, tuition and living costs can be relatively manageable — and national or public institutions generally cost less than private ones." },
-            { title: "A genuinely different culture", text: "Traditional temples and historic neighbourhoods alongside some of the most modern cities anywhere. The mix is a large part of why students choose it." },
-            { title: "Scholarships that actually exist", text: "Both government and university funding is available to international students, and the Global Korea Scholarship is one of the more generous programmes in Asia." },
-          ],
-        },
+        { t: "p", text: "The academic case is strong across engineering, technology, business, science, medicine and the humanities, at respected universities and specialised institutions alike. Korea is recognised globally for research and innovation in particular, so if IT, artificial intelligence, electronics, robotics or the sciences interest you, there is real depth here. Korean universities take students from around the world, so you study alongside a wide mix rather than in a bubble; costs compare well with many Western destinations, with national and public institutions generally cheaper than private ones; and both government and university funding is open to international students, the Global Korea Scholarship among the more generous programmes in Asia. Beyond any of that, it is a genuinely different culture — traditional temples and historic neighbourhoods alongside some of the most modern cities anywhere, and that mix is a large part of why students choose it." },
       ],
     },
     {
@@ -113,13 +92,7 @@ export const SOUTH_KOREA_GUIDE: Guide = {
       blocks: [
         { t: "p", text: "Not necessarily. It depends on the university, the degree and the programme. Korean-taught programmes may require a certain level of TOPIK proficiency, while a growing number of programmes are taught entirely in English." },
         { t: "p", text: "The Korean government notes that TOPIK requirements vary by university and programme, so confirm the exact requirement with your chosen institution rather than assuming from what a friend was told." },
-        {
-          t: "reflect",
-          tag: "Worth thinking about",
-          question: "Learn it anyway?",
-          line: "“I can study entirely in English — so why bother with Korean?”",
-          reply: "Because your course is maybe thirty hours a week and your life is the other hundred and thirty. Basic Korean is the difference between visiting a country and living in one, and Hangul takes days rather than months.",
-        },
+        { t: "pull", text: "You can study entirely in English, so it is fair to ask why bother with Korean. Because your course is maybe thirty hours a week and your life is the other hundred and thirty. Basic Korean is the difference between visiting a country and living in one, and Hangul takes days rather than months." },
       ],
     },
     {
@@ -157,7 +130,7 @@ export const SOUTH_KOREA_GUIDE: Guide = {
           text: "The exact benefits, eligibility requirements, participating universities and application schedule vary by programme and by year. The Korean government publishes the current requirements through its official Study in Korea system.",
           more: "Do not plan around last year's GKS terms. Check the current cycle before you build a budget on it.",
         },
-        { t: "callout", title: "University scholarships too", text: "Many Korean universities run their own awards for international students — based on academic performance, admission results, language proficiency or their own criteria. Some offer substantial tuition reductions. We will help you find the ones that match your profile.", cta: "Find ones that match me" },
+        { t: "p", text: "University awards are worth as much attention as the government ones. Many Korean universities run their own scholarships for international students, based on academic performance, admission results, language proficiency or criteria of their own, and some offer substantial reductions in tuition. Which of them you are actually eligible for depends on your profile, and working that out is a large part of what we do." },
       ],
     },
     {
@@ -226,15 +199,7 @@ export const SOUTH_KOREA_GUIDE: Guide = {
       head: ["Life as an ", { text: "international student", as: "accent" }],
       blocks: [
         { t: "p", text: "Studying in Korea gives you a country where traditional culture and modern innovation genuinely sit side by side." },
-        {
-          t: "cards",
-          items: [
-            { title: "Vibrant cities", text: "Seoul offers an energetic student lifestyle, while Busan, Daejeon, Daegu and Pohang each provide a different environment and their own education opportunities." },
-            { title: "Getting around", text: "Korea's public transport network is extensive and genuinely easy to use, which makes exploring the rest of the country straightforward and cheap." },
-            { title: "Korean culture", text: "Food and traditional markets through to K-pop, festivals, museums and historic sites — there is a great deal beyond university life." },
-            { title: "An international network", text: "Studying alongside people from many countries builds friendships, cultural awareness and a network that outlasts the degree." },
-          ],
-        },
+        { t: "p", text: "Seoul offers an energetic student lifestyle, while Busan, Daejeon, Daegu and Pohang each provide a different environment and their own opportunities. The public transport network is extensive and genuinely easy to use, which makes exploring the rest of the country straightforward and cheap. There is a great deal beyond university life — food and traditional markets through to K-pop, festivals, museums and historic sites — and studying alongside people from many countries builds friendships, cultural awareness and a network that outlasts the degree." },
         { t: "quip", text: "Two things every student mentions. The food is better and cheaper than you expect. And the country genuinely does not sleep — which is wonderful in month one and something you learn to manage by month three." },
       ],
     },

@@ -51,32 +51,13 @@ export const UK_GUIDE: Guide = {
           note: "The UK is only about one and a half times the size of Nepal. London to Edinburgh is roughly four and a half hours by train. That changes what “far from home” means: you can be studying in Wales and see friends in Manchester on a Saturday.",
         },
         { t: "p", text: "Small also means expensive in the places everyone wants to be. London is a different financial proposition from almost anywhere else in the country, and the maintenance funds you must show for your visa reflect that. Plenty of excellent universities sit in cities where your money goes considerably further." },
-        {
-          t: "choice",
-          tag: "Quick choice",
-          question: "Where do you actually want to be?",
-          resting: "This does not pick a university for you. It narrows the list by cost and lifestyle, which is most of the work.",
-          options: [
-            { key: "A", label: "London — I want to be in the middle of it", reply: "Then budget honestly and early. London costs more on rent, transport and everything else, and the visa maintenance figure is higher for it. Worth it for some students; a real strain for others." },
-            { key: "B", label: "A big city, but not London", reply: "Manchester, Glasgow, Birmingham, Leeds, Bristol. Serious universities, serious nightlife, and rent that does not eat your entire budget." },
-            { key: "C", label: "A proper university town", reply: "Places where the university is the town. Cheaper, closer-knit, and you will know your lecturers. Quieter, which is either the appeal or the problem." },
-            { key: "D", label: "No idea, I just want a good course", reply: "Honestly the right answer. Start with the course, then look at where it happens to be — you can filter for city afterwards." },
-          ],
-        },
+        { t: "p", text: "Where you actually want to be does not pick a university, but it narrows the list by cost and lifestyle, which is most of the work. If it is London, budget honestly and early: it costs more on rent, transport and everything else, and the visa maintenance figure is higher for it — worth it for some students, a real strain for others. A big city that is not London means Manchester, Glasgow, Birmingham, Leeds or Bristol: serious universities, serious nightlife, and rent that does not eat the entire budget. A proper university town is somewhere the university is the town — cheaper, closer-knit, and you will know your lecturers; quieter, which is either the appeal or the problem. And if you have no idea and simply want a good course, that is honestly the right answer. Start with the course and filter for city afterwards." },
       ],
     },
     { id: "system", label: "The four systems", head: ["Four nations, ", { text: "four systems", as: "accent" }],
       blocks: [
         { t: "p", text: "This catches people out more than anything else, so it is worth a minute." },
-        {
-          t: "cards",
-          items: [
-            { title: "England, Wales & Northern Ireland", text: "Undergraduate degrees usually take three years. You specialise from day one — you apply to study History, and you study History, not History plus three other subjects." },
-            { title: "Scotland", text: "Undergraduate degrees usually take four years, and the first year is often broader before you narrow down. Useful if you are not completely certain of your subject." },
-            { title: "Master’s degrees", text: "Typically one year taught, across the whole UK. This is one of the biggest draws: a full postgraduate qualification in twelve months rather than two years." },
-            { title: "Doctoral study", text: "Usually three to four years, and generally more focused on your own research from the start than the taught-then-research model used elsewhere." },
-          ],
-        },
+        { t: "p", text: "Degree structures differ across the UK, and it matters more than most students expect. In England, Wales and Northern Ireland an undergraduate degree usually takes three years and you specialise from day one — you apply to study History, and you study History, not History plus three other subjects. Scotland usually takes four years, with a broader first year before you narrow down, which is useful if you are not completely certain of your subject. Master’s degrees are typically one taught year across the whole UK, and that is one of the biggest draws: a full postgraduate qualification in twelve months rather than two years. Doctoral study runs three to four years and is generally more focused on your own research from the start than the taught-then-research model used elsewhere." },
         { t: "pull", text: "That one-year master’s is the reason a lot of students choose Britain. One year of tuition and one year of living costs instead of two is a serious difference." },
         { t: "quip", text: "It also means the year moves fast. Students who arrive in September and “settle in for a bit” find themselves writing a dissertation proposal before they have found a favourite café." },
       ],
@@ -149,12 +130,7 @@ export const UK_GUIDE: Guide = {
             "What is my total budget — tuition, rent, food, travel, visa, everything?",
           ],
         },
-        {
-          t: "priorities",
-          tag: "60-second shortlist check",
-          question: "What actually matters to you?",
-          items: ["Subject ranking", "Total cost", "Scholarship", "City", "Campus feel", "Placement year", "Graduate outcomes", "Nepali community"],
-        },
+        { t: "p", text: "Before you shortlist anything, name what actually matters to you: subject ranking, total cost, a scholarship, the city, the feel of the campus, whether there is a placement year, graduate outcomes, the size of the Nepali community. Almost nobody wants all eight equally, and the two or three you would not trade away are what a shortlist should be built from." },
       ],
     },
     {
@@ -163,15 +139,7 @@ export const UK_GUIDE: Guide = {
       head: ["Admissions, and the ", { text: "UCAS calendar", as: "accent" }],
       blocks: [
         { t: "p", text: "Most undergraduate applications go through UCAS — one application, up to five choices, one personal statement. Postgraduate applications usually go directly to the university." },
-        {
-          t: "cards",
-          items: [
-            { title: "Mid-October", text: "Medicine, dentistry and veterinary courses, and any application to Oxford or Cambridge. This deadline is genuinely fixed." },
-            { title: "Mid-January", text: "The main UCAS deadline. Apply by this date and your application gets equal consideration alongside everyone else’s." },
-            { title: "End of June", text: "The final date to apply through UCAS before applications roll into Clearing." },
-            { title: "July onward", text: "Clearing. Universities open whatever places remain. It is not a failure route — plenty of good students end up somewhere better through it." },
-          ],
-        },
+        { t: "p", text: "The UCAS calendar has four dates on it worth knowing. Mid-October is the deadline for medicine, dentistry and veterinary courses, and for any application to Oxford or Cambridge — that one is genuinely fixed. Mid-January is the main deadline: apply by then and your application gets equal consideration alongside everyone else’s. The end of June is the last date to apply through UCAS before applications roll into Clearing. And from July onward, Clearing itself opens whatever places remain — it is not a failure route, and plenty of good students end up somewhere better through it." },
         { t: "p", text: "Dates shift by a day or two year to year, and individual universities set their own deadlines on top. Check the course page for the one that actually applies to you." },
         {
           t: "checks",
@@ -215,7 +183,7 @@ export const UK_GUIDE: Guide = {
           note: "Indicative monthly costs outside London, excluding tuition and visa fees. London runs considerably higher across every line. Use these to compare, not to budget.",
         },
         { t: "quip", text: "One thing students consistently underestimate: a railcard. Trains in Britain are eye-wateringly expensive at full price and reasonable with the right card. Ask about it in your first week, not your second term." },
-        { t: "callout", title: "Work it out against your actual course", text: "We will build a budget from the published fee for your programme, the city you are moving to, and the visa costs on top — rather than a national average that fits nobody.", cta: "Build my budget" },
+        { t: "p", text: "Work the money out properly before you commit to anything. Tuition for your actual programme, the city you are moving to, insurance, and the funds you have to evidence for the visa — that last one is what catches people out. A national average fits nobody, and we would rather build the real number with you than let you discover it later." },
       ],
     },
     {
@@ -224,15 +192,7 @@ export const UK_GUIDE: Guide = {
       head: ["Scholarships and ", { text: "funding", as: "accent" }],
       blocks: [
         { t: "p", text: "There is no pretending the UK is cheap. There are, however, a considerable number of scholarships open to international students — and most universities publish theirs on their own site, which is the first place to look and the one most students skip." },
-        {
-          t: "cards",
-          items: [
-            { title: "GREAT Scholarships", text: "Aimed at postgraduate study, run with participating universities, with country-specific eligibility. Worth checking whether Nepal is included in the current cycle." },
-            { title: "University awards", text: "Published on each institution’s own site, often merit or subject based, and frequently with deadlines that fall before enrolment." },
-            { title: "Departmental studentships", text: "Especially at postgraduate level. These are often advertised by the department rather than the central scholarships page." },
-            { title: "Country and global schemes", text: "Commonwealth and other funding programmes, each with their own eligibility and timeline." },
-          ],
-        },
+        { t: "p", text: "On funding, GREAT Scholarships are aimed at postgraduate study, run with participating universities and with country-specific eligibility — worth checking whether Nepal is included in the current cycle. University awards are published on each institution’s own site, often merit or subject based, and frequently with deadlines that fall before enrolment. Departmental studentships are common at postgraduate level and are often advertised by the department rather than the central scholarships page. Beyond those there are the country and global schemes — Commonwealth funding and others — each with their own eligibility and timeline." },
         {
           t: "warn",
           tag: "Read it twice",

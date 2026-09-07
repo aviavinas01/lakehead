@@ -34,7 +34,7 @@ export default function Events() {
   const nothingOn = EVENTS.length === 0;
 
   return (
-    <article className="dpage evt">
+    <article className="dpage dpage-ruled evt">
       <header className="evt-head">
         <div className="container">
           <p className="dpage-eyebrow-sm">Events</p>

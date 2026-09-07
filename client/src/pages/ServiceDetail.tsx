@@ -32,7 +32,7 @@ export default function ServiceDetail() {
   const others = SERVICES.filter((s) => s.slug !== service.slug);
 
   return (
-    <article className="dpage">
+    <article className="dpage dpage-ruled">
       <header className="dpage-hero">
         <div className="dpage-hero-bg">
           <Shot src={service.image} alt="" />

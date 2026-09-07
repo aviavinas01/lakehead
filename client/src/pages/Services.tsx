@@ -38,7 +38,7 @@ export default function Services() {
   }, []);
 
   return (
-    <article className="dpage">
+    <article className="dpage dpage-ruled">
       <header className="dpage-hero">
         <div className="dpage-hero-bg">
           <Shot src="/hero-services.jpg" alt="" />

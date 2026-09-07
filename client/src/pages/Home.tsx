@@ -5,9 +5,11 @@ import { mediaSrc } from "../api/media";
 import { PlaneIcon } from "../components/HeroOrbit";
 import NextSteps from "../components/NextSteps";
 import StatsStrip from "../components/StatsStrip";
+import LegacyBand from "../components/LegacyBand";
 import Destinations from "../components/Destinations";
 import ConsultPopup from "../components/ConsultPopup";
 import VideoTestimonials from "../components/VideoTestimonials";
+import TikTokRow from "../components/TikTokRow";
 import Testimonials from "../components/Testimonials";
 import ConsultBanner from "../components/ConsultBanner";
 import UniversityPartners from "../components/UniversityPartners";
@@ -163,6 +165,13 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Who we are, with a frosted shape that starts inside the hero above
+          and finishes on the white down here — see the component. It sits
+          between the film and the figures deliberately: the film says what
+          we do, this says who is doing it, and only then do the numbers
+          mean anything. */}
+      <LegacyBand />
+
       <StatsStrip />
 
       <Destinations />
@@ -219,6 +228,12 @@ export default function Home() {
       <NextSteps />
 
       <VideoTestimonials />
+
+      {/* Its own row rather than mixed into the filmstrip above: the two
+          sources fail differently — a feed that can go briefly empty against
+          a curated list that can go stale — and one bad day should not empty
+          the other. Renders nothing until there is a clip. */}
+      <TikTokRow />
 
       <ConsultBanner />
 

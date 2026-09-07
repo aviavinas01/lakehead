@@ -231,7 +231,7 @@ export default function BlogPost() {
   const minutes = readingTime(post.content);
 
   return (
-    <article className="dpage art">
+    <article className="dpage dpage-ruled art">
       <div className="art-progress" aria-hidden="true">
         <span ref={bar} />
       </div>

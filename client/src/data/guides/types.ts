@@ -34,7 +34,6 @@ export type Block =
   | { t: "dyk"; text: ReactNode[] }
   /** Red-bordered rule or warning. `hard` tints the background. */
   | { t: "warn"; tag: string; text: ReactNode; more?: ReactNode; hard?: boolean }
-  | { t: "cards"; items: { title: string; text: string }[] }
   | { t: "chips"; items: string[]; ivy?: boolean }
   | { t: "checks"; items: string[]; two?: boolean }
   /** Numbered question list, two columns on a wide screen. */
@@ -65,7 +64,6 @@ export type Block =
     }
   /** Full-width photograph. Supply the file; a missing one shows a panel. */
   | { t: "band"; src: string; caption?: string }
-  | { t: "callout"; title: string; text: string; cta: string }
   /**
    * The dated facts panel. Everything with a shelf life belongs here and
    * nowhere else: it carries a review date and a source link, so a reader
@@ -86,18 +84,6 @@ export type Block =
       rows: { k: string; v: string }[];
       note: string;
     }
-  /** Tap-to-answer prompt. The reply is the point, not the choice. */
-  | {
-      t: "choice";
-      tag: string;
-      question: string;
-      resting: string;
-      options: { key: string; label: string; reply: string }[];
-    }
-  /** Pick-your-priorities prompt, with a reply that reacts to the count. */
-  | { t: "priorities"; tag: string; question: string; items: string[] }
-  /** A prompt with nothing to click — a question to sit with. */
-  | { t: "reflect"; tag: string; question: string; line: ReactNode; reply: string };
 
 export interface GuideSection {
   /** Anchor id, also used by the contents rail. */

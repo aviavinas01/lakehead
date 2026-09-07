@@ -40,6 +40,15 @@
      orange-red now, not a crimson. */
   --color-hero-red: #b93815;
 
+  /* ONE FACE, pointed at by both tokens. The split is kept because nothing
+     in the stylesheet names a family directly — so giving body copy its own
+     face later is a one-line change here rather than a hunt.
+
+     IF THAT EVER HAPPENS, two things flip silently and neither is obvious:
+     h4-h6 (they are not in the h1-h3 rule, so they take the display face
+     only by inheriting it from body) and .brand-wordmark, the logo text,
+     which never declares a family either. Both would want pinning to
+     --font-display before the second face lands. */
   --font-display: "Outfit Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-body: "Outfit Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
 
@@ -188,6 +197,12 @@ img { max-width: 100%; display: block; }
   gap: clamp(1.15rem, 2.4vw, 2.15rem);
 }
 .nav-item { position: relative; }
+/* THE PHONE DRAWER'S TWO PIECES, OFF BY DEFAULT. The wide bar opens its
+   panel on hover and needs neither, so both are switched on inside the
+   breakpoint rather than switched off outside it — a control that only
+   exists on a phone should have to ask to appear. */
+.nav-caret { display: none; }
+.nav-sub { display: none; }
 .nav-item > a {
   display: inline-flex; align-items: center; cursor: pointer; white-space: nowrap;
   color: var(--color-nav-bg); font-weight: 400; font-size: 0.95rem;
@@ -627,8 +642,88 @@ img { max-width: 100%; display: block; }
     );
   }
 }
-@media (max-width: 480px) {
-  .dest-grid { grid-template-columns: 1fr; }
+/* ============================================================
+   PHONES ONLY — the home page's first two screens.
+
+   Everything in here is under 640px and nothing above it is touched: the
+   desktop layout was right, it just does not survive being squeezed into a
+   phone's width. It sits AFTER the `hover: none` block on purpose, because
+   the two have equal specificity and this has to win the tile shape.
+   ============================================================ */
+@media (max-width: 640px) {
+  /* ---- room under the bar ----
+     The wide layout gives the hero 3.5rem of head room and the 860px rule
+     cuts it to 2.5 — which is backwards. A phone has the bar, the top strip
+     and the eyebrow stacked in the first two centimetres of screen, so it
+     needs MORE air there than a desktop does, not less. */
+  .hero-inner {
+    padding-top: clamp(3rem, 9vh, 4.5rem);
+    padding-bottom: clamp(2.5rem, 7vh, 3.5rem);
+  }
+
+  /* ---- the two buttons ----
+     Side by side at this width they were a gap apart with their labels
+     wrapping, which is what read as crowding — the fix is not a wider gap
+     but a second line. Left-aligned rather than stretched: full-width
+     outline buttons read as form controls, and these are invitations. */
+  .hero-actions {
+    flex-direction: column; align-items: flex-start;
+    gap: 0.85rem;
+  }
+
+  /* ---- the countries: thin landscape strips, stacked ----
+     One column of short wide cards instead of a grid of big ones. Six
+     square tiles down a phone is six screens of scrolling before the page
+     gets anywhere; a strip apiece says the same thing in one. */
+  .dest-grid { grid-template-columns: 1fr; gap: 0.7rem; }
+  .dtile {
+    aspect-ratio: auto;
+    height: clamp(84px, 23vw, 112px);
+    border-radius: 12px;
+  }
+  /* The scrim turns through ninety degrees with the card. A bottom-up
+     gradient on a strip this short darkens the whole picture; running it
+     left to right keeps the name legible and leaves the right-hand side of
+     the photograph clear. */
+  .dtile-scrim {
+    background: linear-gradient(
+      to right,
+      rgba(9, 16, 38, 0.86) 0%,
+      rgba(9, 16, 38, 0.5) 48%,
+      rgba(9, 16, 38, 0.04) 92%
+    );
+  }
+  /* Centred on the strip rather than sat on its floor. */
+  .dtile-name {
+    inset: 0; display: flex; align-items: center;
+    padding: 0 1.1rem;
+    font-size: clamp(1rem, 4.4vw, 1.25rem);
+  }
+
+  /* ---- "Begin your journey": the same strip, in orange ----
+     It was a tall panel with the arrow above the words. At strip height
+     there is no room for a stacked layout, so the copy centres itself and
+     the arrow moves out to the right edge where it reads as the card's
+     affordance rather than as an illustration. */
+  .dtile-cta {
+    height: clamp(84px, 23vw, 112px); min-height: 0;
+    justify-content: center; gap: 0.15rem;
+    padding: 0 3.25rem 0 1.1rem;
+    border-radius: 12px;
+  }
+  .dtile-cta strong { font-size: clamp(1rem, 4.4vw, 1.25rem); }
+  /* The line break is there to balance a tall card. On one line it just
+     puts "journey" on a row of its own. */
+  .dtile-cta strong br { display: none; }
+  .dtile-cta span { font-size: 0.78rem; }
+  .dtile-cta svg {
+    position: absolute; right: 1.1rem; top: 50%;
+    width: 22px; height: 22px;
+    transform: translateY(-50%);
+  }
+  /* The base rule slides the arrow on hover, which would throw away the
+     centring above. No hover here anyway — this is belt and braces. */
+  .dtile-cta:hover svg { transform: translateY(-50%); }
 }
 @media (prefers-reduced-motion: reduce) {
   /* The detail still appears; it just stops easing in, and the photograph is
@@ -1020,15 +1115,6 @@ img { max-width: 100%; display: block; }
    so the content always covers the artwork rather than fighting it. */
 .testimonials { position: relative; overflow: hidden; }
 .testimonials > .container { position: relative; z-index: 1; }
-/* Loops away into the left margin, which the centred layout leaves empty.
-   Sat just below the photo row so it clears the prev arrow; the section's
-   overflow crops whatever runs off the edge. */
-.testimonials-decor {
-  position: absolute; z-index: 0; pointer-events: none;
-  left: -100px; top: 62%; transform: translateY(-50%);
-  width: clamp(280px, 34vw, 470px);
-  color: var(--color-hero-ink); opacity: 0.22;
-}
 .testimonials-head { text-align: center; margin-bottom: 2.5rem; }
 .testimonials-title {
   color: var(--color-hero-ink);
@@ -1859,6 +1945,200 @@ a.greview-author:hover { text-decoration: underline; }
 }
 
 /* ============================================================
+   TikTok clips (components/TikTokRow.tsx) — a shelf of portrait cards on
+   the home page, and its admin screen at the foot of this block.
+
+   9:16 IS THE SHAPE THE WHOLE THING IS BUILT ROUND. Every clip is shot
+   vertical, so the card is too, and the row scrolls sideways rather than
+   wrapping — a grid of tall cards leaves a page of holes.
+   ============================================================ */
+.ttk { padding: var(--section-y) 0; }
+.ttk-head { margin-bottom: 2rem; }
+.ttk-eyebrow {
+  color: var(--color-hero-red); font-family: var(--font-display);
+  font-weight: 700; font-size: 0.78rem;
+  letter-spacing: 0.16em; text-transform: uppercase; margin-bottom: 0.9rem;
+}
+.ttk-title {
+  color: var(--color-hero-ink);
+  font-size: clamp(1.7rem, 3vw, 2.6rem); letter-spacing: -0.02em; margin: 0;
+}
+
+/* A plain scrollable shelf. No arrows and no driven track: these are clips
+   to browse past, not a sequence to be walked through, and a trackpad or a
+   touch already scrolls a row like this. The scrollbar is hidden because the
+   cards running off the edge say the row continues more clearly than a rail
+   under them does. */
+.ttk-row {
+  display: flex; gap: clamp(0.75rem, 1.4vw, 1.25rem);
+  overflow-x: auto; scroll-snap-type: x proximity;
+  scrollbar-width: none; -ms-overflow-style: none;
+  padding-bottom: 0.25rem;
+}
+.ttk-row::-webkit-scrollbar { display: none; }
+
+.ttk-card {
+  position: relative; flex: none; margin: 0;
+  width: clamp(200px, 21vw, 290px);
+  aspect-ratio: 9 / 16;
+  border-radius: 14px; overflow: hidden;
+  background: var(--color-hero-ink);
+  scroll-snap-align: start;
+}
+.ttk-card img, .ttk-card iframe {
+  width: 100%; height: 100%; object-fit: cover; display: block; border: 0;
+}
+/* A still whose signature has expired leaves the card as its own colour
+   field carrying the same words — not a torn image. */
+.ttk-blank {
+  position: absolute; inset: 0;
+  background: linear-gradient(150deg, #17275c, #0d1638);
+}
+/* Playing: TikTok's own player fills the card, and nothing is drawn over it
+   — their controls need the whole frame. */
+.ttk-card[data-playing] { background: #000; }
+.ttk-card[data-playing]::after { content: none; }
+
+/* The scrim, and the words on it. Sized generously because TikTok titles are
+   captions rather than headlines and run long; two lines and then it stops. */
+.ttk-card::after {
+  content: ""; position: absolute; inset: auto 0 0; height: 55%;
+  background: linear-gradient(0deg, rgba(9, 16, 38, 0.85), transparent);
+  pointer-events: none;
+}
+.ttk-cap {
+  position: absolute; inset: auto 0.9rem 0.9rem; z-index: 2;
+  color: #fff; font-family: var(--font-display); font-weight: 600;
+  font-size: 0.92rem; line-height: 1.35;
+  display: -webkit-box; -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3; overflow: hidden;
+  pointer-events: none;
+}
+.ttk-who {
+  display: block; margin-top: 0.3rem;
+  color: rgba(255, 255, 255, 0.72); font-weight: 500; font-size: 0.8rem;
+}
+.ttk-play {
+  position: absolute; inset: 0; margin: auto; z-index: 3;
+  width: 54px; height: 54px;
+  display: grid; place-items: center; border: none; border-radius: 50%;
+  background: rgba(255, 255, 255, 0.94); color: var(--color-primary);
+  cursor: pointer; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+  transition: transform 0.15s, background 0.15s;
+}
+.ttk-play:hover { transform: scale(1.07); background: #fff; }
+.ttk-play svg { margin-left: 2px; }
+
+@media (max-width: 560px) {
+  .ttk-card { width: 62vw; }
+  /* No hover on a touch screen, so the caption is simply always up — it
+     already is, but the play button wants to be reachable rather than
+     centred under a thumb. */
+}
+
+/* ---- the admin screen (pages/admin/TikTokClips.tsx) ---- */
+.tta-add { display: flex; gap: 0.75rem; margin: 1.5rem 0 1rem; flex-wrap: wrap; }
+.tta-add input {
+  flex: 1 1 26rem; padding: 0.7rem 0.9rem;
+  border: 1px solid var(--color-border); border-radius: 8px;
+  font: inherit; font-size: 0.95rem;
+}
+.tta-add button {
+  padding: 0.7rem 1.4rem; border: none; border-radius: 8px;
+  background: var(--color-hero-ink); color: #fff;
+  font: inherit; font-weight: 600; cursor: pointer;
+}
+.tta-add button:disabled { opacity: 0.6; cursor: default; }
+
+.tta-list { list-style: none; margin: 1.5rem 0 0; padding: 0; display: grid; gap: 0.75rem; }
+.tta-item {
+  display: flex; gap: 1rem; align-items: center;
+  padding: 0.75rem; border: 1px solid var(--color-border); border-radius: 10px;
+  background: #fff;
+}
+/* A hidden clip is still listed — it is easier to bring one back than to
+   find its link again — but it says so at a glance. */
+.tta-item[data-off] { opacity: 0.5; }
+.tta-thumb {
+  flex: none; width: 54px; height: 96px; border-radius: 6px;
+  overflow: hidden; background: var(--color-surface);
+}
+.tta-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.tta-thumb-empty {
+  display: block; width: 100%; height: 100%;
+  background: linear-gradient(150deg, #17275c, #0d1638);
+}
+.tta-body { flex: 1; display: flex; flex-direction: column; gap: 0.4rem; min-width: 0; }
+.tta-title {
+  width: 100%; padding: 0.4rem 0.55rem;
+  border: 1px solid transparent; border-radius: 6px;
+  font: inherit; font-weight: 600; background: transparent;
+}
+.tta-title:hover { border-color: var(--color-border); }
+.tta-title:focus { border-color: var(--color-hero-ink); outline: none; background: #fff; }
+.tta-url {
+  color: var(--color-muted); font-size: 0.85rem;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.tta-actions { flex: none; display: flex; gap: 0.5rem; }
+.tta-actions button {
+  padding: 0.45rem 0.85rem; border: 1px solid var(--color-border);
+  border-radius: 6px; background: #fff; font: inherit; font-size: 0.85rem;
+  cursor: pointer;
+}
+.tta-actions .tta-del { color: var(--color-danger); border-color: #f0c8c2; }
+
+/* ============================================================
+   The legacy band (components/LegacyBand.tsx) — who we are, sitting between
+   the hero film and the figures.
+   ============================================================ */
+.legacy {
+  background: var(--color-bg);
+  padding: clamp(4rem, 10vh, 7rem) 0 clamp(2rem, 5vh, 3.5rem);
+}
+
+.legacy-inner {
+  display: flex; flex-direction: column; align-items: center;
+  text-align: center;
+}
+.legacy-eyebrow {
+  color: var(--color-hero-red); font-family: var(--font-display);
+  font-weight: 700; font-size: 0.78rem;
+  letter-spacing: 0.16em; text-transform: uppercase;
+  margin-bottom: 1.1rem;
+}
+/* Light for the setup, heavy for the claim. The global h1-h3 rule sets 700,
+   hence the override on the light half. */
+.legacy-title {
+  color: var(--color-hero-ink);
+  font-size: clamp(1.9rem, 4vw, 3.4rem); font-weight: 400;
+  letter-spacing: -0.03em; line-height: 1.14;
+  max-width: 22ch; margin: 0 0 1.5rem;
+}
+.legacy-title strong { font-weight: 700; }
+.legacy-lead {
+  color: var(--color-muted); max-width: 62ch;
+  font-size: clamp(0.98rem, 1.15vw, 1.08rem); line-height: 1.8;
+  margin: 0;
+}
+.legacy-link {
+  display: inline-flex; align-items: center; gap: 1rem;
+  margin-top: 2rem; color: var(--color-text);
+  font-family: var(--font-display); font-weight: 700;
+  font-size: 0.78rem; letter-spacing: 0.14em; text-transform: uppercase;
+}
+.legacy-link svg { color: var(--color-hero-red); transition: transform 0.25s ease; }
+.legacy-link:hover svg { transform: translateX(6px); }
+
+/* On a phone the hero is not held to the window's height and the film is
+   short, so a shape reaching a third of a screen upward would sit over the
+   headline rather than under it. Pulled in and pushed down to clear the
+   copy, and the blur radius comes down with it — a large radius over a small
+   area is expensive for something nobody sees much of. */
+@media (max-width: 860px) {
+}
+
+/* ============================================================
    Stats strip below the hero (components/StatsStrip.tsx) — one long line
    of large navy figures gliding right to left, forever. Each carries a
    small label over an orange rule and, under that, the names behind the
@@ -2134,8 +2414,8 @@ a.greview-author:hover { text-decoration: underline; }
 .grid-2 { grid-template-columns: repeat(2, 1fr); }
 .grid-3 { grid-template-columns: repeat(3, 1fr); }
 .card { background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius); padding: 1.5rem; }
-.post-card { color: inherit; transition: box-shadow 0.15s; }
-.post-card:hover { box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08); }
+.post-card { color: inherit; }
+
 .post-card img { border-radius: var(--radius); margin-bottom: 0.75rem; aspect-ratio: 16/9; object-fit: cover; }
 .post-card time { color: var(--color-muted); font-size: 0.85rem; }
 
@@ -2358,20 +2638,63 @@ a.greview-author:hover { text-decoration: underline; }
     background: var(--color-bg); flex-direction: column; padding: 1rem 0.25rem;
     border-top: 1px solid var(--color-border); align-items: flex-start; gap: 0.25rem; }
   .nav-links.open { display: flex; }
-  .nav-item { width: 100%; }
-  /* Dropdown stacks: blurb above the links, no divider rule */
-  .mega-inner, .mega-inner.can-sub { grid-template-columns: 1fr; gap: 1.5rem;
-    padding-top: 1.75rem; padding-bottom: 1.75rem; }
-  .mega-list { padding-left: 0; border-left: none; }
-  /* Stacked, the second level reads as an indented continuation of its
-     parent rather than a column beside it. */
-  .mega-sub {
-    padding-left: 1.1rem; border-left: 2px solid var(--color-hero-red);
-    margin-left: 0.6rem;
+  /* ---- the drawer, and the accordion inside it ----
+     The label and its caret share a row: the link takes the space, the
+     caret sits at the end where a thumb reaches it, and the list it opens
+     drops underneath them both. */
+  .nav-item {
+    width: 100%;
+    display: grid; grid-template-columns: 1fr auto; align-items: center;
   }
-  .mega-panel { max-height: 70vh; overflow-y: auto; }
+  .nav-item > a { padding: 0.7rem 0.15rem; }
+
+  .nav-caret {
+    display: grid; place-items: center;
+    width: 44px; height: 44px;
+    border: none; background: none; padding: 0; cursor: pointer;
+    color: inherit;
+  }
+  /* 44px square, which is not a design choice — it is the smallest target a
+     finger hits reliably, and this one sits a few millimetres from a link
+     that goes somewhere else entirely. */
+  .nav-caret svg { transition: transform 0.25s ease; }
+  .nav-caret[aria-expanded="true"] svg { transform: rotate(180deg); }
+
+  /* The list. Spans both columns so it starts under the label rather than
+     under the caret, and carries a rule down its left edge so an open
+     section reads as belonging to the item above it. */
+  .nav-sub {
+    display: grid; grid-column: 1 / -1;
+    list-style: none; margin: 0.1rem 0 0.6rem; padding: 0 0 0 0.9rem;
+    border-left: 2px solid var(--color-hero-red);
+    gap: 0.1rem;
+  }
+  .nav-sub a {
+    display: block; padding: 0.55rem 0.4rem;
+    color: var(--color-text); font-size: 0.92rem;
+  }
+  .nav-sub-deep {
+    list-style: none; margin: 0 0 0.35rem; padding: 0 0 0 0.9rem;
+    border-left: 1px solid var(--color-border);
+  }
+  .nav-sub-deep a { font-size: 0.86rem; color: var(--color-muted); }
+
+  /* THE HOVER PANEL STANDS DOWN HERE. It is the wide bar's answer to the
+     same question, and with the accordion open inside the drawer it would
+     be the same links twice — once inline and once in a band underneath.
+     Its stacking rules for this width went with it; they were only ever
+     making the best of a layout that does not belong on a phone. */
+  .mega-panel { display: none; }
   /* Hero stacks: copy on top, orbit visual below */
-  .hero-inner { grid-template-columns: 1fr; gap: 2rem; padding-top: 2.5rem; }
+  /* Head room is NOT set here any more. This rule cut the hero's 3.5rem to
+     2.5 for everything under 860px, which is backwards — the narrower the
+     screen, the more the bar, the top strip and the eyebrow stack up in the
+     first two centimetres, and the more air the block needs. Phones get a
+     larger value in the 640px block near the top of this file; tablets fall
+     back to the base 3.5rem, which was always fine.
+     Setting it here would also have quietly beaten that block, since this
+     media query comes later in the file and matches the same widths. */
+  .hero-inner { grid-template-columns: 1fr; gap: 2rem; }
   .hero-orbit-wrap { --orbit-size: min(400px, 88vw); }
   /* The stats marquee needs no breakpoint of its own — a line that is
      already wider than any screen does not care how wide the screen is —
@@ -2390,8 +2713,6 @@ a.greview-author:hover { text-decoration: underline; }
     --x-1: 100px; --x-2: 168px; --x-out: 230px;
   }
   .testimonial-story blockquote { font-size: 0.95rem; line-height: 1.75; }
-  /* No room for the flight-path artwork alongside a single column */
-  .testimonials-decor { display: none; }
   /* Video reviews: one card per view, swipe or the arrows in the head */
   .video-card { flex-basis: 88%; }
   .success-head { flex-direction: column; gap: 1rem; }
@@ -2440,6 +2761,121 @@ a.greview-author:hover { text-decoration: underline; }
    ============================================================ */
 .dpage { color: var(--color-text); }
 .dpage-section { padding: var(--section-y) 0; }
+
+/* ============================================================
+   THE RULED PAGE — a faint column grid behind the content, and section
+   headings that fade up as they arrive.
+
+   OPT-IN, by putting `dpage-ruled` on the page's <article>. It is opt-in and
+   not opt-out for one reason: the study-abroad pages must not have it, and
+   /study-abroad's own article is bare `dpage` with nothing to exclude it by.
+   A rule written as "every dpage except those" would have had nothing to
+   hang the exception on and would have silently caught the wrong pages the
+   next time one was added.
+   ============================================================ */
+
+/* ---- the rules ----
+   Two hairlines at the container's own edges, running the full height of
+   each section. The width arithmetic is .container's, written out: the
+   container is `40% + 0.6 * 1200px` wide and centred, so a box given the
+   same width and auto side margins lands its edges exactly where the
+   container's do. The 40% resolves against the section, which is the
+   container's parent too — that is what keeps the two in step at every
+   width without either measuring the other.
+
+   The lines sit at the container's OUTER edge, which includes its 1.5rem of
+   padding, so they fall just outside the text rather than against it. */
+.dpage-ruled .dpage-section,
+.dpage-ruled .dpage-cta { position: relative; }
+.dpage-ruled .dpage-section > .container,
+.dpage-ruled .dpage-cta > .container { position: relative; z-index: 1; }
+.dpage-ruled .dpage-section::before,
+.dpage-ruled .dpage-cta::before {
+  content: "";
+  position: absolute; inset-block: 0; left: 0; right: 0;
+  width: min(100%, calc(40% + 0.6 * var(--container)));
+  margin-inline: auto;
+  /* THE VERTICALS RUN THE HEIGHT, THE TOP EDGE CLOSES EACH CELL.
+
+     One border-top per section, and no border-bottom: every section draws
+     the line above itself, so a boundary between two sections is drawn once
+     rather than twice. Doubling them would put two hairlines a pixel apart
+     wherever a tinted section meets a plain one, which reads as a rendering
+     fault rather than as a grid.
+
+     The line spans exactly the width of this box — the same box the two
+     verticals are the edges of — so it meets them at the corners instead of
+     running past. That is what makes the page read as ruled cells rather
+     than as a rule with two unrelated lines beside it. */
+  border-inline: 1px solid rgba(23, 39, 92, 0.09);
+  border-top: 1px solid rgba(23, 39, 92, 0.09);
+  pointer-events: none;
+}
+/* The grid has to be closed off at the bottom, or the two verticals run out
+   of the content and stop in mid-air above the footer.
+
+   TWO SELECTORS, because no single one covers every page. `:last-of-type`
+   catches whatever actually ends the article — which is the right answer on
+   Blog and Contact, the two ruled pages with no red band. The explicit
+   `.dpage-cta` catches the other fourteen and keeps working the day the
+   help video is switched on: that renders a section AFTER the band, which
+   would otherwise steal `:last-of-type` and leave the column open, since it
+   is not a ruled block and has no rule to inherit.
+
+   Both landing on the same element is harmless — it is one border either
+   way. Safe on the hero too: it has no ::before anywhere in the stylesheet,
+   and a pseudo-element with no `content` is never generated. */
+.dpage-ruled > :last-of-type::before,
+.dpage-ruled .dpage-cta::before {
+  border-bottom: 1px solid rgba(23, 39, 92, 0.09);
+}
+/* On the red band the same hairlines have to be light, not dark, or they
+   disappear into the colour. */
+.dpage-ruled .dpage-cta::before {
+  border-color: rgba(255, 255, 255, 0.16);
+}
+/* Below the container's own breakpoint the VERTICALS would sit hard against
+   the screen edges and read as a border round the page rather than as a
+   grid — so they go, and the horizontal rules stay. On a phone a line
+   between sections is still doing useful work; a box around the whole page
+   is not. */
+@media (max-width: 720px) {
+  .dpage-ruled .dpage-section::before,
+  .dpage-ruled .dpage-cta::before {
+    border-inline: 0;
+    width: calc(100% - 3rem);
+  }
+}
+
+/* ---- the fade ----
+   Section headings and their lead paragraphs, and nothing else. Cards,
+   lists and body copy stay put: four of these pages already run reveals of
+   their own, and a second pass over the same content would have them
+   arriving twice.
+
+   Gated on `data-reveal-armed`, which PageReveal sets and only PageReveal
+   sets — so if that code never runs, every heading on the site is simply
+   visible. CSS must never hide what only JavaScript can bring back. */
+.dpage-ruled[data-reveal-armed] .dpage-title,
+.dpage-ruled[data-reveal-armed] .dpage-section-lead {
+  opacity: 0; transform: translateY(18px);
+  transition:
+    opacity 0.6s ease,
+    transform 0.75s cubic-bezier(0.22, 0.9, 0.28, 1);
+}
+.dpage-ruled[data-reveal-armed] .dpage-title.is-in,
+.dpage-ruled[data-reveal-armed] .dpage-section-lead.is-in {
+  opacity: 1; transform: none;
+}
+/* The lead follows its heading in by a beat, so the two read as one arrival
+   rather than a race. */
+.dpage-ruled .dpage-section-lead { transition-delay: 0.09s; }
+@media (prefers-reduced-motion: reduce) {
+  .dpage-ruled[data-reveal-armed] .dpage-title,
+  .dpage-ruled[data-reveal-armed] .dpage-section-lead {
+    opacity: 1; transform: none; transition: none;
+  }
+}
 .dpage-tint { background: #f4f7fb; }
 .dpage-title {
   color: var(--color-hero-ink); font-size: clamp(2rem, 3.4vw, 3rem);
@@ -2581,12 +3017,11 @@ a.greview-author:hover { text-decoration: underline; }
 .dpage-reason {
   background: #fff; border: 1px solid var(--color-border);
   border-radius: 16px; padding: 1.75rem;
-  transition: box-shadow 0.25s ease, border-color 0.25s ease;
+  transition: border-color 0.25s ease;
 }
 /* Still on hover — see the note on .dpage-card. */
 .dpage-reason:hover {
   border-color: transparent;
-  box-shadow: 0 18px 40px rgba(23, 39, 92, 0.12);
 }
 .dpage-reason-icon { font-size: 1.9rem; line-height: 1; display: block; margin-bottom: 0.9rem; }
 .dpage-reason h3 { color: var(--color-hero-ink); font-size: 1.2rem; margin-bottom: 0.5rem; }
@@ -2646,11 +3081,10 @@ a.greview-author:hover { text-decoration: underline; }
 .dpage-city {
   background: #fff; border: 1px solid var(--color-border);
   border-radius: 12px; padding: 1.4rem;
-  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+  transition: border-color 0.25s ease;
 }
 .dpage-city:hover {
   border-color: #c8d1e0;
-  box-shadow: 0 10px 24px -14px rgba(23, 39, 92, 0.35);
 }
 .dpage-city h3 {
   display: flex; align-items: center; gap: 0.5rem;
@@ -2670,10 +3104,23 @@ a.greview-author:hover { text-decoration: underline; }
 .dpage-checks li > span { display: inline-flex; flex: none; margin-top: 0.15rem; color: var(--color-hero-red); }
 .dpage-fineprint { color: var(--color-muted); font-size: 0.9rem; line-height: 1.7; }
 
-/* --- budget callout --- */
+/* --- budget callout ---
+   IT STAYS WHERE IT IS PUT. This was `position: sticky; top: 6rem`, so on
+   the twelve pages that carry one the card detached from its column and
+   rode down the screen beside the copy. Two things made that read as a
+   floating panel rather than a helpful rail: the offset was a hardcoded
+   6rem guess at a bar that is actually --navbar-h tall, and that bar now
+   slides away on scroll anyway — so the card hung in open space with
+   nothing above it to be under.
+
+   Static, it sits at the top of its own column and scrolls with the page
+   like everything else. The `position: static` override further down, which
+   used to undo the stickiness on narrow screens, is now saying what the
+   base rule already says; it is left alone rather than deleted so that
+   putting the behaviour back is one line in one place. */
 .dpage-callout {
   background: var(--color-hero-ink); color: #fff;
-  border-radius: 18px; padding: 2rem; position: sticky; top: 6rem;
+  border-radius: 18px; padding: 2rem;
 }
 .dpage-callout h3 { color: #fff; font-size: 1.35rem; }
 .dpage-callout p { color: rgba(255, 255, 255, 0.85); margin-bottom: 1.5rem; }
@@ -2888,8 +3335,27 @@ a.greview-author:hover { text-decoration: underline; }
 
    Every frame that carries one of these clips its overflow already; the
    hero's is on .dpage-hero rather than on .dpage-hero-bg itself. */
-.px-shot {
-  transform: translate3d(0, var(--px, 0px), 0) scale(1.12);
+/* The class is doubled ON PURPOSE. `.px-shot` alone is one class, and every
+   rule that sizes these pictures is a class plus a tag — `.dpage-hero-bg
+   img`, `.vg-shot img`, `.cc-shot img` and a dozen more — which outranks
+   it. None of them happens to set a transform today, so it worked; the day
+   one does, the drift would vanish with nothing to show why. Doubling the
+   class costs nothing and settles it.
+
+   The 1.3 must stay in step with ZOOM in lib/parallax, which HeroKnockout
+   reads to line its cut-out headline up with the moving photograph. */
+.px-shot.px-shot {
+  transform:
+    translate3d(0, var(--px, 0px), 0)
+    /* THE TILT IS OPT-IN AND COSTS NOTHING WHEN IT IS OFF. --px-t is the
+       picture's signed progress through the window, written for every
+       parallax image; --px-tilt is the largest angle THIS picture is
+       allowed to lean, and it defaults to zero — so every image on the site
+       composes a rotateX of 0deg unless a rule somewhere gives it an angle.
+       The frame has to carry a `perspective` for the lean to read as depth
+       rather than as a squash; see .vg-shot. */
+    rotateX(calc(var(--px-t, 0) * var(--px-tilt, 0deg)))
+    scale(1.3);
 }
 
 /* ---- destination pages: photography ----
@@ -3186,7 +3652,6 @@ a.greview-author:hover { text-decoration: underline; }
   display: flex; flex-direction: column; overflow: hidden;
   background: #fff; border-radius: 18px; color: inherit;
   box-shadow: 0 10px 26px rgba(23, 39, 92, 0.08);
-  transition: box-shadow 0.28s ease;
 }
 /* THE CARD ITSELF DOES NOT MOVE. It used to rise a few pixels on hover, and
    the whole tile — photograph, heading, the lot — went with it. Scrolling a
@@ -3195,7 +3660,7 @@ a.greview-author:hover { text-decoration: underline; }
    deepening and by the one thing that SHOULD move: the arrow on the card's
    own link, which slides a few pixels the way an arrow ought to. One small
    moving part per card, not the card. */
-.dpage-card:hover { box-shadow: 0 22px 46px rgba(23, 39, 92, 0.16); }
+
 .dpage-card-shot { aspect-ratio: 16 / 10; overflow: hidden; }
 .dpage-card-shot img, .dpage-card-shot .dpage-shot-empty {
   width: 100%; height: 100%; object-fit: cover;
@@ -3372,84 +3837,126 @@ a.greview-author:hover { text-decoration: underline; }
    ============================================================ */
 .vg-steps { margin-top: 3rem; }
 
+/* One stage: a photograph on one side, a column of copy on the other.
+   Alternating, so the sequence zig-zags down the page instead of marching. */
 .vg-step {
   display: grid; grid-template-columns: 1fr 1fr;
-  gap: 3.5rem; align-items: center;
-  /* Where each stage starts before it arrives. `is-in` is added by the
-     observer in the component and never removed, so scrolling back up does
-     not replay the page. */
-  opacity: 0;
+  gap: clamp(2rem, 5vw, 4.5rem); align-items: center;
+}
+
+/* ---- what arrives, and what does not ----
+   THE COPY FADES UP. THE PHOTOGRAPH DOES NOT MOVE AT ALL.
+
+   The picture already has the scroll drift (see .px-shot) running the whole
+   time it is on screen, and giving it a second, different motion on arrival
+   made the block look like two things happening rather than one. So the
+   image is simply there from the first paint, and the words are what
+   assemble beside it.
+
+   Every line of the column carries its own delay, so the label, the
+   heading, the paragraph and the link arrive in the order you read them.
+   Four steps is as far as this goes; a fifth would be waiting, not reading. */
+.vg-steps[data-reveal-armed] .vg-step .vg-copy > * {
+  opacity: 0; transform: translateY(16px);
   transition:
-    opacity 0.7s ease,
+    opacity 0.55s ease,
     transform 0.7s cubic-bezier(0.22, 0.9, 0.28, 1);
 }
-.vg-step .vg-shot { transform: translateX(-40px); }
-.vg-step .vg-copy { transform: translateY(28px); }
-.vg-shot, .vg-copy {
-  transition: transform 0.75s cubic-bezier(0.22, 0.9, 0.28, 1);
+.vg-steps[data-reveal-armed] .vg-step.is-in .vg-copy > * {
+  opacity: 1; transform: none;
 }
-/* The copy follows the image in by a beat, so the eye lands on the picture
-   and then reads — rather than both sliding at once and competing. */
-.vg-step .vg-copy { transition-delay: 0.12s; }
-.vg-step.is-in { opacity: 1; }
-.vg-step.is-in .vg-shot, .vg-step.is-in .vg-copy { transform: none; }
+.vg-copy > *:nth-child(2) { transition-delay: 0.07s; }
+.vg-copy > *:nth-child(3) { transition-delay: 0.14s; }
+.vg-copy > *:nth-child(4) { transition-delay: 0.21s; }
 
-/* Alternating sides, so the sequence zig-zags down the page instead of
-   marching straight.
+/* Nothing is hidden until armReveals has run and set the attribute above.
+   CSS must never hide something only JavaScript can bring back — if the
+   script fails, the stages are plain and visible rather than four blank
+   rectangles. */
+
+/* Alternating sides.
  *
  * Counted on the WRAPPER, never on .vg-step itself. Every stage after the
  * first has a connector rendered before it, which makes .vg-step the second
  * child of its wrapper from stage two onward — so `.vg-step:nth-child(even)`
  * matches stages 2, 3 AND 4 and the alternation dies after the first swap.
  * The wrapper's own index is the one that actually tracks the stage. */
-.vg-steps > div:nth-child(even) .vg-shot {
-  order: 2; transform: translateX(40px);
-}
-.vg-steps > div:nth-child(even) .vg-step.is-in .vg-shot { transform: none; }
+.vg-steps > div:nth-child(even) .vg-shot { order: 2; }
 
+/* ---- the photograph ----
+   `perspective` here is what turns the tilt on the image into depth rather
+   than a squash: the lean has to be measured against a viewpoint, and this
+   is where that viewpoint is declared. It belongs on the FRAME, not the
+   picture — an element cannot supply its own perspective. */
 .vg-shot {
   margin: 0; border-radius: 20px; overflow: hidden;
   aspect-ratio: 4 / 3;
   box-shadow: 0 22px 50px rgba(23, 39, 92, 0.16);
+  perspective: 1100px;
 }
 .vg-shot img, .vg-shot .dpage-shot-empty {
   width: 100%; height: 100%; object-fit: cover;
 }
-.vg-n {
-  display: block; font-family: var(--font-display); font-weight: 800;
-  font-size: 2.6rem; line-height: 1; letter-spacing: 0;
-  color: transparent; -webkit-text-stroke: 2px rgba(23, 39, 92, 0.2);
-  margin-bottom: 0.75rem;
-}
-.vg-copy h3 {
-  color: var(--color-hero-ink); font-size: clamp(1.4rem, 2.2vw, 1.9rem);
-  margin-bottom: 0.8rem;
-}
-.vg-copy p { color: var(--color-muted); font-size: 1.02rem; line-height: 1.75; }
+/* The largest angle this picture may lean, read by .px-shot and multiplied
+   by how far through the window it is. Positive as it enters, through zero
+   at centre, negative as it leaves — so the top edge falls away on the way
+   in and the bottom edge falls away on the way out, and the photograph
+   reads as a plane turning past you rather than a flat thing sliding.
 
-/* The join between one stage and the next. Decorative, and the first stage
-   does not get one — see the `i > 0` guard in the component. */
-.vg-connector { height: clamp(70px, 9vw, 120px); }
-.vg-connector svg { width: 100%; height: 100%; display: block; }
-.vg-connector path {
-  fill: none; stroke: var(--color-hero-red); stroke-width: 2;
-  stroke-dasharray: 7 9; stroke-linecap: round; opacity: 0.45;
-  vector-effect: non-scaling-stroke;
+   Kept small deliberately. Past about eight degrees the foreshortening
+   starts to distort faces, and every one of these photographs has people in
+   it. */
+.vg-shot img { --px-tilt: 5deg; }
+
+/* ---- the column of copy ---- */
+.vg-eyebrow {
+  margin: 0 0 1rem; color: var(--color-hero-red);
+  font-family: var(--font-display); font-weight: 700;
+  font-size: 0.78rem; letter-spacing: 0.16em; text-transform: uppercase;
 }
-/* Mirrored on alternate joins, so the line always runs toward the side the
-   next image is on. */
-.vg-steps > div:nth-child(even) .vg-connector svg { transform: scaleX(-1); }
+/* Large and LIGHT. The weight is the whole difference between this and the
+   heading it replaced: at 700 a heading this size shouts, and the block is
+   meant to read as a calm statement with the photograph carrying the
+   volume. The global h1-h3 rule sets 700, hence the override. */
+.vg-copy h3 {
+  color: var(--color-hero-ink);
+  font-size: clamp(1.75rem, 3.1vw, 2.75rem); font-weight: 500;
+  letter-spacing: -0.025em; line-height: 1.14;
+  margin: 0 0 1.5rem; max-width: 16ch;
+}
+/* Stepped in from the heading. The indent is the reference's one piece of
+   structure in this block — it is what stops the paragraph reading as
+   another line of the heading, and it does the job a rule or a box would
+   otherwise have to do. */
+.vg-text {
+  margin: 0; color: var(--color-muted);
+  font-size: 1.02rem; line-height: 1.75; max-width: 40ch;
+  padding-left: clamp(0.75rem, 2.5vw, 2.75rem);
+}
+/* Capitals, letter-spaced, with the long arrow — the same line of type the
+   reference ends its block on. The arrow travels on hover; the words do
+   not, so the line does not reflow under the cursor. */
+.vg-link {
+  display: inline-flex; align-items: center; gap: 1rem;
+  margin: 2rem 0 0 clamp(0.75rem, 2.5vw, 2.75rem);
+  color: var(--color-text);
+  font-family: var(--font-display); font-weight: 700;
+  font-size: 0.78rem; letter-spacing: 0.14em; text-transform: uppercase;
+}
+.vg-link svg { color: var(--color-hero-red); transition: transform 0.25s ease; }
+.vg-link:hover svg { transform: translateX(6px); }
+
 
 @media (max-width: 860px) {
   /* Stacked, the image leads and the copy follows underneath; everything
      rises from below rather than in from the side, because there is no
      side to come in from. */
+  /* One column, photograph first. No reveal transform to undo any more —
+     the picture never moved on arrival in the first place. */
   .vg-step { grid-template-columns: 1fr; gap: 1.5rem; }
   .vg-steps > div:nth-child(even) .vg-step .vg-shot,
-  .vg-step .vg-shot { order: 0; transform: translateY(28px); }
-  .vg-steps > div:nth-child(even) .vg-step.is-in .vg-shot { transform: none; }
-  .vg-connector { height: 56px; }
-  .vg-connector svg { width: 60%; margin-inline: auto; }
+  .vg-step .vg-shot { order: 0; }
+  .vg-copy h3 { max-width: none; }
 }
 
 /* ============================================================
@@ -3634,16 +4141,13 @@ a.greview-author:hover { text-decoration: underline; }
   background: #fff; border-radius: 20px; overflow: hidden;
   box-shadow: 0 14px 34px rgba(23, 39, 92, 0.1);
   opacity: 0; transform: translateY(30px);
-  transition:
-    opacity 0.65s ease,
-    transform 0.65s cubic-bezier(0.22, 0.9, 0.28, 1),
-    box-shadow 0.3s ease;
+  transition: opacity 0.65s ease, transform 0.65s cubic-bezier(0.22, 0.9, 0.28, 1);
 }
 .acc-card.is-in { opacity: 1; transform: none; }
 /* The second of each pair follows the first in, so a row arrives as a
    sentence rather than a slab. */
 .acc-card:nth-child(even) { transition-delay: 0.1s; }
-.acc-card:hover { box-shadow: 0 26px 56px rgba(23, 39, 92, 0.18); }
+
 .acc-card-shot { aspect-ratio: 16 / 9; overflow: hidden; }
 .acc-card-shot img, .acc-card-shot .dpage-shot-empty {
   width: 100%; height: 100%; object-fit: cover;
@@ -3844,6 +4348,22 @@ a.greview-author:hover { text-decoration: underline; }
   transition-duration: 0.6s, 1s;
 }
 
+/* A RUN OF PARAGRAPHS ARRIVES IN ORDER. With the page reduced to prose, a
+   section is often four or five paragraphs that cross the trigger within a
+   frame of each other and would otherwise land together — which reads as a
+   block appearing rather than as text being set. Three steps, cycling, so
+   the delay never grows past a fifth of a second however long the section
+   runs; a genuinely staggered twelfth paragraph would just be late.
+
+   Only paragraphs with no class of their own: a pull quote and a quip have
+   their own entrances and should not be dealt into this rhythm. */
+.usa[data-reveal-armed] .usa-body p:not([class])[data-reveal]:nth-of-type(3n + 2) {
+  transition-delay: 0.08s;
+}
+.usa[data-reveal-armed] .usa-body p:not([class])[data-reveal]:nth-of-type(3n + 3) {
+  transition-delay: 0.16s;
+}
+
 /* A pulled line enters from the side, against the vertical grain of
    everything else, which is what makes it read as lifted out of the flow. */
 .usa[data-reveal-armed] .usa-pull[data-reveal] { transform: translateX(-26px); }
@@ -3857,14 +4377,14 @@ a.greview-author:hover { text-decoration: underline; }
    `.is-in > *`: that shorter form also matches the children of every OTHER
    revealed element — the spans inside a heading, the caption inside a
    photograph — and would have animated them on their own timers. */
-.usa :is(.usa-cards, .usa-chips, .dpage-checks, .usa-questions, .usa-roadmap).is-in > * {
+.usa :is(.usa-chips, .dpage-checks, .usa-questions, .usa-roadmap).is-in > * {
   animation: usa-cascade 0.55s cubic-bezier(0.22, 0.9, 0.28, 1) both;
 }
-.usa :is(.usa-cards, .usa-chips, .dpage-checks, .usa-questions, .usa-roadmap).is-in > *:nth-child(2) { animation-delay: 0.07s; }
-.usa :is(.usa-cards, .usa-chips, .dpage-checks, .usa-questions, .usa-roadmap).is-in > *:nth-child(3) { animation-delay: 0.14s; }
-.usa :is(.usa-cards, .usa-chips, .dpage-checks, .usa-questions, .usa-roadmap).is-in > *:nth-child(4) { animation-delay: 0.21s; }
-.usa :is(.usa-cards, .usa-chips, .dpage-checks, .usa-questions, .usa-roadmap).is-in > *:nth-child(5) { animation-delay: 0.28s; }
-.usa :is(.usa-cards, .usa-chips, .dpage-checks, .usa-questions, .usa-roadmap).is-in > *:nth-child(n + 6) { animation-delay: 0.35s; }
+.usa :is(.usa-chips, .dpage-checks, .usa-questions, .usa-roadmap).is-in > *:nth-child(2) { animation-delay: 0.07s; }
+.usa :is(.usa-chips, .dpage-checks, .usa-questions, .usa-roadmap).is-in > *:nth-child(3) { animation-delay: 0.14s; }
+.usa :is(.usa-chips, .dpage-checks, .usa-questions, .usa-roadmap).is-in > *:nth-child(4) { animation-delay: 0.21s; }
+.usa :is(.usa-chips, .dpage-checks, .usa-questions, .usa-roadmap).is-in > *:nth-child(5) { animation-delay: 0.28s; }
+.usa :is(.usa-chips, .dpage-checks, .usa-questions, .usa-roadmap).is-in > *:nth-child(n + 6) { animation-delay: 0.35s; }
 @keyframes usa-cascade {
   from { opacity: 0; transform: translateY(14px); }
   to { opacity: 1; transform: none; }
@@ -3877,7 +4397,7 @@ a.greview-author:hover { text-decoration: underline; }
   .usa[data-reveal-armed] [data-reveal],
   .usa[data-reveal-armed] .usa-h2[data-reveal],
   .usa[data-reveal-armed] .usa-pull[data-reveal] { transition: none; transform: none; }
-  .usa :is(.usa-cards, .usa-chips, .dpage-checks, .usa-questions, .usa-roadmap).is-in > * { animation: none; }
+  .usa :is(.usa-chips, .dpage-checks, .usa-questions, .usa-roadmap).is-in > * { animation: none; }
 }
 
 /* ---- shell: contents rail beside the body ---- */
@@ -3972,7 +4492,21 @@ a.greview-author:hover { text-decoration: underline; }
   .usa-h2::after { transition: none; transform: scaleX(1); }
 }
 .usa-h3 { color: var(--color-hero-ink); font-size: 1.25rem; margin: clamp(2.25rem, 4vw, 3rem) 0 1rem; }
-.usa-body p { color: var(--color-muted); font-size: 1.03rem; line-height: 1.8; margin-bottom: 1.4rem; }
+/* THESE PAGES ARE PROSE NOW. The card grids, the tap-to-answer prompts and
+   the pick-your-priorities panels are gone, and what they said is said in
+   paragraphs instead — so a paragraph carries weight it did not have to
+   before. Larger, darker, and given a measure.
+
+   `max-width` in ch is the important half. Without it the column ran the
+   full width of the grid track, which at 1.03rem was around ninety
+   characters a line — comfortably past where the eye starts losing its
+   place on the return sweep. */
+.usa-body p {
+  color: #3d4356;
+  font-size: clamp(1.08rem, 1.35vw, 1.22rem);
+  line-height: 1.78; margin-bottom: 1.55rem;
+  max-width: 68ch;
+}
 .usa-body p strong { color: var(--color-hero-ink); }
 /* The paragraph directly under a heading is the section's standfirst, so it
    is set larger and darker. Costs nothing — the copy is unchanged — and it
@@ -3981,9 +4515,10 @@ a.greview-author:hover { text-decoration: underline; }
    and a quip are both <p> too, and both sit directly under a heading
    sometimes, and both have display styling this would otherwise outrank. */
 .usa-body .usa-h2 + p:not([class]) {
-  font-size: clamp(1.1rem, 1.5vw, 1.24rem); line-height: 1.65;
+  font-size: clamp(1.22rem, 1.75vw, 1.45rem); line-height: 1.6;
   color: var(--color-hero-ink); font-weight: 400;
-  margin-bottom: 1.9rem; max-width: 60ch;
+  letter-spacing: -0.012em;
+  margin-bottom: 2.1rem; max-width: 56ch;
 }
 
 /* The one word on the page allowed to shout */
@@ -4086,23 +4621,6 @@ a.greview-author:hover { text-decoration: underline; }
 }
 .usa-body .usa-compare-note { font-size: 0.95rem; }
 
-/* ---- card grids ---- */
-.usa-cards {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1.25rem; margin: 2.25rem 0;
-}
-.usa-card {
-  background: #fff; border: 1px solid var(--color-border);
-  border-radius: 16px; padding: 1.4rem;
-  transition: border-color 0.25s ease, box-shadow 0.25s ease;
-}
-/* Still on hover — see the note on .dpage-card. */
-.usa-card:hover {
-  border-color: transparent;
-  box-shadow: 0 16px 34px rgba(23, 39, 92, 0.12);
-}
-.usa-card h3 { color: var(--color-hero-ink); font-size: 1.08rem; margin-bottom: 0.45rem; }
-.usa-body .usa-card p { font-size: 0.95rem; line-height: 1.7; margin: 0; }
 
 /* ---- university types: the pinned stack (components/TypeStack.tsx) ----
 
@@ -4299,71 +4817,7 @@ a.greview-author:hover { text-decoration: underline; }
   letter-spacing: 0;
 }
 
-/* ---- interactive prompts ---- */
-.prompt {
-  background: var(--color-hero-ink); color: #fff;
-  border-radius: 20px; padding: clamp(1.5rem, 3vw, 2.25rem); margin: 2rem 0;
-}
-.prompt-quiet { background: #f4f7fb; color: var(--color-text); }
-.prompt-tag {
-  color: var(--color-hero-red) !important;
-  font-size: 0.75rem; font-weight: 700; letter-spacing: 0.16em;
-  text-transform: uppercase; margin-bottom: 0.6rem !important;
-}
-.prompt h3 {
-  color: #fff; font-size: clamp(1.25rem, 2.2vw, 1.7rem);
-  letter-spacing: -0.02em; margin-bottom: 1.1rem;
-}
-.prompt-quiet h3 { color: var(--color-hero-ink); }
-.prompt-options { display: grid; gap: 0.6rem; }
-.prompt-options button {
-  display: grid; grid-template-columns: auto 1fr; gap: 0.9rem; align-items: center;
-  text-align: left; width: 100%; cursor: pointer;
-  font: inherit; font-size: 0.97rem; color: rgba(255, 255, 255, 0.9);
-  background: rgba(255, 255, 255, 0.07); border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 12px; padding: 0.85rem 1.1rem;
-  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
-}
-.prompt-options button span {
-  display: grid; place-items: center; width: 1.7rem; height: 1.7rem;
-  border-radius: 50%; background: rgba(255, 255, 255, 0.12);
-  font-weight: 700; font-size: 0.82rem;
-}
-.prompt-options button:hover { background: rgba(255, 255, 255, 0.13); }
-.prompt-options button.is-on {
-  background: var(--color-hero-red); border-color: var(--color-hero-red); color: #fff;
-}
-.prompt-options button.is-on span { background: rgba(255, 255, 255, 0.22); }
 
-.prompt-chips { display: flex; flex-wrap: wrap; gap: 0.55rem; }
-.prompt-chips button {
-  cursor: pointer; font: inherit; font-size: 0.92rem;
-  color: rgba(255, 255, 255, 0.9);
-  background: rgba(255, 255, 255, 0.07); border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 999px; padding: 0.5rem 1.05rem;
-  transition: background-color 0.2s ease, border-color 0.2s ease;
-}
-.prompt-chips button:hover { background: rgba(255, 255, 255, 0.14); }
-.prompt-chips button.is-on {
-  background: var(--color-hero-red); border-color: var(--color-hero-red); color: #fff;
-}
-/* Holds its line whether or not there is a reply, so selecting an option
-   does not shunt the page under the pointer. */
-.usa-body .prompt-reply {
-  min-height: 2.6rem; margin: 1.1rem 0 0;
-  color: rgba(255, 255, 255, 0.78); font-size: 0.95rem; line-height: 1.6;
-}
-.prompt-quiet .prompt-reply { color: var(--color-muted) !important; }
-.usa-body .usa-fill {
-  font-family: var(--font-display); font-weight: 700;
-  font-size: clamp(1.05rem, 1.9vw, 1.35rem); color: var(--color-hero-ink);
-  margin-bottom: 0.5rem;
-}
-.usa-blank {
-  display: inline-block; width: clamp(6rem, 18vw, 12rem);
-  border-bottom: 2px dashed var(--color-hero-red);
-  margin: 0 0.4rem -0.15rem;
-}
 
 /* ---- myths ---- */
 .usa-myths { display: grid; gap: 0.9rem; margin-top: 1.5rem; }
@@ -4595,13 +5049,12 @@ a.greview-author:hover { text-decoration: underline; }
 .who-credo-card {
   background: #fff; border: 1px solid var(--color-border);
   border-radius: 12px; padding: 2rem 1.9rem;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease, opacity 0.65s ease;
+  transition: border-color 0.3s ease, opacity 0.65s ease;
 }
 /* Firms the edge rather than lifting the card off the page. Nothing happens
    when you click one of these, so nothing should suggest it might. */
 .who-credo-card.is-in:hover {
   border-color: #c8d1e0;
-  box-shadow: 0 10px 24px -14px rgba(23, 39, 92, 0.35);
 }
 .who-kicker {
   color: var(--color-hero-red); font-size: 0.76rem; font-weight: 700;
@@ -4985,13 +5438,12 @@ a.rev-score:hover { background: rgba(255, 255, 255, 0.08); }
   margin: 0 0 1.5rem;
   background: #fff; border: 1px solid var(--color-border);
   border-radius: 18px; padding: 1.4rem 1.35rem;
-  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+  transition: border-color 0.25s ease;
 }
 /* Still on hover — see the note on .dpage-card. The play button on a video
    review still grows, which is the one thing here worth moving. */
 .rev-card:hover {
   border-color: transparent;
-  box-shadow: 0 16px 36px rgba(23, 39, 92, 0.13);
 }
 /* An openable card is one big button; the padding moves onto the card so
    the whole surface is the hit area rather than a rectangle inside it. */
@@ -5419,12 +5871,11 @@ a.rev-score:hover { background: rgba(255, 255, 255, 0.08); }
 .unip-card {
   background: #fff; border: 1px solid var(--color-border); border-radius: 16px;
   overflow: hidden; display: flex; flex-direction: column;
-  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+  transition: border-color 0.25s ease;
 }
 /* Still on hover — see the note on .dpage-card. */
 .unip-card:hover {
   border-color: transparent;
-  box-shadow: 0 16px 34px rgba(23, 39, 92, 0.13);
 }
 /* The logos arrive as photographs of wildly different proportions, so each
    gets a fixed, padded frame and is contained inside it. `contain` rather
@@ -5586,23 +6037,40 @@ a.rev-score:hover { background: rgba(255, 255, 255, 0.08); }
    without gaps and without anything being measured. `data-slot` cycles 0-5,
    which is what gives an album of any length its variety. */
 .gal-mosaic {
-  display: grid; gap: clamp(0.4rem, 1vw, 0.7rem);
+  display: grid; gap: clamp(0.5rem, 1.1vw, 0.9rem);
   grid-template-columns: repeat(6, 1fr);
-  grid-auto-rows: clamp(110px, 13vw, 190px);
+  /* The row is the unit everything is built from, and NOTHING SPANS ONLY
+     ONE OF THEM any more. That was the whole problem: the landscape tiles
+     were a single row tall — 190px at most — beside portraits given two,
+     so half the album was a strip and the other half a picture. Every tile
+     now takes two rows or three. */
+  grid-auto-rows: clamp(120px, 13.5vw, 195px);
   grid-auto-flow: dense;
 }
 .gal-tile {
   position: relative; overflow: hidden; cursor: pointer;
   border: none; padding: 0; background: var(--color-surface);
   border-radius: 12px;
-  grid-column: span 2; grid-row: span 1;
+  /* The ordinary tile: a third of the width, two rows deep. Near enough
+     square, and the size the old grid gave nothing at all. */
+  grid-column: span 2; grid-row: span 2;
 }
-/* The cycle. Two wide-and-tall anchors, a tall portrait, a wide letterbox
-   and two ordinary tiles — which packs to a full rectangle every six. */
-.gal-tile[data-slot="0"] { grid-column: span 4; grid-row: span 2; }
-.gal-tile[data-slot="1"] { grid-column: span 2; grid-row: span 2; }
-.gal-tile[data-slot="3"] { grid-column: span 4; grid-row: span 1; }
-.gal-tile[data-slot="4"] { grid-column: span 2; grid-row: span 2; }
+/* ---- the cycle ----
+   Ten tiles that tile SIX COLUMNS BY TEN ROWS exactly, with no remainder
+   and so no gaps to pack around:
+
+     rows 1-3   a wide anchor (4 cols) beside a tall portrait (2)
+     rows 4-5   three ordinary tiles
+     rows 6-8   the same band mirrored — portrait left, anchor right
+     rows 9-10  three ordinary tiles
+
+   The mirror is why it is ten and not five: at five the big picture landed
+   on the left of every band and the album marched. Alternating it gives the
+   column a rhythm without any tile having to know its own position. */
+.gal-tile[data-slot="0"] { grid-column: span 4; grid-row: span 3; }
+.gal-tile[data-slot="1"] { grid-column: span 2; grid-row: span 3; }
+.gal-tile[data-slot="5"] { grid-column: span 2; grid-row: span 3; }
+.gal-tile[data-slot="6"] { grid-column: span 4; grid-row: span 3; }
 .gal-tile img {
   width: 100%; height: 100%; object-fit: cover;
 }
@@ -5616,20 +6084,51 @@ a.rev-score:hover { background: rgba(255, 255, 255, 0.08); }
 }
 .gal-tile:hover .gal-tile-cap, .gal-tile:focus-visible .gal-tile-cap { opacity: 1; }
 
+/* ---- arriving ----
+   Tiles rise in as their album is scrolled to, once. armReveals adds `is-in`
+   and never takes it away, so coming back up the page does not replay the
+   gallery at you.
+
+   GATED ON THE WRAPPER, NOT THE ARTICLE, and that matters: PageReveal arms
+   the article for headings, and armReveals' cleanup removes the attribute
+   from whatever root it was given. Two arms on one element would mean the
+   first to unmount stripped the flag the other was still relying on, and
+   the tiles would strand at opacity 0. Separate roots, no shared state. */
+.gal-albums[data-reveal-armed] .gal-tile {
+  opacity: 0; transform: translateY(22px);
+  transition:
+    opacity 0.55s ease,
+    transform 0.7s cubic-bezier(0.22, 0.9, 0.28, 1);
+}
+.gal-albums[data-reveal-armed] .gal-tile.is-in { opacity: 1; transform: none; }
+/* A row's worth of tiles crosses the trigger together, so without this they
+   would all land on the same frame. Three steps, cycling — enough to read as
+   a sweep across the row, not so much that the last one feels late. */
+.gal-mosaic .gal-tile:nth-child(3n + 2) { transition-delay: 0.07s; }
+.gal-mosaic .gal-tile:nth-child(3n + 3) { transition-delay: 0.14s; }
+@media (prefers-reduced-motion: reduce) {
+  .gal-albums[data-reveal-armed] .gal-tile {
+    opacity: 1; transform: none; transition: none;
+  }
+}
+
 @media (max-width: 900px) {
+  /* Four columns. The two anchors take the full width and the portraits
+     keep their extra row; `dense` closes what that leaves. */
   .gal-mosaic { grid-template-columns: repeat(4, 1fr); }
-  .gal-tile[data-slot="0"] { grid-column: span 4; grid-row: span 2; }
-  .gal-tile[data-slot="3"] { grid-column: span 4; }
+  .gal-tile[data-slot="0"],
+  .gal-tile[data-slot="6"] { grid-column: span 4; grid-row: span 2; }
 }
 @media (max-width: 560px) {
-  /* Two columns, and the only distinction left is which tiles run tall —
-     a six-step size cycle on a phone is just noise. */
+  /* Two columns, and the only distinction left is which tiles run full
+     width — a ten-step size cycle on a phone is just noise. Everything
+     keeps two rows, so nothing shrinks back to a strip. */
   .gal-mosaic { grid-template-columns: repeat(2, 1fr); }
-  .gal-tile,
+  .gal-tile { grid-column: span 1; grid-row: span 2; }
   .gal-tile[data-slot="0"],
-  .gal-tile[data-slot="3"] { grid-column: span 2; grid-row: span 1; }
+  .gal-tile[data-slot="6"] { grid-column: span 2; grid-row: span 2; }
   .gal-tile[data-slot="1"],
-  .gal-tile[data-slot="4"] { grid-column: span 1; grid-row: span 2; }
+  .gal-tile[data-slot="5"] { grid-column: span 1; grid-row: span 3; }
   /* No hover on a touch screen, so the caption is simply always up */
   .gal-tile-cap { opacity: 1; }
 }
@@ -6036,12 +6535,11 @@ a.rev-score:hover { background: rgba(255, 255, 255, 0.08); }
   display: grid; grid-template-columns: 210px 1fr; gap: 1.75rem;
   background: #fff; border: 1px solid var(--color-border);
   border-radius: 18px; padding: 1.6rem 1.75rem;
-  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+  transition: border-color 0.25s ease;
 }
 /* Still on hover — see the note on .dpage-card. */
 .evt-card:hover {
   border-color: transparent;
-  box-shadow: 0 16px 36px rgba(23, 39, 92, 0.12);
 }
 .evt-card-when {
   display: grid; align-content: start; gap: 0.4rem;
@@ -6169,11 +6667,10 @@ a.rev-score:hover { background: rgba(255, 255, 255, 0.08); }
   display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 0;
   border-radius: 24px; overflow: hidden; margin-bottom: 2rem;
   background: var(--color-hero-ink); color: #fff;
-  transition: box-shadow 0.3s ease;
 }
 /* Still, like every other card — see the note on .dpage-card. Its own
    "read this" arrow is what moves. */
-.blg-lead:hover { box-shadow: 0 24px 48px rgba(23, 39, 92, 0.18); }
+
 .blg-lead-shot { overflow: hidden; min-height: 320px; background: #0f1c44; }
 .blg-lead-shot img {
   width: 100%; height: 100%; object-fit: cover;
@@ -6211,14 +6708,13 @@ a.rev-score:hover { background: rgba(255, 255, 255, 0.08); }
   display: flex; flex-direction: column;
   background: #fff; border: 1px solid var(--color-border);
   border-radius: 18px; overflow: hidden; color: inherit;
-  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+  transition: border-color 0.25s ease;
 }
 /* No arrow inside this one, so the border and the shadow carry it alone.
    That is deliberate rather than an oversight: a card with nothing in it to
    animate is better left still than given a wobble of its own. */
 .blg-card:hover {
   border-color: transparent;
-  box-shadow: 0 18px 38px rgba(23, 39, 92, 0.13);
 }
 .blg-card-shot { aspect-ratio: 16 / 10; overflow: hidden; background: var(--color-surface); }
 .blg-card-shot img {
@@ -6462,10 +6958,9 @@ a.rev-score:hover { background: rgba(255, 255, 255, 0.08); }
 }
 .art-related-card {
   background: #fff; border-radius: 16px; overflow: hidden; color: inherit;
-  transition: box-shadow 0.25s ease;
 }
 /* Shadow only, same as .blg-card — nothing inside it to move. */
-.art-related-card:hover { box-shadow: 0 16px 34px rgba(23, 39, 92, 0.12); }
+
 .art-related-card img, .art-related-noshot {
   width: 100%; aspect-ratio: 16 / 10; object-fit: cover; display: block;
 }
@@ -6675,7 +7170,6 @@ a.rev-score:hover { background: rgba(255, 255, 255, 0.08); }
   /* ---- decoration only ----
      None of these carry a word. Each is a drawn ornament that either
      overflows, repaints on every scroll frame, or shrinks to noise. */
-  .testimonials-decor { display: none; }   /* dashed flight-path watermark */
   .footer-shapes { display: none; }        /* the band of cut-off arcs */
   /* The ICEF stamp stays — it is a credential, not decoration. It only comes
      down in size, and the gap tightens so it and the four social tiles still

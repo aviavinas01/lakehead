@@ -229,7 +229,7 @@ export default function About() {
   }, []);
 
   return (
-    <article className="dpage who" ref={root}>
+    <article className="dpage dpage-ruled who" ref={root}>
       <header className="dpage-hero">
         <div className="dpage-hero-bg">
           <Shot src="/about/hero.jpg" alt="" />

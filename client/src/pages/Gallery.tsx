@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Arrow } from "../components/destinationBits";
 import { fetchGallery, type GalleryAlbum, type GalleryImage } from "../api/gallery";
 import { PLACEHOLDER_ALBUMS } from "../data/gallery";
+import { armReveals } from "../lib/reveal";
 import HelpVideo from "../components/HelpVideo";
 
 /**
@@ -64,7 +65,7 @@ function Tile({
     <button
       type="button"
       className="gal-tile"
-      data-slot={index % 6}
+      data-slot={index % 10}
       onClick={onOpen}
       aria-label={image.title ? `Open ${image.title}` : "Open image"}
     >
@@ -192,6 +193,19 @@ export default function Gallery() {
   const [live, setLive] = useState(false);
   const [open, setOpen] = useState<{ album: number; index: number } | null>(null);
 
+  /* Tiles rise in as each album is scrolled to, once per visit. armReveals
+     sweeps positions rather than watching for intersection changes, so a
+     jump to an anchor or a restored scroll position cannot leave a whole
+     album stranded invisible — which on a page that is nothing but pictures
+     would be the entire page. Re-run when the albums land, because until
+     the fetch resolves there are no tiles to find. */
+  const albumsRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = albumsRef.current;
+    if (!el) return;
+    return armReveals(el, ".gal-tile");
+  }, [albums]);
+
   const ribbon = useRef<HTMLDivElement>(null);
   const rowA = useRef<HTMLDivElement>(null);
   const rowB = useRef<HTMLDivElement>(null);
@@ -288,7 +302,7 @@ export default function Gallery() {
   const openAlbum = open != null ? albums?.[open.album] : undefined;
 
   return (
-    <article className="dpage gal">
+    <article className="dpage dpage-ruled gal">
       {/* ---- header ----
           Type, not a photograph. Every other page on the site opens with a
           hero image; this one should not, because the first photographs a
@@ -339,6 +353,12 @@ export default function Gallery() {
           `data-tint` alternates the ground by the album's own position. A
           CSS :nth-child would count the header, the ribbon and the CTA as
           siblings too, and tint the wrong sections. */}
+      {/* A wrapper purely to give the tile reveal a root of its own. It adds
+          no layout — the sections inside stay full-bleed — and it keeps
+          `data-reveal-armed` off the <article>, where PageReveal already
+          puts one for the headings. Two arms on one element would mean the
+          first cleanup to run stripped the flag the other still needed. */}
+      <div className="gal-albums" ref={albumsRef}>
       {(albums ?? []).map((album, ai) => (
         <section className="gal-album" key={album.id} data-tint={ai % 2 === 1 || undefined}>
           <div className="container">
@@ -368,6 +388,7 @@ export default function Gallery() {
           </div>
         </section>
       ))}
+      </div>
 
       {albums !== null && !live ? (
         <div className="container">

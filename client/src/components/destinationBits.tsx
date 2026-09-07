@@ -24,10 +24,26 @@ export const Pin = () => (
   </svg>
 );
 
+/**
+ * The site's one arrow: long, thin, and drawn rather than typed.
+ *
+ * It used to be a stubby 16x16 chevron-on-a-stump. This is the same mark
+ * stretched out — a long shaft with a small head — which is what lets it sit
+ * at the end of a line of letter-spaced capitals and read as part of the
+ * same rule rather than as an icon bolted on.
+ *
+ * ONE DEFINITION, EVERY PAGE. It is used in seventy-odd places across
+ * twenty-three files, including the study-abroad pages: two arrow styles on
+ * one site read as an oversight, not a decision, and the nav and footer are
+ * shared anyway so the two would have ended up side by side.
+ *
+ * The thinner stroke is deliberate at this length — at the old weight of 2 a
+ * shaft this long looks like a rule with a barb on it.
+ */
 export const Arrow = () => (
-  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
-    strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    <path d="M5 12h14M13 6l6 6-6 6" />
+  <svg viewBox="0 0 34 12" width="34" height="12" fill="none" stroke="currentColor"
+    strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M0 6h31M25 1l6 5-6 5" />
   </svg>
 );
 

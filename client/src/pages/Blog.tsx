@@ -152,7 +152,7 @@ export default function Blog() {
   const rest = showLead ? items.slice(1) : items;
 
   return (
-    <article className="dpage blg">
+    <article className="dpage dpage-ruled blg">
       <header className="blg-head">
         <div className="container">
           <p className="dpage-eyebrow-sm">Blog &amp; articles</p>

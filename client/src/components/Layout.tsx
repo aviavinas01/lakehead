@@ -4,6 +4,7 @@ import Footer from "./Footer";
 import GoogleReviews from "./GoogleReviews";
 import ChatDock from "./ChatDock";
 import HeavyScroll from "./HeavyScroll";
+import PageReveal from "./PageReveal";
 
 export default function Layout() {
   return (
@@ -12,6 +13,9 @@ export default function Layout() {
           stands aside entirely on touch, under reduced motion, and over any
           inner scroller that can take the scroll itself — see the component. */}
       <HeavyScroll />
+      {/* Fades section headings in on the pages that carry `dpage-ruled`.
+          Renders nothing and does nothing anywhere else. */}
+      <PageReveal />
       <Navbar />
       <main>
         <Outlet />

@@ -177,7 +177,7 @@ export default function UniversityPartners() {
   const current = DESTINATIONS[slide];
 
   return (
-    <article className="dpage unip">
+    <article className="dpage dpage-ruled unip">
       <header className="dpage-hero">
         <div className="dpage-hero-bg">
           <Shot src="/universities/hero.jpg" alt="" />

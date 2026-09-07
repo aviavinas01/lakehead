@@ -17,6 +17,7 @@ export default function AdminNav() {
         <nav className="nav-links open">
           <Link to="/admin">Posts</Link>
           <Link to="/admin/media">Media</Link>
+          <Link to="/admin/tiktok">TikTok</Link>
           <Link to="/admin/inquiries">Inquiries</Link>
           {user?.role === "admin" && <Link to="/admin/users">Users</Link>}
           <Link to="/" target="_blank">View site</Link>

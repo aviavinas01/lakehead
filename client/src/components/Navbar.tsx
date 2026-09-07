@@ -123,6 +123,14 @@ export default function Navbar() {
      has children today (Test Preparation), but nothing here assumes that. */
   const [openSub, setOpenSub] = useState<string | null>(null);
   const [logoMissing, setLogoMissing] = useState(false);
+  /* WHICH SECTION IS EXPANDED IN THE PHONE DRAWER, and deliberately not the
+     same piece of state as `openMenu` above.
+     `openMenu` is driven by hover and describes the wide bar's panel; this
+     is driven by a tap and describes an accordion that only exists below the
+     breakpoint. Sharing one value would mean a phone tap leaving a desktop
+     panel open behind the drawer, and a window resized from narrow to wide
+     showing a panel nobody asked for. Two behaviours, two states. */
+  const [openDrawer, setOpenDrawer] = useState<string | null>(null);
   const headerRef = useRef<HTMLElement>(null);
 
   /* Close an open dropdown on Escape or on a click outside the header. */
@@ -192,7 +200,14 @@ export default function Navbar() {
     setOpenMenu(null);
     setOpenSub(null);
     setOpen(false);
+    setOpenDrawer(null);
   }, [pathname]);
+
+  /* Closing the drawer collapses whatever was expanded in it, so reopening
+     it starts from the top rather than wherever the last visit finished. */
+  useEffect(() => {
+    if (!open) setOpenDrawer(null);
+  }, [open]);
 
   /* A second-level panel belongs to its parent — when the parent closes or
      changes, it goes with it rather than hanging over the next one. */
@@ -388,7 +403,7 @@ export default function Navbar() {
                   to={item.to}
                   onClick={() => setOpen(false)}
                   /* Keyboard users get the same panel on focus, since there is
-                     no longer a caret button to press. */
+                     no longer a caret button to press on the wide bar. */
                   onFocus={() => setOpenMenu(item.menu ? item.label : null)}
                   aria-expanded={item.menu ? openMenu === item.label : undefined}
                   aria-controls={
@@ -398,6 +413,75 @@ export default function Navbar() {
                 >
                   {item.label}
                 </NavLink>
+
+                {/* THE CARET IS A SEPARATE CONTROL FROM THE LINK, and that
+                    is the whole point of it. Tapping the label still goes to
+                    the section's own page, the way it always has; tapping
+                    the caret opens the list instead. Making the label do
+                    both — navigate on one tap, expand on another — is the
+                    thing that makes phone menus feel broken.
+
+                    It is a real <button> so it is tabbable and announced,
+                    and CSS hides it above the breakpoint, where hovering
+                    the bar already opens the panel. */}
+                {item.menu ? (
+                  <button
+                    type="button"
+                    className="nav-caret"
+                    aria-label={`${
+                      openDrawer === item.label ? "Hide" : "Show"
+                    } ${item.label} sections`}
+                    aria-expanded={openDrawer === item.label}
+                    aria-controls={`drawer-${slug(item.label)}`}
+                    onClick={() =>
+                      setOpenDrawer((cur) =>
+                        cur === item.label ? null : item.label
+                      )
+                    }
+                  >
+                    {/* One chevron, turned over when open — a down arrow to
+                        open and an up arrow to close, which is the same mark
+                        rather than two that have to be kept in step. */}
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none"
+                      stroke="currentColor" strokeWidth="2" strokeLinecap="round"
+                      strokeLinejoin="round" aria-hidden="true">
+                      <path d="M6 9l6 6 6-6" />
+                    </svg>
+                  </button>
+                ) : null}
+
+                {/* The list itself. Rendered only while open, so a closed
+                    drawer carries no hidden links for a screen reader or the
+                    tab order to wander into — `display: none` would have hid
+                    it from sight only. Hidden outright above the breakpoint,
+                    where the mega panel does this job. */}
+                {item.menu && openDrawer === item.label ? (
+                  <ul className="nav-sub" id={`drawer-${slug(item.label)}`}>
+                    {item.menu.links.map((l) => (
+                      <li key={l.label}>
+                        <Link to={l.to} onClick={() => setOpen(false)}>
+                          {l.label}
+                        </Link>
+                        {/* A second level, shown flat rather than as another
+                            accordion. Test Preparation is the only entry
+                            with children, and burying nine tests behind a
+                            third tap to save nine lines of scrolling is a
+                            poor trade on a phone. */}
+                        {l.children?.length ? (
+                          <ul className="nav-sub-deep">
+                            {l.children.map((c) => (
+                              <li key={c.label}>
+                                <Link to={c.to} onClick={() => setOpen(false)}>
+                                  {c.label}
+                                </Link>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : null}
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
               </div>
             ))}
           </nav>

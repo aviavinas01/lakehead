@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
+import { ZOOM } from "../lib/parallax";
 
 /**
  * Cuts the hero headline out of the hero photograph, so the picture shows
@@ -28,6 +29,25 @@ import { useLocation } from "react-router-dom";
  *
  * Applied only to the study-abroad pages, and only to the H1 — the body copy
  * stays plain white, where it is legible.
+ *
+ * ------------------------------------------------------------------
+ * IT HAS TO FOLLOW THE PARALLAX. The hero photograph drifts inside its frame
+ * as the page scrolls (see lib/parallax), and a cut-out that stays put while
+ * the picture behind it moves is worse than no cut-out at all — the letters
+ * fill with a piece of sky that is visibly not the sky around them.
+ *
+ * So the geometry is split in two. `sync` does the measuring and runs only
+ * when something has actually changed size. `place` takes those cached
+ * numbers, adds however far the picture has drifted, and writes two custom
+ * properties — no layout read at all, which is what makes it safe to run on
+ * every scrolled frame.
+ *
+ * The drift is read straight off the image's own inline style, where the
+ * parallax engine puts it. That is a string read from an inline declaration,
+ * not a computed style, so it forces nothing. When the parallax is not
+ * running — touch, reduced motion — the class is absent, the offset reads
+ * empty, and this falls back to exactly the geometry it always used.
+ * ------------------------------------------------------------------
  */
 
 /* Where the effect belongs: the study-abroad landing page and the six
@@ -54,6 +74,35 @@ export default function HeroKnockout() {
       heading.classList.remove("is-knockout");
     };
 
+    /* Everything `place` needs, measured once and kept. */
+    let box = { w: 0, h: 0, dx: 0, dy: 0 };
+
+    /* No layout read in here — only arithmetic on the cached box plus the
+       drift the parallax has already written. Cheap enough for every frame. */
+    const place = () => {
+      if (!box.w) return;
+      /* The picture is enlarged about its own centre and then slid, so the
+         cut-out has to be enlarged about the same centre and slid to match.
+         With zoom 1 and no drift this reduces to the plain centred cover
+         crop, which is what it was before any of this. */
+      const zoom = img.classList.contains("px-shot") ? ZOOM : 1;
+      const drift = parseFloat(img.style.getPropertyValue("--px")) || 0;
+
+      const w = box.w * zoom;
+      const height = box.h * zoom;
+
+      /* The enlargement is about the picture's own centre, which is the
+         hero's centre — so its left edge is the centre less half the
+         enlarged width, and likewise vertically, plus the drift. With zoom 1
+         and no drift this is the plain centred cover crop the effect always
+         used. */
+      const px = box.dx - w / 2;
+      const py = box.dy - height / 2 + drift;
+
+      heading.style.setProperty("--ko-size", `${w}px ${height}px`);
+      heading.style.setProperty("--ko-pos", `${px}px ${py}px`);
+    };
+
     const sync = () => {
       const { naturalWidth: nw, naturalHeight: nh } = img;
       if (!nw || !nh) return clear();
@@ -62,18 +111,19 @@ export default function HeroKnockout() {
       const t = heading.getBoundingClientRect();
       if (!h.width || !t.width) return clear();
 
-      /* object-fit: cover, longhand */
+      /* object-fit: cover, longhand — the picture at zoom 1. */
       const scale = Math.max(h.width / nw, h.height / nh);
-      const w = nw * scale;
-      const height = nh * scale;
-      /* Centre the overflow, then shift by where the heading sits inside
-         the hero — that second term is the whole trick. */
-      const x = (h.width - w) / 2 - (t.left - h.left);
-      const y = (h.height - height) / 2 - (t.top - h.top);
+      box = {
+        w: nw * scale,
+        h: nh * scale,
+        /* The hero's centre, expressed relative to the heading — so `place`
+           can work entirely in the heading's own coordinates. */
+        dx: h.width / 2 - (t.left - h.left),
+        dy: h.height / 2 - (t.top - h.top),
+      };
 
       heading.style.setProperty("--ko-image", `url("${img.currentSrc || img.src}")`);
-      heading.style.setProperty("--ko-size", `${w}px ${height}px`);
-      heading.style.setProperty("--ko-pos", `${x}px ${y}px`);
+      place();
       heading.classList.add("is-knockout");
     };
 
@@ -92,9 +142,23 @@ export default function HeroKnockout() {
     ro.observe(hero);
     ro.observe(heading);
 
+    /* Re-place on scroll, because that is when the picture drifts. One
+       frame's work is two property writes; the measuring stays in `sync`. */
+    let raf = 0;
+    const onScroll = () => {
+      if (!raf)
+        raf = requestAnimationFrame(() => {
+          raf = 0;
+          place();
+        });
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+
     return () => {
       img.removeEventListener("load", sync);
       img.removeEventListener("error", clear);
+      window.removeEventListener("scroll", onScroll);
+      if (raf) cancelAnimationFrame(raf);
       ro.disconnect();
       clear();
     };

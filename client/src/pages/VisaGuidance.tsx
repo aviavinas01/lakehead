@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { PlaneIcon } from "../components/HeroOrbit";
 import { Check, Arrow, Shot } from "../components/destinationBits";
-import { revealInit } from "../lib/reveal";
+import { armReveals } from "../lib/reveal";
 import HelpVideo from "../components/HelpVideo";
 
 /**
@@ -21,40 +21,43 @@ import HelpVideo from "../components/HelpVideo";
  * most dangerous page a consultancy can publish.
  */
 
+/* Every stage ends in a link, which is the shape the block is built to —
+   label, heading, paragraph, then somewhere to go. The destinations are all
+   pages that exist and are genuinely the next thing for that stage; none of
+   them is a link added to fill the slot. */
 const STAGES = [
   {
+    to: "/contact",
+    linkLabel: "Talk to a counsellor",
     title: "Personalised guidance",
     text: "Every application is a set of particular circumstances, not a form. Our consultants sit down with yours — your course, your funding, your history — and work out how it lines up against what your specific route actually asks for. From there we tell you what needs preparing and in what order.",
     image: "/services/visa/guidance.jpg",
   },
   {
+    to: "/services/admission-guidance",
+    linkLabel: "See how we handle applications",
     title: "Application support",
     text: "We complete the application with you and get the documents in on time and in the form each route requires. Most avoidable problems are small ones — a date that disagrees with another document, a name spelled two ways, evidence held for a few days too few — and they are far easier to catch before submission than to explain afterwards.",
     image: "/services/visa/application.jpg",
   },
   {
+    to: "/services/test-preparation",
+    linkLabel: "How we prepare you",
     title: "Mock interviews",
     text: "Where your route involves an interview, we run it first. Real questions, real conditions, and honest feedback afterwards — which is usually about pace and clarity rather than content. Nobody explains their own plans well when it is the first time they have said them out loud.",
     image: "/services/visa/interview.jpg",
   },
   {
+    to: "/contact",
+    linkLabel: "Talk to a counsellor",
     title: "Ongoing support",
     text: "Submitting is not the end of it. Processing can take a while, and it is a genuinely anxious stretch — so we stay reachable for the questions that come up while you wait, and tell you plainly what is normal and what is worth acting on.",
     image: "/services/visa/support.jpg",
   },
 ];
 
-/** The dashed connector drawn between one stage and the next. */
-const Connector = () => (
-  <div className="vg-connector" aria-hidden="true">
-    <svg viewBox="0 0 200 120" preserveAspectRatio="none">
-      <path d="M170 0 C170 60 30 60 30 120" />
-    </svg>
-  </div>
-);
-
 export default function VisaGuidance() {
-  const stages = useRef<(HTMLDivElement | null)[]>([]);
+  const steps = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const previous = document.title;
@@ -64,38 +67,28 @@ export default function VisaGuidance() {
     };
   }, []);
 
-  /* One observer, every stage. `is-in` is added and the element is dropped
-     from the observer — a stage that has arrived stays arrived, so scrolling
-     back up does not replay the whole page at you. */
+  /* The copy fades up as each stage arrives; the photographs do not move at
+     all on arrival, because they already have the scroll drift and two
+     motions on one block read as fussiness.
+
+     THIS USES armReveals RATHER THAN AN OBSERVER OF ITS OWN, and the reason
+     is the failure mode. An IntersectionObserver reports a CHANGE in
+     intersection, and several ordinary things — an anchor jump, a fast
+     scroll, a restored scroll position on Back — move a block from below the
+     fold to above it between two frames without the intersection ever
+     changing from zero. The callback never fires, and the stage stays at
+     opacity 0 forever. armReveals sweeps positions instead of watching for
+     changes, so it cannot miss; and it sets `data-reveal-armed`, which is
+     what the CSS hangs its hiding off — so if this code never runs at all,
+     the stages are simply visible rather than permanently blank. */
   useEffect(() => {
-    const nodes = stages.current.filter((n): n is HTMLDivElement => !!n);
-    if (!nodes.length) return;
-
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      nodes.forEach((n) => n.classList.add("is-in"));
-      return;
-    }
-
-    const io = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (!entry.isIntersecting) continue;
-          entry.target.classList.add("is-in");
-          io.unobserve(entry.target);
-        }
-      },
-      /* Fires a little before the block is fully on screen, so the movement
-         is finishing as it reaches a comfortable reading position rather
-         than starting there. */
-      revealInit(0.15, "-10%")
-    );
-
-    nodes.forEach((n) => io.observe(n));
-    return () => io.disconnect();
+    const el = steps.current;
+    if (!el) return;
+    return armReveals(el, ".vg-step");
   }, []);
 
   return (
-    <article className="dpage">
+    <article className="dpage dpage-ruled">
       <header className="dpage-hero">
         <div className="dpage-hero-bg">
           <Shot src="/services/visa.jpg" alt="" />
@@ -140,25 +133,29 @@ export default function VisaGuidance() {
             Four stages, in the order you will meet them.
           </p>
 
-          <div className="vg-steps">
+          <div className="vg-steps" ref={steps}>
             {STAGES.map((s, i) => (
               <div key={s.title}>
-                {i > 0 && <Connector />}
-                <div
-                  className="vg-step"
-                  ref={(el) => {
-                    stages.current[i] = el;
-                  }}
-                >
+                <div className="vg-step">
                   <figure className="vg-shot">
                     <Shot src={s.image} alt="" />
                   </figure>
+                  {/* Label, heading, paragraph, link — in that order and
+                      each on its own line of the hierarchy. The stage number
+                      used to be a large outlined numeral over the heading;
+                      as a small label above it, it says the same thing and
+                      leaves the heading as the largest thing in the block,
+                      which is what makes the column read top to bottom. */}
                   <div className="vg-copy">
-                    <span className="vg-n" aria-hidden="true">
-                      {String(i + 1).padStart(2, "0")}
-                    </span>
+                    <p className="vg-eyebrow">
+                      Stage {String(i + 1).padStart(2, "0")}
+                    </p>
                     <h3>{s.title}</h3>
-                    <p>{s.text}</p>
+                    <p className="vg-text">{s.text}</p>
+                    <Link className="vg-link" to={s.to}>
+                      {s.linkLabel}
+                      <Arrow />
+                    </Link>
                   </div>
                 </div>
               </div>

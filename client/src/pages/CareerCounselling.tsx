@@ -122,7 +122,7 @@ export default function CareerCounselling() {
   }, []);
 
   return (
-    <article className="dpage cc">
+    <article className="dpage dpage-ruled cc">
       <header className="dpage-hero">
         <div className="dpage-hero-bg">
           <Shot src="/services/career.jpg" alt="" />

@@ -21,6 +21,24 @@ import HelpVideo from "./HelpVideo";
  * rather than six times.
  */
 
+/**
+ * A heading, in its parts.
+ *
+ * AN ACCENTED PHRASE IS QUOTED AS WELL AS COLOURED — “Australia?” rather
+ * than a plain coloured word. The marks do most of the work on their own,
+ * which lets the colour sit back and be an accent rather than the only thing
+ * saying "this is the phrase that matters"; and they make the heading read
+ * as the page repeating the reader's own question back at them, which is
+ * what these openings are.
+ *
+ * Curly, not straight. The straight ones are a typewriter's compromise and
+ * look like a code sample at display size.
+ *
+ * The marks live HERE and not in the data, so every guide gets them without
+ * five files having to remember, and dropping the treatment later is one
+ * edit rather than thirty. `outline` and `shout` parts are untouched: those
+ * are shapes rather than phrases, and quoting them would be quoting a
+ * texture. */
 function Head({ parts }: { parts: HeadPart[] }) {
   return (
     <>
@@ -34,79 +52,11 @@ function Head({ parts }: { parts: HeadPart[] }) {
               p.as === "accent" ? "h-accent" : p.as === "outline" ? "h-outline" : "usa-shout"
             }
           >
-            {p.text}
+            {p.as === "accent" ? `\u201C${p.text}\u201D` : p.text}
           </span>
         )
       )}
     </>
-  );
-}
-
-/** Tap-to-answer. The reply is the payload; the choice is just the way in. */
-function Choice({ block }: { block: Extract<Block, { t: "choice" }> }) {
-  const [picked, setPicked] = useState<string | null>(null);
-  const chosen = block.options.find((o) => o.key === picked);
-  return (
-    <div className="prompt" data-reveal>
-      <p className="prompt-tag">{block.tag}</p>
-      <h3>{block.question}</h3>
-      <div className="prompt-options">
-        {block.options.map((o) => (
-          <button
-            key={o.key}
-            type="button"
-            className={picked === o.key ? "is-on" : undefined}
-            onClick={() => setPicked(picked === o.key ? null : o.key)}
-            aria-pressed={picked === o.key}
-          >
-            <span aria-hidden="true">{o.key}</span>
-            {o.label}
-          </button>
-        ))}
-      </div>
-      <p className="prompt-reply" role="status" aria-live="polite">
-        {chosen ? chosen.reply : block.resting}
-      </p>
-    </div>
-  );
-}
-
-/** Keeps the joke: pick everything and it tells you what you have done. */
-function Priorities({ block }: { block: Extract<Block, { t: "priorities" }> }) {
-  const [picked, setPicked] = useState<string[]>([]);
-  const toggle = (p: string) =>
-    setPicked((c) => (c.includes(p) ? c.filter((x) => x !== p) : [...c, p]));
-
-  const reply =
-    picked.length === 0
-      ? "Pick your top three."
-      : picked.length === block.items.length
-        ? "Congratulations — you have invented a wish list, not a shortlist."
-        : picked.length > 3
-          ? `That is ${picked.length}. A shortlist means giving something up; try narrowing it to three.`
-          : picked.length === 3
-            ? "Three. That is a shortlist you can actually filter universities with."
-            : `${picked.length} so far — keep going.`;
-
-  return (
-    <div className="prompt" data-reveal>
-      <p className="prompt-tag">{block.tag}</p>
-      <h3>{block.question}</h3>
-      <div className="prompt-chips">
-        {block.items.map((p) => (
-          <button
-            key={p}
-            type="button"
-            className={picked.includes(p) ? "is-on" : undefined}
-            onClick={() => toggle(p)}
-            aria-pressed={picked.includes(p)}
-          >
-            {p}
-          </button>
-        ))}
-      </div>
-      <p className="prompt-reply" role="status" aria-live="polite">{reply}</p>
-    </div>
   );
 }
 
@@ -142,17 +92,6 @@ function Render({ block }: { block: Block }) {
           <p className="usa-warn-tag">{block.tag}</p>
           <p>{block.text}</p>
           {block.more && <p className="usa-warn-more">{block.more}</p>}
-        </div>
-      );
-    case "cards":
-      return (
-        <div className="usa-cards" data-reveal>
-          {block.items.map((c) => (
-            <div className="usa-card" key={c.title}>
-              <h3>{c.title}</h3>
-              <p>{c.text}</p>
-            </div>
-          ))}
         </div>
       );
     case "chips":
@@ -245,16 +184,6 @@ function Render({ block }: { block: Block }) {
           {block.caption && <figcaption>{block.caption}</figcaption>}
         </figure>
       );
-    case "callout":
-      return (
-        <div className="dpage-callout" data-reveal>
-          <h3>{block.title}</h3>
-          <p>{block.text}</p>
-          <Link className="dpage-callout-btn" to="/contact">
-            {block.cta} <Arrow />
-          </Link>
-        </div>
-      );
     case "req":
       return (
         <div className="dpage-req" data-reveal>
@@ -309,19 +238,6 @@ function Render({ block }: { block: Block }) {
             </table>
           </div>
           <p className="dpage-table-note">{block.note}</p>
-        </div>
-      );
-    case "choice":
-      return <Choice block={block} />;
-    case "priorities":
-      return <Priorities block={block} />;
-    case "reflect":
-      return (
-        <div className="prompt prompt-quiet" data-reveal>
-          <p className="prompt-tag">{block.tag}</p>
-          <h3>{block.question}</h3>
-          <p className="usa-fill">{block.line}</p>
-          <p className="prompt-reply">{block.reply}</p>
         </div>
       );
   }

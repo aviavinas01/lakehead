@@ -298,7 +298,7 @@ export default function Testimonials() {
   const googleUrl = google?.url ?? GOOGLE_MAPS_URL;
 
   return (
-    <article className="dpage rev">
+    <article className="dpage dpage-ruled rev">
       <header className="dpage-hero">
         <div className="dpage-hero-bg">
           <Shot src="/testimonials/hero.jpg" alt="" />

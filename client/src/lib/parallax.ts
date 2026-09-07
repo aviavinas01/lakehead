@@ -43,13 +43,28 @@
  * Total drift as a share of the frame's height — the picture travels half
  * this above centre and half below across a full pass through the window.
  *
- * THE STYLESHEET MUST COVER IT. `.px-shot` scales the image up to hide the
- * edges, and that scale has to be more than this: at 8% drift the picture
- * moves 4% each way, and a scale of 1.12 gives 6% of overhang. Raise this
- * without raising the scale and the frame will show its own background at
+ * THE ZOOM BELOW MUST COVER IT. The picture is enlarged to hide its edges,
+ * and that enlargement has to be more than this: at 20% drift the picture
+ * moves 10% each way, and a zoom of 1.3 leaves 15% of overhang. Raise this
+ * without raising the zoom and the frame will show its own background at
  * the extremes.
+ *
+ * It started at 8% against a 1.12 zoom, which was too polite to see —
+ * about sixteen pixels on a normal photograph, across a whole screen of
+ * scrolling. The point of the effect is that the picture visibly lags the
+ * page, and at that size nobody could tell it was moving at all.
  */
-const DRIFT = 0.08;
+export const DRIFT = 0.2;
+
+/**
+ * How far the picture is enlarged to make room for that drift, and the
+ * number the stylesheet's `.px-shot` scale must match.
+ *
+ * Exported because HeroKnockout has to reproduce this transform exactly —
+ * it cuts the headline out of the hero photograph, and a photograph that
+ * moves under a cut-out that does not is worse than no effect at all.
+ */
+export const ZOOM = 1.3;
 
 /** The image, and the untransformed box it is measured against. */
 const frames = new Map<HTMLElement, HTMLElement>();
@@ -69,7 +84,7 @@ function paint() {
   const vh = window.innerHeight;
 
   /* READ — every measurement first, nothing written yet. */
-  const pending: { el: HTMLElement; y: number }[] = [];
+  const pending: { el: HTMLElement; p: number; y: number }[] = [];
   for (const el of onScreen) {
     const frame = frames.get(el);
     if (!frame) continue;
@@ -79,15 +94,23 @@ function paint() {
     /* 0 as the frame's top edge reaches the bottom of the window, 1 as its
        bottom edge leaves the top. */
     const t = Math.min(1, Math.max(0, (vh - r.top) / span));
-    /* +half a drift at the start, -half at the end: the picture is pushed
-       DOWN as it enters (showing its upper part) and travels UP as you go,
-       which is the direction that reads as the scenery lagging behind. */
-    pending.push({ el, y: (1 - 2 * t) * ((r.height * DRIFT) / 2) });
+    /* +1 as the frame enters, 0 dead centre, -1 as it leaves. The drift is
+       this times half a drift's worth of pixels: the picture is pushed DOWN
+       as it enters (showing its upper part) and travels UP as you go, which
+       is the direction that reads as the scenery lagging behind. */
+    const p = 1 - 2 * t;
+    pending.push({ el, p, y: p * ((r.height * DRIFT) / 2) });
   }
 
   /* WRITE — and only now. */
-  for (const { el, y } of pending) {
+  for (const { el, p, y } of pending) {
     el.style.setProperty("--px", `${y.toFixed(2)}px`);
+    /* The same number unscaled, for anything that wants to lean on the
+       picture's progress without being in pixels. The stylesheet multiplies
+       it by an angle to tilt the frame — see --px-tilt on .px-shot. It is
+       written for every picture and costs a property set; whether it does
+       anything is decided entirely in CSS, per element. */
+    el.style.setProperty("--px-t", p.toFixed(4));
   }
 }
 
@@ -146,6 +169,7 @@ export function registerParallax(img: HTMLElement | null): () => void {
     onScreen.delete(img);
     img.classList.remove("px-shot");
     img.style.removeProperty("--px");
+    img.style.removeProperty("--px-t");
     if (frames.size === 0) stop();
   };
 }

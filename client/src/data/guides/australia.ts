@@ -41,28 +41,9 @@ export const AUSTRALIA_GUIDE: Guide = {
       head: ["The year runs ", { text: "upside down", as: "shout" }],
       blocks: [
         { t: "p", text: "This is the single most useful thing to understand about applying to Australia from Nepal, so it gets its own section." },
-        {
-          t: "cards",
-          items: [
-            { title: "February — the main intake", text: "The big one. Most programmes, most scholarships, most places. If you can make this work, make it work." },
-            { title: "July — the second intake", text: "Widely available and completely legitimate. Fewer programmes offer it, but it is a real option if February is too soon." },
-            { title: "Some September and November starts", text: "Available at certain institutions for certain programmes. Worth asking about if neither main intake suits you." },
-            { title: "Vocational courses", text: "Often run rolling or multiple intakes across the year rather than following the university calendar." },
-          ],
-        },
+        { t: "p", text: "February is the main intake and the one to aim for: most programmes, most scholarships, most places. July is the second, widely available and completely legitimate — fewer programmes offer it, but it is a real option if February is too soon. Some institutions also run September and November starts for particular programmes, and vocational courses often take students on rolling intakes across the year rather than following the university calendar." },
         { t: "pull", text: "Work backwards from your intake, not forwards from today. A February start means your visa application should be well underway by the previous October." },
-        {
-          t: "choice",
-          tag: "Quick choice",
-          question: "When are you realistically ready?",
-          resting: "There is no wrong answer here. There is only an answer that has been thought about and one that has not.",
-          options: [
-            { key: "A", label: "Next February — I want to move", reply: "Then everything needs to be moving now: English test, documents, applications, then the visa. Tight but very doable if you start this month." },
-            { key: "B", label: "July gives me more room", reply: "Sensible. It buys you a proper run at your English score and lets you apply without rushing the parts that matter." },
-            { key: "C", label: "A year out — I want to do this properly", reply: "The best position to be in. You can sit the test twice if needed, apply for competitive scholarships, and choose rather than settle." },
-            { key: "D", label: "I genuinely do not know yet", reply: "Fine. Start with the course and the budget; the intake will pick itself once you know what you are applying for." },
-          ],
-        },
+        { t: "p", text: "The question worth answering honestly is when you are realistically ready. If it is next February, everything has to move now — English test, documents, applications, then the visa; tight, but very doable if you start this month. July buys you a proper run at your English score and lets you apply without rushing the parts that matter. A year out is the best position to be in: you can sit the test twice if you need to, apply for the competitive scholarships, and choose rather than settle. And if you genuinely do not know yet, that is fine — start with the course and the budget, and the intake will pick itself." },
       ],
     },
     {
@@ -120,17 +101,7 @@ export const AUSTRALIA_GUIDE: Guide = {
       head: ["Where you study ", { text: "changes everything", as: "accent" }],
       blocks: [
         { t: "p", text: "The cities are genuinely different from one another, and the differences matter more than the map suggests." },
-        {
-          t: "cards",
-          items: [
-            { title: "Sydney", text: "The biggest, the busiest and the most expensive. A wide range of providers and the deepest job market in the country." },
-            { title: "Melbourne", text: "Culturally dense, student-heavy, and the city most students describe as the easiest to feel at home in. Four seasons in an afternoon." },
-            { title: "Brisbane", text: "Warmer, more relaxed, and growing fast as a student destination. Noticeably cheaper than Sydney." },
-            { title: "Adelaide", text: "A student-friendly city with a strong education sector and a very different pace from the eastern capitals." },
-            { title: "Perth", text: "Beaches, an outdoor life, and a genuinely isolated position — which some students love and others find hard." },
-            { title: "Canberra & Hobart", text: "The capital, home to major institutions and government; and a smaller island city with access to Tasmania's landscape." },
-          ],
-        },
+        { t: "p", text: "Sydney is the biggest, busiest and most expensive, with the widest range of providers and the deepest job market in the country. Melbourne is culturally dense and student-heavy, and the city most students describe as the easiest to feel at home in — four seasons in an afternoon notwithstanding. Brisbane is warmer, more relaxed, noticeably cheaper, and growing quickly as a student destination. Adelaide is student-friendly with a strong education sector and a very different pace from the eastern capitals. Perth offers beaches and an outdoor life from a genuinely isolated position, which some students love and others find hard. Canberra holds the major national institutions and government; Hobart is smaller, with Tasmania’s landscape on its doorstep." },
         { t: "quip", text: "One thing nobody mentions: some states offer additional post-study work time for graduates of regional institutions. If your plan extends past graduation, that is worth more than a slightly shinier city." },
       ],
     },
@@ -154,12 +125,7 @@ export const AUSTRALIA_GUIDE: Guide = {
             "What does the graduate outcome data say for this programme?",
           ],
         },
-        {
-          t: "priorities",
-          tag: "60-second shortlist check",
-          question: "What actually matters to you?",
-          items: ["Course strength", "Total cost", "City", "Post-study work rights", "Scholarship", "Pathway available", "Climate", "Nepali community"],
-        },
+        { t: "p", text: "Before you shortlist anything, name what actually matters to you: course strength, total cost, the city, post-study work rights, a scholarship, whether a pathway is available, the climate, the size of the Nepali community. Almost nobody wants all eight equally. The two or three you would not trade away are what a shortlist should be built from — and knowing which they are is most of the work." },
       ],
     },
     {
@@ -183,7 +149,7 @@ export const AUSTRALIA_GUIDE: Guide = {
           ],
         },
         { t: "p", text: "International tuition varies considerably between institutions, courses and locations, so check the current fees published for your specific programme rather than relying on an average figure. Study Australia also publishes a cost-of-living calculator worth running before you commit." },
-        { t: "callout", title: "Plan your budget before you apply", text: "We will help you build a realistic study budget covering tuition, living costs, insurance and the visa charge before you make a decision you cannot easily reverse.", cta: "Build my budget" },
+        { t: "p", text: "Work the money out properly before you commit to anything. Tuition for your actual programme, the city you are moving to, insurance, and the funds you have to evidence for the visa — that last one is what catches people out. A national average fits nobody, and we would rather build the real number with you than let you discover it later." },
       ],
     },
     {
@@ -222,16 +188,7 @@ export const AUSTRALIA_GUIDE: Guide = {
             { label: "Work rights", value: "While your course is in session", note: "Subject to your visa conditions" },
           ],
         },
-        {
-          t: "cards",
-          items: [
-            { title: "01 — Document preparation", text: "Understand exactly what your application needs, and get it into the right form the first time." },
-            { title: "02 — Application guidance", text: "Support through the process itself, so nothing is submitted half-answered." },
-            { title: "03 — Financial documentation", text: "Understanding the financial evidence relevant to your application, and how it must be presented." },
-            { title: "04 — Interview preparation", text: "Preparing for the questions and requirements that may apply to your circumstances." },
-            { title: "05 — Pre-departure guidance", text: "Getting ready for the move once your visa is approved." },
-          ],
-        },
+        { t: "p", text: "In practice that means understanding exactly what your application needs and getting it into the right form the first time; support through the application itself, so nothing is submitted half-answered; the financial evidence relevant to your circumstances and how it has to be presented; preparation for any interview or additional requirement that applies to you; and, once the visa is approved, getting ready for the move." },
         {
           t: "warn",
           tag: "Important",

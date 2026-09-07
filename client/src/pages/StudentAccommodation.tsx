@@ -122,7 +122,7 @@ export default function StudentAccommodation() {
   }, []);
 
   return (
-    <article className="dpage acc">
+    <article className="dpage dpage-ruled acc">
       <header className="dpage-hero">
         <div className="dpage-hero-bg">
           <Shot src="/services/accommodation.jpg" alt="" />
