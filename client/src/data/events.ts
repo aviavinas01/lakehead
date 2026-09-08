@@ -1,50 +1,19 @@
 /**
- * Upcoming events.
+ * The kinds of event Lakehead runs — editorial copy, not a schedule.
  *
- * EMPTY IS THE NORMAL STATE, not a bug. Lakehead runs events in bursts —
- * around intake deadlines, when a university sends a delegation, before a
- * departure season — and is quiet in between. So the page is built around
- * having nothing on, and the listing is what appears when something is
- * scheduled rather than the other way round.
+ * THE EVENTS THEMSELVES ARE NO LONGER HERE. They live in the database and
+ * are added from the admin (Events & news → Events); the /events page fetches
+ * them. This file used to hold an `EVENTS` array with a note saying "to
+ * announce one, add an entry below", and that instruction is now a trap: an
+ * entry added here would be typechecked, committed, deployed and never
+ * rendered. So the array is gone rather than left empty.
  *
- * TO ANNOUNCE ONE: add an entry below. Only `id`, `title`, `when` and
- * `blurb` are required; everything else is optional and the card leaves out
- * what is missing. Delete it once it has happened — nothing here filters by
- * date, deliberately, because "when" is free text (a university visit is
- * often "late March", not a timestamp) and a page that silently hid an entry
- * on a date boundary would be harder to trust than one you empty by hand.
- *
- * When these outgrow hand-editing, this array is the shape a small `Event`
- * collection would return — the page reads it through one import.
- */
-
-export type EventKind =
-  | "Information session"
-  | "University visit"
-  | "Workshop"
-  | "Mock test"
-  | "Pre-departure";
-
-export interface LakeheadEvent {
-  id: string;
-  title: string;
-  /** Free text — "Saturday 14 March, 11am", "Late March", "Every Friday". */
-  when: string;
-  blurb: string;
-  kind?: EventKind;
-  /** Which office, or "Online". */
-  where?: string;
-  /** Where to sign up, if it is not simply the contact form. */
-  registerUrl?: string;
-}
-
-/** Nothing scheduled. See the note above — this being empty is expected. */
-export const EVENTS: LakeheadEvent[] = [];
-
-/**
- * The kinds of thing that appear here when something is on. This is not a
- * schedule and does not claim to be one — it is here so that a visitor
- * arriving at an empty page learns what they would be waiting for.
+ * What stays is the list below, and deliberately so. It is not a schedule and
+ * does not claim to be one — it is what a visitor arriving at an empty page
+ * reads to learn what they would be waiting for. It changes when the business
+ * changes, roughly never, and putting it behind a form would mean maintaining
+ * a CRUD screen for five paragraphs that belong in the repository with the
+ * rest of the site's writing.
  */
 export const EVENT_KINDS: { name: string; text: string }[] = [
   {

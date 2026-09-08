@@ -26,6 +26,12 @@ const LINKS: NavItem[] = [
   /* One pill for both media tabs. `match` is the prefix list that lights it
      up, because the section answers to two addresses. */
   { to: "/admin/media", label: "Media", match: ["/admin/media", "/admin/tiktok"] },
+  /* Same arrangement: one pill, two addresses. See pages/admin/Happenings. */
+  {
+    to: "/admin/events",
+    label: "Events & news",
+    match: ["/admin/events", "/admin/news"],
+  },
   { to: "/admin/inquiries", label: "Inquiries" },
 ];
 

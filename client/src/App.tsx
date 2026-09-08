@@ -24,6 +24,7 @@ import Testimonials from "./pages/Testimonials";
 import UniversityPartners from "./pages/UniversityPartners";
 import Gallery from "./pages/Gallery";
 import Events from "./pages/Events";
+import News from "./pages/News";
 import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
 import Contact from "./pages/Contact";
@@ -33,6 +34,7 @@ import Posts from "./pages/admin/Posts";
 import PostEditor from "./pages/admin/PostEditor";
 import Inquiries from "./pages/admin/Inquiries";
 import Media from "./pages/admin/Media";
+import Happenings from "./pages/admin/Happenings";
 
 export default function App() {
   return (
@@ -66,6 +68,7 @@ export default function App() {
           <Route path="/university-partners" element={<UniversityPartners />} />
           <Route path="/gallery" element={<Gallery />} />
           <Route path="/events" element={<Events />} />
+          <Route path="/news" element={<News />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/blog/:slug" element={<BlogPost />} />
           <Route path="/contact" element={<Contact />} />
@@ -81,6 +84,9 @@ export default function App() {
               links keep working. See pages/admin/Media.tsx. */}
           <Route path="/admin/media" element={<Media />} />
           <Route path="/admin/tiktok" element={<Media />} />
+          {/* One section, two tabs — as with media above. */}
+          <Route path="/admin/events" element={<Happenings />} />
+          <Route path="/admin/news" element={<Happenings />} />
           <Route path="/admin/inquiries" element={<Inquiries />} />
         </Route>
 

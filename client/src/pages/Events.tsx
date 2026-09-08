@@ -1,7 +1,10 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Arrow } from "../components/destinationBits";
-import { EVENTS, EVENT_KINDS } from "../data/events";
+import { EVENT_KINDS } from "../data/events";
+import { fetchEvents, type LakeheadEvent } from "../api/happenings";
+import { mediaSrc } from "../api/media";
+import { formatWhen } from "../lib/datetime";
 import { contact } from "../config/contact";
 import HelpVideo from "../components/HelpVideo";
 
@@ -17,12 +20,17 @@ import HelpVideo from "../components/HelpVideo";
  * visitor knows what they would be waiting for, and gives them two ways to
  * hear about the next one.
  *
- * WHEN SOMETHING IS SCHEDULED, adding an entry to EVENTS in data/events.ts
- * replaces the empty state with a listing. No code changes, and the "what we
- * usually run" section stays underneath as context either way.
+ * WHEN SOMETHING IS SCHEDULED, publishing it in the admin replaces the empty
+ * state with a listing. The "what we usually run" section stays underneath as
+ * context either way — it is editorial, not a schedule, so it is still a
+ * constant in data/events.ts rather than something to maintain in a form.
  */
 
 export default function Events() {
+  /* null while the list is still being fetched — distinct from an empty
+     array, which is a real answer this page is designed around. */
+  const [events, setEvents] = useState<LakeheadEvent[] | null>(null);
+
   useEffect(() => {
     const previous = document.title;
     document.title = "Events | Lakehead Education";
@@ -31,7 +39,23 @@ export default function Events() {
     };
   }, []);
 
-  const nothingOn = EVENTS.length === 0;
+  useEffect(() => {
+    let off = false;
+    /* A failure reads as "nothing scheduled" rather than as an error. The
+       page already has a complete, useful design for having nothing on, and
+       showing it beats an apology for a fetch a visitor cannot act on. */
+    fetchEvents()
+      .then((list) => !off && setEvents(list))
+      .catch(() => !off && setEvents([]));
+    return () => {
+      off = true;
+    };
+  }, []);
+
+  /* Empty is the assumption until told otherwise, which is the right way
+     round here: it is by far the commoner answer, so the headline does not
+     flicker through "Coming up" on its way to the truth. */
+  const nothingOn = (events?.length ?? 0) === 0;
 
   return (
     <article className="dpage dpage-ruled evt">
@@ -111,13 +135,25 @@ export default function Events() {
         <section className="evt-list-section">
           <div className="container">
             <ul className="evt-list">
-              {EVENTS.map((e) => (
-                <li className="evt-card" key={e.id}>
+              {(events ?? []).map((e) => (
+                <li className="evt-card" key={e._id}>
                   <div className="evt-card-when">
-                    <span>{e.when}</span>
+                    {/* Words win over the timestamp when both are set — a
+                        university visit is often "late March", and saying
+                        so is more honest than inventing an hour for it. */}
+                    <span>{e.when || formatWhen(e.startsAt)}</span>
                     {e.kind ? <em>{e.kind}</em> : null}
                   </div>
                   <div className="evt-card-body">
+                    {e.image ? (
+                      <img
+                        className="evt-card-shot"
+                        src={mediaSrc(e.image)}
+                        alt=""
+                        loading="lazy"
+                        decoding="async"
+                      />
+                    ) : null}
                     <h2>{e.title}</h2>
                     <p>{e.blurb}</p>
                     {e.where ? <p className="evt-card-where">{e.where}</p> : null}

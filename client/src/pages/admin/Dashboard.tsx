@@ -4,6 +4,7 @@ import api from "../../api/client";
 import AdminNav from "./AdminNav";
 import { useAuth } from "../../context/AuthContext";
 import { fetchGallery, type GalleryAlbum } from "../../api/gallery";
+import { fetchAllEvents, fetchAllNews, type LakeheadEvent, type NewsItem } from "../../api/happenings";
 import type { Inquiry, Paginated, Post } from "../../types/api";
 
 /**
@@ -67,6 +68,8 @@ export default function Dashboard() {
   const [clips, setClips] = useState<Clip[] | null>(null);
   const [inquiries, setInquiries] = useState<Inquiry[] | null>(null);
   const [live, setLive] = useState<GalleryAlbum[] | null>(null);
+  const [events, setEvents] = useState<LakeheadEvent[] | null>(null);
+  const [news, setNews] = useState<NewsItem[] | null>(null);
 
   useEffect(() => {
     let off = false;
@@ -89,6 +92,8 @@ export default function Dashboard() {
       .catch(() => ok(setClips)([]));
 
     fetchGallery().then(ok(setLive)).catch(() => ok(setLive)([]));
+    fetchAllEvents().then(ok(setEvents)).catch(() => ok(setEvents)([]));
+    fetchAllNews().then(ok(setNews)).catch(() => ok(setNews)([]));
 
     (async () => {
       const all: Inquiry[] = [];
@@ -115,6 +120,8 @@ export default function Dashboard() {
   const drafts = (posts?.length ?? 0) - published;
   const livePublished = clips?.filter((c) => c.published).length ?? 0;
   const fresh = inquiries?.filter((i) => i.status === "new").length ?? 0;
+  const eventsLive = events?.filter((e) => e.published).length ?? 0;
+  const newsLive = news?.filter((n) => n.published).length ?? 0;
   const months = byMonth(inquiries ?? []);
   const peak = Math.max(1, ...months.map((m) => m.count));
   const recent = (inquiries ?? []).slice(0, 5);
@@ -135,6 +142,7 @@ export default function Dashboard() {
               <Link to="/admin/posts/new">Write a post</Link>
               <Link to="/admin/media">Add pictures</Link>
               <Link to="/admin/tiktok">Add a clip</Link>
+              <Link to="/admin/events">Add an event</Link>
             </div>
           </div>
 
@@ -175,6 +183,22 @@ export default function Dashboard() {
               clips === null ? "" : `${(clips.length ?? 0) - livePublished} hidden`
             }
             to="/admin/tiktok"
+          />
+          <Stat
+            label="Events"
+            value={events === null ? null : eventsLive}
+            note={
+              events === null
+                ? ""
+                : `${(events.length ?? 0) - eventsLive} in draft`
+            }
+            to="/admin/events"
+          />
+          <Stat
+            label="News links"
+            value={news === null ? null : newsLive}
+            note={news === null ? "" : `${(news.length ?? 0) - newsLive} hidden`}
+            to="/admin/news"
           />
           <Stat
             label="Gallery albums"

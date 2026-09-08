@@ -7,6 +7,8 @@ import mediaRoutes from "./media.routes.js";
 import googleRatingRoutes from "./googleRating.routes.js";
 import youtubeRoutes from "./youtube.routes.js";
 import tiktokRoutes from "./tiktok.routes.js";
+import eventRoutes from "./event.routes.js";
+import newsRoutes from "./news.routes.js";
 import gateRoutes from "./gate.routes.js";
 
 const v1 = Router();
@@ -24,6 +26,11 @@ v1.use("/media", mediaRoutes);
 v1.use("/google-rating", googleRatingRoutes);
 v1.use("/youtube", youtubeRoutes);
 v1.use("/tiktok", tiktokRoutes);
+/* Both entirely ours — nothing is fetched from anywhere. An event exists
+   because the office typed it in; a news item is a link the office chose to
+   point at. See the models for why neither reads the site it references. */
+v1.use("/events", eventRoutes);
+v1.use("/news", newsRoutes);
 v1.use("/gate", gateRoutes);
 
 export default v1;

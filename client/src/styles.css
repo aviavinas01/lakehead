@@ -8254,3 +8254,177 @@ a.rev-score:hover { background: rgba(255, 255, 255, 0.08); }
 @media (prefers-reduced-motion: reduce) {
   .alog-field input, .alog-go { transition: none; }
 }
+
+/* ============================================================
+   EVENTS & NEWS — the admin section (pages/admin/Happenings.tsx)
+   and the public news listing (pages/News.tsx).
+   ============================================================ */
+
+/* ---- the admin forms ---- */
+.hap-form {
+  margin: 0 0 1.75rem; padding: 1.25rem 1.4rem 1.4rem;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border); border-radius: 12px;
+}
+.hap-form-title {
+  margin: 0 0 1rem; font-family: var(--font-display);
+  font-size: 1.05rem; font-weight: 700; color: var(--color-hero-ink);
+}
+
+/* Two columns of fields, with the long ones spanning both. Fixed at two
+   rather than auto-fitting: these are labelled inputs and a third column
+   makes the labels wider than the values they describe. */
+.hap-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 0.9rem 1rem; }
+.hap-fields > label { display: grid; align-content: start; gap: 0.3rem; }
+.hap-wide { grid-column: 1 / -1; }
+
+.hap-label {
+  font-size: 0.72rem; font-weight: 600; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--color-muted);
+}
+.hap-hint { font-size: 0.75rem; color: var(--color-muted); }
+
+.hap-fields input, .hap-fields select, .hap-fields textarea,
+.hap-image input[type="text"] {
+  width: 100%; padding: 0.55rem 0.7rem;
+  font: inherit; font-size: 0.9rem; color: var(--color-text);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border); border-radius: 8px;
+}
+.hap-fields textarea { resize: vertical; line-height: 1.5; }
+.hap-fields input:focus, .hap-fields select:focus, .hap-fields textarea:focus,
+.hap-image input[type="text"]:focus {
+  outline: none; border-color: var(--color-hero-ink);
+  box-shadow: 0 0 0 3px rgba(23, 39, 92, 0.08);
+}
+
+.hap-form-actions { display: flex; gap: 0.6rem; margin-top: 1.1rem; }
+.hap-form-actions button, .hap-actions button, .hap-image-buttons button {
+  padding: 0.5rem 1rem; font: inherit; font-size: 0.85rem; font-weight: 600;
+  color: #fff; background: var(--color-hero-ink);
+  border: 1px solid var(--color-hero-ink); border-radius: 8px; cursor: pointer;
+}
+.hap-form-actions button:disabled { opacity: 0.55; cursor: not-allowed; }
+/* Secondary and destructive both drop the fill — one colour, three weights,
+   rather than a new hue for every kind of button. */
+.hap-quiet, .hap-actions button, .hap-image-buttons button {
+  color: var(--color-hero-ink); background: none; border-color: var(--color-border);
+}
+.hap-quiet:hover, .hap-actions button:hover, .hap-image-buttons button:hover {
+  border-color: var(--color-hero-ink);
+}
+.hap-del, .hap-actions .hap-del { color: var(--color-danger); }
+.hap-del:hover, .hap-actions .hap-del:hover { border-color: var(--color-danger); }
+
+/* ---- the picture control ---- */
+.hap-image { display: grid; gap: 0.3rem; }
+.hap-image-row { display: flex; gap: 0.75rem; align-items: flex-start; }
+.hap-image-controls { flex: 1 1 auto; display: grid; gap: 0.45rem; }
+.hap-image-buttons { display: flex; gap: 0.5rem; }
+
+/* Fixed box with its own ground, so an empty slot, a slow file and a broken
+   address all look the same rather than collapsing the row. */
+.hap-thumb {
+  flex: none; display: block; width: 84px; height: 60px;
+  overflow: hidden; border-radius: 8px;
+  background: var(--color-surface); border: 1px solid var(--color-border);
+}
+.hap-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+/* ---- the list ---- */
+.hap-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.75rem; }
+.hap-item {
+  display: flex; gap: 1rem; align-items: flex-start;
+  padding: 0.9rem 1rem;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border); border-radius: 12px;
+}
+/* Unpublished rows are dimmed rather than hidden or badged only: the state
+   should be readable from across the list, not one word at the end of it. */
+.hap-item[data-off] { opacity: 0.62; }
+.hap-item-editing { display: block; }
+
+.hap-body { flex: 1 1 auto; display: grid; gap: 0.3rem; min-width: 0; }
+.hap-name {
+  font-family: var(--font-display); font-size: 1rem; font-weight: 700;
+  color: var(--color-hero-ink); line-height: 1.3;
+}
+.hap-meta {
+  display: flex; flex-wrap: wrap; gap: 0.5rem 0.85rem;
+  font-size: 0.78rem; color: var(--color-muted);
+}
+.hap-meta a { color: var(--color-hero-red); }
+.hap-draft {
+  font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--color-hero-red);
+}
+/* Two lines and then an ellipsis: enough to recognise the entry, never
+   enough for one long description to bury the rest of the list. */
+.hap-blurb {
+  font-size: 0.85rem; line-height: 1.5; color: #52586a;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.hap-actions { flex: none; display: flex; flex-direction: column; gap: 0.4rem; }
+
+@media (max-width: 720px) {
+  .hap-fields { grid-template-columns: 1fr; }
+  .hap-wide { grid-column: auto; }
+  .hap-item { flex-wrap: wrap; }
+  .hap-actions { flex-direction: row; width: 100%; }
+}
+
+/* ---- the public news listing ---- */
+.news-section { padding: clamp(2rem, 5vw, 3.5rem) 0 clamp(3rem, 7vw, 5rem); }
+.news-quiet { color: var(--color-muted); }
+
+.news-empty { max-width: 46rem; }
+.news-empty h2 {
+  margin: 0 0 0.75rem; font-family: var(--font-display);
+  font-size: clamp(1.4rem, 3vw, 1.9rem); font-weight: 800;
+  letter-spacing: -0.02em; color: var(--color-hero-ink);
+}
+.news-empty p { margin: 0 0 1.5rem; color: #52586a; line-height: 1.65; }
+
+.news-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 1.25rem; }
+.news-card { border-bottom: 1px solid var(--color-border); padding-bottom: 1.25rem; }
+.news-card:last-child { border-bottom: none; }
+/* The whole card is one link — a headline that is clickable and a summary
+   beside it that is not makes the target a guessing game. */
+.news-card > a {
+  display: grid; grid-template-columns: 260px 1fr; gap: clamp(1rem, 3vw, 2rem);
+  align-items: start; color: inherit;
+}
+.news-shot {
+  display: block; aspect-ratio: 16 / 10; overflow: hidden; border-radius: 10px;
+  background: var(--color-surface);
+}
+.news-shot img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.news-body { display: grid; gap: 0.45rem; min-width: 0; }
+.news-meta {
+  display: flex; flex-wrap: wrap; gap: 0.4rem 0.85rem;
+  font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--color-muted);
+}
+.news-title {
+  font-family: var(--font-display); font-weight: 800;
+  font-size: clamp(1.15rem, 2.2vw, 1.5rem); line-height: 1.25;
+  letter-spacing: -0.02em; color: var(--color-hero-ink);
+}
+.news-summary { color: #52586a; line-height: 1.6; }
+.news-go {
+  display: inline-flex; align-items: center; gap: 0.4rem; margin-top: 0.2rem;
+  font-weight: 700; font-size: 0.9rem; color: var(--color-hero-red);
+}
+.news-card > a:hover .news-title { color: var(--color-hero-red); }
+
+@media (max-width: 760px) {
+  .news-card > a { grid-template-columns: 1fr; }
+  .news-shot { aspect-ratio: 16 / 9; }
+}
+
+/* ---- an event's picture on the public card ---- */
+.evt-card-shot {
+  display: block; width: 100%; max-height: 260px; object-fit: cover;
+  border-radius: 10px; margin-bottom: 1rem;
+}

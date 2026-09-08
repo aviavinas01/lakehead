@@ -102,7 +102,7 @@ const links: NavItem[] = [
       lead: "Guides, documents, and updates to help you prepare with confidence.",
       links: [
         { label: "Blog & Articles", to: "/blog" },
-        { label: "News", to: "/blog" },
+        { label: "News", to: "/news" },
         { label: "Useful Documents", to: "/blog" },
         /* Events had an entry here as well as its own top-level nav item.
            One route, one way in — the top-level link is the one that stays. */
