@@ -126,7 +126,7 @@ export default function Login() {
           {error ? <p className="alog-error" role="alert">{error}</p> : null}
           {left > 0 && !error ? (
             <p className="alog-hint">
-              Access expires in {minutes} minute{minutes === 1 ? "" : "s"}.
+              {minutes}
             </p>
           ) : null}
         </form>
