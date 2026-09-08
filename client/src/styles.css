@@ -7585,84 +7585,127 @@ a.rev-score:hover { background: rgba(255, 255, 255, 0.08); }
 }
 
 /* ============================================================
-   The free-counselling prompt (components/ConsultPopup.tsx) —
-   a panel that slides in from the left at the foot of the
-   window, and slides back out the way it came.
+   The free-counselling offer (components/ConsultPopup.tsx) —
+   a two-panel dialog over a blurred, frozen page: picture on
+   the left, the offer on the right.
    ============================================================ */
-/* Square, white, one hairline. No radius, no fill, no second colour: this
-   arrives uninvited, so the least it can do is look like part of the page
-   rather than something pasted over it. Flush into the corner, because a
-   square panel floating a few pixels off two edges reads as a mistake.
-
-   Layer 120 puts it above the page and the chat dock's 90 — they are in
-   opposite corners, but a panel that could be half-covered by a button is
-   not worth the risk — and below the review reader (200) and the loading
-   splash (300), which must always be the last things on screen. */
-.cpop {
-  position: fixed; left: 0; bottom: 0; z-index: 120;
-  width: min(680px, calc(100vw - 1.5rem));
-  padding: 2.4rem 2.6rem 2.6rem;
-  background: var(--color-bg);
-  border-top: 1px solid var(--color-border);
-  border-right: 1px solid var(--color-border);
-  box-shadow: 0 -6px 40px -18px rgba(9, 16, 38, 0.28);
-  transform: translateX(-100%);
-  animation: cpop-in 0.46s cubic-bezier(0.22, 0.9, 0.28, 1) forwards;
+/* Layer 210 puts it above the page, the chat dock (90) and the review reader
+   (200), and below the loading splash (300) — which must always be the last
+   thing on screen, since a dialog fading in behind a splash is a dialog
+   nobody sees arrive. */
+.cpop-veil {
+  position: fixed; inset: 0; z-index: 210;
+  display: grid; place-items: center;
+  padding: 1.5rem;
+  background: rgba(9, 16, 38, 0.42);
+  /* "A little bit" — enough to push the page back without hiding what the
+     reader was looking at, which is the thing that makes an interruption
+     feel survivable. A viewport-sized backdrop-filter is expensive, and
+     affordable here for one reason only: the page underneath is frozen
+     while it is up, so the blur is composited once rather than per frame. */
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  /* Belt and braces with the scroll lock in the component: this stops a
+     touch drag on the backdrop chaining through to the page behind. */
+  overscroll-behavior: contain;
+  animation: cpop-veil-in 0.28s ease forwards;
 }
 /* A DIFFERENT KEYFRAME NAME, not the same one reversed. Changing
-   animation-direction on a name that is already running — and has already
-   finished, with `forwards` holding it at its end — does not start the
-   animation again, so the panel simply vanished instead of leaving. Two
-   named animations means the browser sees a new one and runs it. */
-.cpop[data-state="out"] {
-  animation: cpop-out 0.42s cubic-bezier(0.4, 0, 0.7, 0.2) forwards;
+   animation-direction on a name that has already finished — with `forwards`
+   holding it at its end — does not start it again, so the dialog simply
+   vanished instead of leaving. Two names means the browser sees a new
+   animation and runs it. */
+.cpop-veil[data-state="out"] { animation: cpop-veil-out 0.3s ease forwards; }
+@keyframes cpop-veil-in  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes cpop-veil-out { from { opacity: 1; } to { opacity: 0; } }
+
+/* 800 x 505, split 259 / 539 — the reference's proportions, kept as
+   fractions so the two panels hold their ratio at whatever width the
+   viewport forces on them.
+
+   `min-height` and not `height`: at this content it settles at exactly 505,
+   and if a longer line or a larger font ever needs more it grows instead of
+   clipping. The max-height is the short-window backstop. */
+.cpop {
+  display: grid; grid-template-columns: 259fr 539fr;
+  width: min(800px, 100%);
+  min-height: 505px; max-height: calc(100vh - 3rem);
+  overflow: hidden;
+  background: var(--color-bg);
+  border-radius: 14px;
+  box-shadow: 0 30px 80px -20px rgba(9, 16, 38, 0.45);
+  animation: cpop-in 0.32s cubic-bezier(0.22, 0.9, 0.28, 1) forwards;
 }
+/* It takes focus on arrival, and a ring round the whole dialog is noise —
+   the controls inside it keep their own. */
+.cpop:focus { outline: none; }
+/* The rise is four pixels. It is a fade — this is only here so the box does
+   not appear pinned to the middle of the screen out of nothing. */
 @keyframes cpop-in {
-  from { transform: translateX(-100%); }
-  to   { transform: translateX(0); }
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: none; }
 }
-@keyframes cpop-out {
-  from { transform: translateX(0); }
-  to   { transform: translateX(-100%); }
+
+/* ---- the left panel ----
+   Its own background colour, so a picture that is missing, slow or broken
+   leaves a deliberate navy panel rather than a white gap. */
+.cpop-art { position: relative; overflow: hidden; background: var(--color-hero-ink); }
+.cpop-art img {
+  position: absolute; inset: 0; display: block;
+  width: 100%; height: 100%; object-fit: cover;
+}
+/* Sunk slightly, so any photograph dropped in here carries the same weight
+   as the reference's solid panel and the white half stays the brighter
+   side of the dialog. */
+.cpop-art::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(200deg, rgba(9, 16, 38, 0.15), rgba(9, 16, 38, 0.5));
+}
+
+/* ---- the right panel ---- */
+.cpop-body {
+  position: relative;
+  display: flex; flex-direction: column; justify-content: center;
+  padding: 2.75rem 2.6rem;
+  overflow-y: auto;
 }
 
 .cpop-close {
-  position: absolute; top: 0.9rem; right: 0.9rem;
-  display: grid; place-items: center; width: 30px; height: 30px;
-  padding: 0; border: 0; background: none; cursor: pointer;
+  position: absolute; top: 1rem; right: 1rem;
+  display: grid; place-items: center; width: 34px; height: 34px;
+  padding: 0; border: 0; border-radius: 50%; background: none; cursor: pointer;
   color: var(--color-muted);
-  transition: color 0.15s ease;
+  transition: color 0.15s ease, background-color 0.15s ease;
 }
-.cpop-close:hover { color: var(--color-hero-ink); }
+.cpop-close:hover { color: var(--color-hero-ink); background: var(--color-surface); }
 .cpop-close:focus-visible { outline: 2px solid var(--color-hero-ink); outline-offset: 2px; }
 
 .cpop-eyebrow {
   margin: 0 0 0.6rem; color: var(--color-muted);
-  font-size: 0.75rem; font-weight: 600;
+  font-size: 0.72rem; font-weight: 600;
   letter-spacing: 0.12em; text-transform: uppercase;
 }
 .cpop-title {
-  margin: 0 0 0.9rem; color: var(--color-hero-ink);
+  margin: 0 0 1rem; color: var(--color-hero-ink);
   font-family: var(--font-display); font-weight: 800;
-  font-size: clamp(1.6rem, 2.6vw, 2.15rem);
+  font-size: clamp(1.5rem, 2.2vw, 1.95rem);
   line-height: 1.15; letter-spacing: -0.03em;
-  max-width: 24ch;
 }
-/* Plain rules between the points rather than bullets or ticks — the list is
-   three short lines and does not need marking as a list twice. */
-.cpop-points { list-style: none; margin: 0 0 1.75rem; padding: 0; }
+
+.cpop-points { list-style: none; margin: 0 0 1.6rem; padding: 0; }
 .cpop-points li {
-  padding: 0.75rem 0; color: #52586a;
-  font-size: 1rem; line-height: 1.5;
+  padding: 0.7rem 0; color: #52586a;
+  font-size: 0.95rem; line-height: 1.5;
   border-top: 1px solid var(--color-border);
 }
 
-.cpop-actions { display: flex; flex-wrap: wrap; gap: 0.65rem; }
+/* Stacked and full width, following the reference: one obvious action, with
+   the second way in underneath it rather than competing beside it. */
+.cpop-actions { display: grid; gap: 0.6rem; }
 .cpop-btn {
-  display: inline-flex; align-items: center; gap: 0.5rem;
-  padding: 0.95rem 1.7rem;
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+  padding: 0.95rem 1.7rem; border-radius: 8px;
   background: var(--color-hero-ink); color: #fff;
-  font-family: var(--font-display); font-weight: 700; font-size: 1rem;
+  font-family: var(--font-display); font-weight: 700; font-size: 0.98rem;
   transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }
 .cpop-btn:hover { background: #0f1d47; color: #fff; }
@@ -7678,22 +7721,32 @@ a.rev-score:hover { background: rgba(255, 255, 255, 0.08); }
   border-color: var(--color-hero-ink);
 }
 
-@media (max-width: 560px) {
+/* Narrow enough and a 32% column is a stripe rather than a picture, so the
+   two panels stack and it becomes a band across the top. The fixed height
+   goes with the split — stacked, the box is as tall as its contents. */
+@media (max-width: 720px) {
   .cpop {
-    width: 100%; padding: 1.6rem 1.35rem 1.6rem;
-    border-right: 0;
+    grid-template-columns: 1fr; grid-template-rows: 132px auto;
+    min-height: 0;
   }
-  .cpop-points li { padding: 0.55rem 0; font-size: 0.92rem; }
-  .cpop-actions .cpop-btn { flex: 1 1 auto; justify-content: center; }
+  .cpop-body { padding: 2rem 1.6rem; }
+  .cpop-title { font-size: 1.45rem; }
+  .cpop-points li { padding: 0.55rem 0; font-size: 0.9rem; }
+}
+/* Below this the band costs more room than it earns. */
+@media (max-width: 420px) {
+  .cpop-veil { padding: 1rem; }
+  .cpop { grid-template-rows: auto; }
+  .cpop-art { display: none; }
 }
 
-/* It still arrives and still leaves; it just stops sliding to do it. */
+/* It still arrives and still leaves; it just stops moving to do it. The
+   fade stays — an element that appears between one frame and the next reads
+   as a glitch, which is not what this setting is asking for. */
+@keyframes cpop-fade-in { from { opacity: 0; } to { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) {
-  .cpop { animation: none; transform: none; }
-  .cpop[data-state="out"] { animation: none; }
-  .cpop[data-state="out"] { display: none; }
+  .cpop { animation-name: cpop-fade-in; }
 }
-
 
 /* ============================================================
    THE ADMIN (pages/admin/*) — a reading screen on the site's own palette.
