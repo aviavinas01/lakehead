@@ -7937,28 +7937,135 @@ a.rev-score:hover { background: rgba(255, 255, 255, 0.08); }
   color: var(--color-muted);
 }
 
-/* ---- the chart ----
-   Twelve bars of plain markup. A charting library for twelve numbers would
-   outweigh the rest of the admin bundle several times over. */
-.adm-chart {
+/* ---- the graph, and the controls over it ----
+   Replaces a row of twelve divs. It is still drawn by hand: a charting
+   library is 40-150kB gzipped and would more than double the admin bundle to
+   plot twelve numbers. See pages/admin/InquiryChart.tsx.
+
+   The old markup used `.adm-bar` for a chart column, which is also the class
+   on the sticky admin header — so the header was quietly inheriting
+   `display: grid` and `height: 100%` from a chart it has nothing to do with.
+   Both names are gone; nothing here is shared with the bar. */
+.adm-toggles { display: flex; align-items: center; gap: 0.3rem; flex-wrap: wrap; }
+.adm-toggle-gap { width: 0.6rem; }
+.adm-toggles button {
+  padding: 0.32rem 0.7rem; border-radius: 999px;
+  font: inherit; font-size: 0.78rem; font-weight: 600;
+  color: var(--color-muted); background: none;
+  border: 1px solid transparent; cursor: pointer;
+  transition: color 0.15s ease, background-color 0.15s ease;
+}
+.adm-toggles button:hover { color: var(--color-hero-ink); background: var(--color-surface); }
+.adm-toggles button.is-on {
+  color: var(--color-hero-ink); background: var(--color-surface);
+  border-color: var(--color-border);
+}
+
+.adm-plot { display: grid; gap: 0.45rem; }
+/* preserveAspectRatio="none" in the markup: the drawing stretches to this
+   box, which is why the month labels below are HTML and not SVG text —
+   text inside would stretch with the picture. */
+.adm-plot-svg {
+  display: block; width: 100%;
+  height: clamp(150px, 20vh, 220px);
+  overflow: visible; border-radius: 8px;
+}
+.adm-plot-svg:focus-visible { outline: 2px solid var(--color-hero-ink); outline-offset: 3px; }
+
+.adm-plot-rule { stroke: var(--color-border); stroke-width: 1; }
+.adm-plot-area { fill: rgba(185, 56, 21, 0.1); }
+.adm-plot-line {
+  fill: none; stroke: var(--color-hero-red); stroke-width: 2;
+  stroke-linejoin: round; stroke-linecap: round;
+}
+.adm-plot-guide { stroke: var(--color-hero-red); stroke-width: 1; stroke-dasharray: 3 3; }
+/* The fat circle punches a hole in the line so the mark reads as a bead on
+   it rather than as a blob over it. */
+.adm-plot-dot-hole { fill: var(--color-bg); }
+.adm-plot-dot { fill: var(--color-hero-red); }
+
+.adm-plot-axis {
   display: grid; grid-auto-flow: column; grid-auto-columns: 1fr;
-  align-items: end; gap: clamp(0.3rem, 0.8vw, 0.7rem);
-  height: clamp(140px, 18vh, 210px);
+  font-size: 0.72rem; color: var(--color-muted); text-align: center;
 }
-.adm-bar {
-  display: grid; align-content: end; justify-items: center;
-  gap: 0.5rem; height: 100%;
+.adm-plot-axis span[data-on] { color: var(--color-hero-red); font-weight: 700; }
+
+.adm-plot-read { margin: 0; font-size: 0.85rem; color: var(--color-muted); }
+.adm-plot-read strong {
+  font-family: var(--font-display); font-size: 1.05rem; font-weight: 700;
+  color: var(--color-hero-ink);
 }
-.adm-bar-fill {
-  width: 100%; border-radius: 4px 4px 0 0;
-  background: linear-gradient(180deg, var(--color-hero-red), #d9601f);
-  /* A month with nothing in it still gets a sliver, so the row reads as a
-     row of months rather than as a gap where data should be. */
-  min-height: 3px;
-  transition: height 0.5s cubic-bezier(0.22, 0.9, 0.28, 1);
+
+/* ---- demand: what people are asking for ---- */
+.adm-demand { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.9rem; }
+.adm-demand li { display: grid; gap: 0.3rem; }
+.adm-demand-top { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; }
+.adm-demand-name { font-size: 0.9rem; font-weight: 600; color: var(--color-hero-ink); }
+.adm-demand-n {
+  display: flex; align-items: baseline; gap: 0.45rem;
+  font-family: var(--font-display); font-weight: 700; color: var(--color-hero-ink);
 }
-.adm-bar-fill[data-zero] { background: var(--color-border); }
-.adm-bar-label { font-size: 0.72rem; color: var(--color-muted); }
+.adm-demand-n em {
+  font-family: var(--font-body); font-style: normal;
+  font-size: 0.78rem; font-weight: 500; color: var(--color-muted);
+}
+/* Scaled to the leader rather than to the total — at five services a share
+   bar is a row of stubs, and the useful comparison is with the top one. */
+.adm-demand-bar {
+  display: block; height: 6px; border-radius: 999px;
+  background: var(--color-surface); overflow: hidden;
+}
+.adm-demand-bar span {
+  display: block; height: 100%; border-radius: 999px;
+  background: linear-gradient(90deg, var(--color-hero-red), #d9601f);
+  transition: width 0.5s cubic-bezier(0.22, 0.9, 0.28, 1);
+}
+.adm-demand-move { font-size: 0.76rem; color: var(--color-muted); }
+
+/* Direction, shared by the demand rows and the stat notes. The arrow is in
+   the markup as well as the colour — red and green alone say nothing to a
+   reader who cannot tell them apart. */
+[data-dir="up"] { color: var(--color-success); }
+[data-dir="down"] { color: var(--color-danger); }
+[data-dir="flat"] { color: var(--color-muted); }
+
+/* ---- supply: what has been done about it ---- */
+.adm-split-bar {
+  display: flex; height: 10px; border-radius: 999px; overflow: hidden;
+  background: var(--color-surface); margin-bottom: 0.9rem;
+}
+.adm-split-bar span { display: block; height: 100%; transition: width 0.5s ease; }
+/* The same three colours as the badges in the list below, so a state means
+   one thing wherever it appears on this screen. */
+.adm-split-bar span[data-part="new"], .adm-legend span[data-part="new"] {
+  background: var(--color-hero-red);
+}
+.adm-split-bar span[data-part="contacted"], .adm-legend span[data-part="contacted"] {
+  background: #b8c0d0;
+}
+.adm-split-bar span[data-part="closed"], .adm-legend span[data-part="closed"] {
+  background: var(--color-success);
+}
+
+.adm-legend {
+  list-style: none; margin: 0 0 1rem; padding: 0;
+  display: flex; flex-wrap: wrap; gap: 0.4rem 1.1rem;
+  font-size: 0.82rem; color: var(--color-muted);
+}
+.adm-legend li { display: flex; align-items: center; gap: 0.4rem; }
+.adm-legend li span { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+.adm-legend strong { color: var(--color-hero-ink); font-weight: 700; }
+
+.adm-oldest {
+  margin: 0; padding: 0.7rem 0.85rem; border-radius: 8px;
+  font-size: 0.85rem; line-height: 1.5; color: #52586a;
+  background: #fbeae4; border-left: 3px solid var(--color-hero-red);
+}
+.adm-oldest strong { color: var(--color-hero-ink); }
+/* Nothing waiting is good news and should not be dressed as an alert. */
+.adm-oldest-clear {
+  background: #e8f3ec; border-left-color: var(--color-success);
+}
 
 /* ---- the feed ---- */
 .adm-feed { list-style: none; margin: 0; padding: 0; display: grid; }

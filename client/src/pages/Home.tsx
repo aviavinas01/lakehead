@@ -194,7 +194,7 @@ export default function Home() {
                 How We Help Clients
               </p>
               <h2 className="help-title">
-                Get the immigration training{" "}
+                Get the training{" "}
                 <span className="h-outline">you deserve</span>
               </h2>
             </div>
