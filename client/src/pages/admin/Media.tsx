@@ -2,6 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import AdminNav from "./AdminNav";
 import MediaPanel from "./MediaLibrary";
 import ClipsPanel from "./TikTokClips";
+import YouTubeClipsPanel from "./YouTubeClips";
 
 /**
  * Everything the site shows that is not writing: pictures and TikTok clips,
@@ -22,11 +23,13 @@ import ClipsPanel from "./TikTokClips";
 const TABS = [
   { to: "/admin/media", label: "Pictures & albums" },
   { to: "/admin/tiktok", label: "TikTok clips" },
+  { to: "/admin/youtube", label: "YouTube videos" },
 ];
 
 export default function Media() {
   const { pathname } = useLocation();
   const onClips = pathname.startsWith("/admin/tiktok");
+  const onTube = pathname.startsWith("/admin/youtube");
 
   return (
     <div className="adm">
@@ -41,16 +44,14 @@ export default function Media() {
             <Link
               key={t.to}
               to={t.to}
-              className={
-                (t.to === "/admin/tiktok") === onClips ? "is-on" : undefined
-              }
+              className={pathname.startsWith(t.to) ? "is-on" : undefined}
             >
               {t.label}
             </Link>
           ))}
         </nav>
 
-        {onClips ? <ClipsPanel /> : <MediaPanel />}
+        {onTube ? <YouTubeClipsPanel /> : onClips ? <ClipsPanel /> : <MediaPanel />}
       </main>
     </div>
   );

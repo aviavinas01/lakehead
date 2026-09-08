@@ -32,4 +32,9 @@ export class ApiError extends Error {
   static forbidden(msg = "Forbidden", ref?: string) { return new ApiError(403, msg, ref); }
   static notFound(msg = "Not found", ref?: string) { return new ApiError(404, msg, ref); }
   static conflict(msg = "Conflict", ref?: string) { return new ApiError(409, msg, ref); }
+  /* Something WE depend on failed, rather than something the caller did.
+     Without this such a failure falls through to the 500 handler and is
+     reported as "Internal server error" with a stack trace — which blames
+     us for an outage at YouTube and tells the admin nothing they can act on. */
+  static badGateway(msg = "An upstream service did not answer", ref?: string) { return new ApiError(502, msg, ref); }
 }

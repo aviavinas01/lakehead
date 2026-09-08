@@ -122,7 +122,7 @@ const inFlight = new Map<Feed, Promise<YouTubeVideo[]>>();
  * feed 404s and nothing says why. Pulling the id out of a URL costs three
  * lines and removes an entire category of "it just doesn't work".
  */
-function cleanId(raw: string | undefined): string | undefined {
+export function cleanId(raw: string | undefined): string | undefined {
   if (!raw) return undefined;
   const value = raw.trim();
   if (!value) return undefined;
@@ -340,6 +340,30 @@ export const youtubeService = {
    * shutting down should not wait five minutes for a refresh it does not
    * need.
    */
+  /**
+   * One playlist, read once, uncached — for the admin's "import a playlist".
+   *
+   * DELIBERATELY OUTSIDE THE CACHE. Everything else here is a row a visitor
+   * is waiting on, so it is cached, shared between callers and healed on a
+   * timer. This is a one-off the admin asked for and is watching happen: a
+   * stale answer would silently import yesterday's playlist and look like it
+   * worked. It keeps the retries, because the playlist feed still fails
+   * about a third of the time.
+   */
+  async playlist(id: string): Promise<YouTubeVideo[]> {
+    const url = byPlaylist(id);
+    let last = "";
+    for (let attempt = 1; attempt <= ATTEMPTS; attempt++) {
+      try {
+        return await fetchOnce(url);
+      } catch (err) {
+        last = (err as Error).message;
+        if (attempt < ATTEMPTS) await wait(BACKOFF_MS * attempt);
+      }
+    }
+    throw new Error(`YouTube did not answer for that playlist (${last})`);
+  },
+
   warm(): void {
     for (const feed of FEEDS) void this.list(feed);
     setInterval(() => {

@@ -84,6 +84,7 @@ export default function App() {
               links keep working. See pages/admin/Media.tsx. */}
           <Route path="/admin/media" element={<Media />} />
           <Route path="/admin/tiktok" element={<Media />} />
+          <Route path="/admin/youtube" element={<Media />} />
           {/* One section, two tabs — as with media above. */}
           <Route path="/admin/events" element={<Happenings />} />
           <Route path="/admin/news" element={<Happenings />} />
