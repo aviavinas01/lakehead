@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { POST_PAGES } from "../models/Post.js";
 
 /**
  * A cover image is either a full URL (someone pasted one in) or a
@@ -26,6 +27,12 @@ export const createPostSchema = z.object({
     content: z.string().min(1),
     coverImage: imageRef.optional(),
     tags: z.array(z.string().trim()).max(10).default([]),
+    /* Placement, not description — see POST_PAGES in models/Post.ts for why
+       this is a closed list while `tags` above is free text. Rejecting an
+       unknown key rather than storing it is the whole value of the field:
+       a placement the API quietly accepted and no page ever asks for is an
+       article the editor believes is published on a page it is not. */
+    pages: z.array(z.enum(POST_PAGES)).max(POST_PAGES.length).default([]),
     status: z.enum(["draft", "published"]).default("draft"),
   }),
 });

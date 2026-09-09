@@ -72,21 +72,27 @@ export default function InquiryForm({
     }
   };
 
+  /* `data-field` on each label so a stylesheet can lay these out without
+     counting them. The alternative is `:nth-of-type(4)`, which silently
+     means a different field the moment anyone reorders or adds one — and
+     the layout that needs this most (the horizontal one, where `message`
+     spans the full width) would break in a way nobody would attribute to
+     the reorder. */
   return (
     <form className={className} onSubmit={submit} noValidate={false}>
-      <label>
+      <label data-field="name">
         Full name
         <input name="name" value={form.name} onChange={set} required />
       </label>
-      <label>
+      <label data-field="email">
         Email
         <input type="email" name="email" value={form.email} onChange={set} required />
       </label>
-      <label>
+      <label data-field="phone">
         Phone (optional)
         <input name="phone" value={form.phone} onChange={set} />
       </label>
-      <label>
+      <label data-field="service">
         Service
         <select name="service" value={form.service} onChange={set}>
           <option value="study-abroad">Study abroad counselling</option>
@@ -96,7 +102,7 @@ export default function InquiryForm({
           <option value="other">Other</option>
         </select>
       </label>
-      <label>
+      <label data-field="message">
         Message
         <textarea name="message" rows={5} value={form.message} onChange={set} required />
       </label>

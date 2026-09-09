@@ -4,6 +4,7 @@ import { PlaneIcon } from "../components/HeroOrbit";
 import { Check, Arrow, Shot } from "../components/destinationBits";
 import { SERVICES } from "../data/services";
 import HelpVideo from "../components/HelpVideo";
+import CallbackStrip from "../components/CallbackStrip";
 
 /**
  * Student Services — the hub behind the navbar's "Student Services" item.
@@ -152,6 +153,8 @@ export default function Services() {
           </aside>
         </div>
       </section>
+
+      <CallbackStrip service="other" />
 
       <section className="dpage-cta">
         <div className="container dpage-cta-inner">

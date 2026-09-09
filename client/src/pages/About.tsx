@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { PlaneIcon } from "../components/HeroOrbit";
 import { Check, Pin, Arrow, Shot } from "../components/destinationBits";
 import { revealInit } from "../lib/reveal";
-import InquiryForm from "../components/InquiryForm";
+import ContactForm from "../components/ContactForm";
 import { contact, OFFICES } from "../config/contact";
 import { TESTS } from "../data/tests";
 import StatMarquee, { type StatItem } from "../components/StatMarquee";
@@ -523,62 +523,54 @@ export default function About() {
       </section>
 
       {/* ---- contact ---- */}
-      <section className="dpage-section who-contact" id="contact">
+      {/* The same component as the contact and home pages. Its own heading
+          and lead replaced this section's, which said the same thing in
+          different words. */}
+      <ContactForm
+        source="about"
+        id="contact"
+        heading="Say hello, and we will take it from there"
+      />
+
+      {/* The direct details stay: they are the one thing here the form does
+          not cover, and somebody who would rather ring than type should not
+          have to go to another page to find the number. */}
+      <section className="dpage-section who-direct">
         <div className="container">
-          <h2 className="dpage-title who-h2">
-            Say hello, <span className="h-accent">and we will take it from there</span>
-          </h2>
-          <p className="dpage-section-lead">
-            Tell us roughly where you are — a country in mind, a score you need,
-            or nothing at all beyond wanting to go. A counsellor replies within
-            one working day.
-          </p>
-
-          <div className="who-contact-split">
-            <div className="who-form-panel">
-              <InquiryForm
-                className="form who-form"
-                submitLabel="Send enquiry"
-                submitClassName="who-submit"
-                source="about"
-              />
-            </div>
-
-            <aside className="who-contact-side">
-              <h3>Or reach us directly</h3>
-              <ul className="who-contact-list">
+          <aside className="who-contact-side">
+            <h3>Or reach us directly</h3>
+            <ul className="who-contact-list">
+              <li>
+                <span>Call the office</span>
+                <a href={contact.phoneHref}>{contact.phoneDisplay}</a>
+              </li>
+              {contact.mobileHref && contact.mobileDisplay && (
                 <li>
-                  <span>Call the office</span>
-                  <a href={contact.phoneHref}>{contact.phoneDisplay}</a>
+                  <span>Mobile</span>
+                  <a href={contact.mobileHref}>{contact.mobileDisplay}</a>
                 </li>
-                {contact.mobileHref && contact.mobileDisplay && (
-                  <li>
-                    <span>Mobile</span>
-                    <a href={contact.mobileHref}>{contact.mobileDisplay}</a>
-                  </li>
-                )}
-                <li>
-                  <span>WhatsApp</span>
-                  <a href={contact.whatsappHref} target="_blank" rel="noopener noreferrer">
-                    Message us
-                  </a>
-                </li>
-                <li>
-                  <span>Email</span>
-                  <a href={contact.emailHref}>{contact.emailDisplay}</a>
-                </li>
-                <li>
-                  <span>Visit</span>
-                  <a href="#find-us">{contact.addressLines.slice(-2).join(", ")}</a>
-                </li>
-              </ul>
-              <p className="dpage-fineprint">
-                Nothing you send here goes any further than our counselling
-                team. We do not pass enquiries to institutions until you have
-                chosen one.
-              </p>
-            </aside>
-          </div>
+              )}
+              <li>
+                <span>WhatsApp</span>
+                <a href={contact.whatsappHref} target="_blank" rel="noopener noreferrer">
+                  Message us
+                </a>
+              </li>
+              <li>
+                <span>Email</span>
+                <a href={contact.emailHref}>{contact.emailDisplay}</a>
+              </li>
+              <li>
+                <span>Visit</span>
+                <a href="#find-us">{contact.addressLines.slice(-2).join(", ")}</a>
+              </li>
+            </ul>
+            <p className="dpage-fineprint">
+              Nothing you send here goes any further than our counselling
+              team. We do not pass enquiries to institutions until you have
+              chosen one.
+            </p>
+          </aside>
         </div>
       </section>
 

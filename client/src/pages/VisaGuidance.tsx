@@ -5,6 +5,7 @@ import { Check, Arrow, Shot } from "../components/destinationBits";
 import { armReveals } from "../lib/reveal";
 import HelpVideo from "../components/HelpVideo";
 import TikTokStrip from "../components/TikTokStrip";
+import CallbackStrip from "../components/CallbackStrip";
 
 /**
  * Visa Guidance — /services/visa-guidance. A static route, so it takes over
@@ -210,6 +211,8 @@ export default function VisaGuidance() {
         eyebrow="On TikTok"
         heading={<>Visas, <span className="h-accent">answered</span></>}
       />
+
+      <CallbackStrip service="visa-guidance" />
 
       <section className="dpage-cta">
         <div className="container dpage-cta-inner">

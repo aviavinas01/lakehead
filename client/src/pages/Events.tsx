@@ -7,6 +7,7 @@ import { mediaSrc } from "../api/media";
 import { formatWhen } from "../lib/datetime";
 import { contact } from "../config/contact";
 import HelpVideo from "../components/HelpVideo";
+import CallbackStrip from "../components/CallbackStrip";
 
 /**
  * Events — /events.
@@ -203,6 +204,8 @@ export default function Events() {
           </ol>
         </div>
       </section>
+
+      <CallbackStrip service="other" />
 
       <section className="dpage-cta">
         <div className="container dpage-cta-inner">

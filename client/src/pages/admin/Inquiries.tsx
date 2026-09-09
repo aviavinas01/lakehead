@@ -8,12 +8,21 @@ import type {
   Paginated,
 } from "../../types/api";
 
-/** How each form names itself in the list. */
+/**
+ * How each form names itself in the list.
+ *
+ * `Record<InquirySource, ...>` and not a partial one on purpose: it makes
+ * adding a source without labelling it a compile error rather than an
+ * `undefined` in the middle of the admin list. It has already caught one —
+ * "callback" was added on the server and reached this list unlabelled.
+ */
 const SOURCE_LABELS: Record<InquirySource, string> = {
   consultation: "Free consultation",
   contact: "Contact page",
   about: "Who We Are",
   "study-abroad": "Study abroad",
+  home: "Home page",
+  callback: "Call-back request",
   unknown: "Website",
 };
 

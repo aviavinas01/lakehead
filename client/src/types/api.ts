@@ -11,6 +11,45 @@ export interface User {
 
 export type PostStatus = "draft" | "published";
 
+/**
+ * WHERE A POST APPEARS, beyond the blog itself.
+ *
+ * The keys are the site's own route paths without the leading slash, so
+ * `study-in-usa` is the page a post is placed on AND the address that page
+ * lives at. /blog?on=study-in-usa therefore shows exactly what the USA
+ * guide's sidebar shows, in full, with no lookup table in between.
+ *
+ * This list must stay in step with POST_PAGES in server/src/models/Post.ts:
+ * that one decides what the API will store, this one decides what the admin
+ * offers and what the guides ask for. A key in one and not the other is a
+ * placement that can be chosen and never rendered, or asked for and never
+ * choosable.
+ *
+ * `label` is what the editor sees in the checkbox list; `group` only sorts
+ * that list into two columns. Neither is sent to the server.
+ */
+export const POST_PAGES = [
+  { key: "study-abroad", label: "Study abroad (hub)", group: "Destinations" },
+  { key: "study-in-usa", label: "Study in the USA", group: "Destinations" },
+  { key: "study-in-uk", label: "Study in the UK", group: "Destinations" },
+  { key: "study-in-canada", label: "Study in Canada", group: "Destinations" },
+  { key: "study-in-australia", label: "Study in Australia", group: "Destinations" },
+  { key: "study-in-new-zealand", label: "Study in New Zealand", group: "Destinations" },
+  { key: "study-in-south-korea", label: "Study in South Korea", group: "Destinations" },
+  { key: "test-preparation", label: "Test preparation", group: "Services" },
+  { key: "visa-guidance", label: "Visa guidance", group: "Services" },
+  { key: "career-counselling", label: "Career counselling", group: "Services" },
+  { key: "admission-guidance", label: "Admission guidance", group: "Services" },
+  { key: "student-accommodation", label: "Student accommodation", group: "Services" },
+  { key: "university-partners", label: "University partners", group: "Services" },
+] as const;
+
+export type PostPage = (typeof POST_PAGES)[number]["key"];
+
+/** The editor's label for a page key, falling back to the key itself. */
+export const postPageLabel = (key: string): string =>
+  POST_PAGES.find((p) => p.key === key)?.label ?? key;
+
 export interface Post {
   _id: string;
   title: string;
@@ -19,6 +58,8 @@ export interface Post {
   content: string;
   coverImage?: string;
   tags: string[];
+  /** Placement. Empty means the post shows on /blog and nowhere else. */
+  pages: PostPage[];
   status: PostStatus;
   author?: { _id: string; name: string };
   publishedAt?: string;
@@ -28,7 +69,7 @@ export interface Post {
 
 export type PostSummary = Pick<
   Post,
-  "_id" | "title" | "slug" | "excerpt" | "coverImage" | "tags" | "publishedAt"
+  "_id" | "title" | "slug" | "excerpt" | "coverImage" | "tags" | "pages" | "publishedAt"
 >;
 
 export const SERVICES = [
@@ -48,6 +89,8 @@ export type InquirySource =
   | "contact"
   | "about"
   | "study-abroad"
+  | "home"
+  | "callback"
   | "unknown";
 
 /** Whether the notification email got out. Written by the server. */

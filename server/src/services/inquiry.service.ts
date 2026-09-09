@@ -8,8 +8,11 @@ import {
 import { ApiError } from "../utils/ApiError.js";
 import type { PaginatedResult, PaginationQuery } from "../types/common.js";
 
-type CreateInquiryInput = Pick<IInquiry, "name" | "email" | "message"> &
-  Partial<Pick<IInquiry, "phone" | "service" | "source">>;
+/* Only the name is always there. A call-back request has a phone and no
+   email or message; every other form has an email and a message. The model
+   enforces "at least one way to reach them" — see the pre-validate hook. */
+type CreateInquiryInput = Pick<IInquiry, "name"> &
+  Partial<Pick<IInquiry, "email" | "message" | "phone" | "service" | "source">>;
 
 export const inquiryService = {
   async create(input: CreateInquiryInput): Promise<InquiryDocument> {

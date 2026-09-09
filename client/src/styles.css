@@ -315,18 +315,36 @@ html[data-scrolling] .dpage-table-scroll { pointer-events: auto; }
    frame. Navbar.tsx returns early for "/" — nothing here needs a home-page
    case because the class simply never goes on. */
 .navbar.is-over .navbar-main { background: transparent; border-bottom-color: transparent; }
-.navbar.is-over .brand-logo { filter: brightness(0) invert(1); }
-/* The wordmark is a gradient clipped to the text, so plain `color` cannot
-   reach it — the fill has to be overridden and the gradient removed. */
-.navbar.is-over .brand-wordmark strong {
-  background: none; color: #fff; -webkit-text-fill-color: #fff;
+
+/* THE MARK KEEPS ITS COLOUR OVER AN IMAGE. Only the links go white.
+   The logo used to be knocked out with `filter: brightness(0) invert(1)`
+   and the wordmark's gradient replaced with flat white, so the brand was
+   one colour on a photograph and another everywhere else — the one element
+   on the page that should never change. Both overrides are gone; the mark
+   and the words beside it are the same red on every page and every scroll
+   position.
+
+   What they gain instead is a shadow. Red on a light patch of photograph is
+   the one place this could fail, and a soft dark halo holds the edge without
+   touching the colour. It costs nothing on a dark frame, where it is
+   invisible. */
+.navbar.is-over .brand-logo {
+  filter: drop-shadow(0 1px 3px rgba(9, 16, 38, 0.45));
 }
-.navbar.is-over .brand-wordmark span { color: rgba(255, 255, 255, 0.85); }
+.navbar.is-over .brand-wordmark strong,
+.navbar.is-over .brand-wordmark span {
+  text-shadow: 0 1px 3px rgba(9, 16, 38, 0.4);
+}
+
 .navbar.is-over .nav-item > a { color: #fff; }
 .navbar.is-over .nav-toggle { color: #fff; }
+/* `text-shadow` alongside `filter` so the logo's halo and the wordmark's
+   arrive together — the logo fades via filter and the words via text-shadow,
+   and without both listed the two would cross the same boundary at
+   different times. */
 .brand-logo, .brand-wordmark strong, .brand-wordmark span,
 .nav-item > a, .nav-toggle {
-  transition: color 0.3s ease, filter 0.3s ease;
+  transition: color 0.3s ease, filter 0.3s ease, text-shadow 0.3s ease;
 }
 /* The bar's height comes from this padding plus the logo — the strip was
    slim because the logo used to hang up out of it into the old top bar. */
@@ -629,7 +647,6 @@ html[data-scrolling] .dpage-table-scroll { pointer-events: auto; }
 .success-title,
 .vt-title,
 .testimonials-title,
-.universities-title,
 .journey-title,
 .nsx h2, .nsx-list h2 {
   text-transform: uppercase;
@@ -1548,95 +1565,6 @@ a.greview-author:hover { text-decoration: underline; }
 .greviews-all:hover { gap: 0.75rem; }
 .greviews-all svg { transition: transform 0.15s; }
 
-/* ============================================================
-   University partnerships — logo cards glide right-to-left in a
-   seamless marquee (the list is rendered twice; the track slides
-   by -50%). Hovering pauses the scroll and overlays the hovered
-   university's photos on the other cards.
-   ============================================================ */
-.universities { background: #f4f7fb; padding: var(--section-y) 0; overflow: hidden; }
-.universities-title {
-  color: var(--color-hero-ink); font-size: clamp(2rem, 3.3vw, 2.9rem);
-  letter-spacing: -0.02em; margin-bottom: 2.25rem;
-}
-/* Partner logos as a staggered grid of tiles that hold their position and
-   flip to a different logo now and then. Replaced a marquee — see the
-   component for why.
-
-   Each row is stepped further right than the one above, which is what stops
-   three equal rows reading as a spreadsheet. The offsets are percentages of
-   the container, so the cascade holds its shape at every width. */
-.uni-grid { display: grid; gap: clamp(0.5rem, 1.1vw, 0.9rem); overflow: hidden; }
-.uni-row {
-  display: flex; gap: clamp(0.5rem, 1.1vw, 0.9rem);
-  justify-content: center;
-}
-/* THE ROW STAGGER IS GONE WITH THE OTHER TWO ROWS. It used to step rows 1
-   and 3 sideways so three equal rows did not read as a spreadsheet; with a
-   single line there is nothing to stagger against, and the offset would
-   just have pushed the one row off centre.
-
-   If it is ever three rows again, put it back as `left` and NOT
-   `transform`: a transform creates a stacking context, which isolates the
-   blending group inside it, and the logos below depend on multiplying
-   against the band itself. Staggered with a transform their white canvases
-   come back as white rectangles. */
-
-/* No tile at all — the marks sit straight on the band. What makes that
-   possible is `multiply` on the image below: each logo file is a white
-   canvas, and multiplying it against the pale band drops that white to
-   nothing, leaving only the mark.
-
-   TWO THINGS THIS DEPENDS ON, both easy to break:
-     · .universities must stay pale. On a dark background multiply would
-       take the logos with it.
-     · Nothing between the image and the band may create a stacking context,
-       or the blend is isolated inside it and the white canvases reappear as
-       rectangles. That is why the row stagger above uses `left` rather than
-       a transform.
-
-   The box is now only a measuring device: it holds the grid's rhythm, and
-   its padding — kept tight, since there is no card edge to hold the mark
-   away from — is all that keeps one logo off the next.
-
-   NOT HOVERABLE. There is deliberately no :hover rule anywhere on these:
-   the tiles are a shuffling sample, not a set of controls, and nothing
-   happens if you click one. The only movement is the flip as a tile trades
-   its logo for another, which the component fires on its own timer. */
-.uni-tile {
-  flex: 0 0 auto;
-  width: clamp(88px, 11.5vw, 156px); aspect-ratio: 1 / 1;
-  display: grid; place-items: center; padding: clamp(0.35rem, 0.7vw, 0.6rem);
-  background: none; border: 0;
-}
-.uni-tile > img {
-  width: 100%; height: 100%; object-fit: contain; mix-blend-mode: multiply;
-  /* Replays whenever the tile's logo changes: the image is keyed on the
-     logo, so React remounts it and the animation runs again. */
-  animation: uni-flip 0.55s cubic-bezier(0.22, 0.9, 0.28, 1);
-  backface-visibility: hidden;
-}
-@keyframes uni-flip {
-  from { opacity: 0; transform: rotateX(-82deg) scale(0.9); }
-  60%  { opacity: 1; }
-  to   { opacity: 1; transform: rotateX(0) scale(1); }
-}
-.uni-fallback {
-  color: var(--color-muted); font-size: 0.72rem; line-height: 1.3;
-  text-align: center; padding: 0.25rem;
-}
-.uni-count {
-  text-align: center; color: var(--color-muted);
-  font-size: 0.9rem; margin-top: 1.75rem;
-}
-.uni-count a { color: var(--color-hero-red); font-weight: 700; }
-.uni-count a:hover { text-decoration: underline; text-underline-offset: 3px; }
-
-@media (prefers-reduced-motion: reduce) {
-  /* The rotation is already switched off in the component; this stops the
-     initial mount from flipping every tile at once. */
-  .uni-tile > img { animation: none; }
-}
 
 /* ============================================================
    "Your Next Steps to Studying Abroad" — full-width violet band:
@@ -1699,8 +1627,12 @@ a.greview-author:hover { text-decoration: underline; }
        per step, the same distance the photographs travel — see
        --nsx-travel. Declared on the stack, the left column could not see
        them and had to guess at a matching number, which is precisely how
-       two columns that are supposed to move together drift apart. */
-    --jp-h: clamp(380px, 56vh, 480px);
+       two columns that are supposed to move together drift apart.
+
+       RAISED FROM 56vh/480px. Still short of the 66vh noted above, which is
+       the point at which the neighbours stop showing — the cards are bigger
+       but the queue can still be seen to be a queue. */
+    --jp-h: clamp(430px, 62vh, 560px);
     --jp-gap: clamp(1rem, 3vh, 2rem);
   }
   /* svh where it exists — on a phone-sized desktop window the toolbar
@@ -1970,7 +1902,7 @@ a.greview-author:hover { text-decoration: underline; }
 
 /* The card itself, and the only part that is a link. */
 .jp-frame {
-  position: relative; display: block; width: min(480px, 100%);
+  position: relative; display: block; width: min(560px, 100%);
   color: inherit;
 }
 /* Right of centre, leaving the left third clear for the chips to sit over
@@ -1979,7 +1911,10 @@ a.greview-author:hover { text-decoration: underline; }
    full-height panel. */
 .jp-shot {
   display: block; position: relative; margin-left: auto;
-  width: 78%; aspect-ratio: 4 / 3;
+  /* A larger share of a wider frame. The left margin is what the chips sit
+     over, so this cannot go much past 84% without them landing on the
+     photograph rather than beside it. */
+  width: 84%; aspect-ratio: 4 / 3;
   border-radius: 18px; overflow: hidden;
   box-shadow: 0 26px 50px -26px rgba(9, 16, 38, 0.55);
 }
@@ -2063,22 +1998,15 @@ a.greview-author:hover { text-decoration: underline; }
   /* Sat below the middle rather than on it: the heading above has gone by
      the time this arrives, and a form centred in an empty frame reads as
      floating. The extra top padding is what drops it. */
-  display: grid; align-content: center;
-  /* The right padding lines the form up with the navbar rather than with the
-     window. This panel covers the stack, which is pinned to the window's
-     right edge — so left to itself the form ran past the point where every
-     other line on the page stops.
-
-     The value is .container's own gutter written out: the container is
-     `40% + 0.6 * 1200px` wide and centred, so the space beside it is half of
-     what is left over, plus its own 1.5rem of padding. max() is the guard —
-     below about 1200px that arithmetic goes negative, and the panel falls
-     back to its ordinary padding. */
-  padding:
-    clamp(3rem, 12vh, 7rem)
-    max(clamp(1.25rem, 2.5vw, 2.5rem), calc((60vw - 720px) / 2 + 1.5rem))
-    clamp(1.25rem, 2.5vw, 2.5rem)
-    clamp(1.25rem, 2.5vw, 2.5rem);
+  display: grid; align-content: center; justify-items: center;
+  /* EVEN PADDING, because what closes the section is now a circle.
+     This used to be lopsided on purpose — a heavy top to drop the form below
+     the middle, and a right value that was .container's gutter written out
+     so the form lined up with the navbar rather than running to the window
+     edge. Both were answers to a six-field form being wide and rectangular.
+     A circle has its own centre and simply wants the middle of the frame, so
+     the arithmetic went with the form it was for. */
+  padding: clamp(1.5rem, 4vh, 3rem) clamp(1.25rem, 2.5vw, 2.5rem);
   background: var(--color-bg);
   /* ON THE SAME TRACK AS THE CARDS, off the same number. One whole panel of
      distance is 100% of the stage here, so at --nsx-pos one short of its
@@ -2513,8 +2441,134 @@ a.greview-author:hover { text-decoration: underline; }
    above the card's top edge (negative margin + overflow), so the
    section reserves headroom for it.
    ============================================================ */
-.journey-cta { padding: var(--section-y) 0 3.5rem; }
-.journey-inner { margin-inline: auto; }
+/* The band is now a stage: a world map behind, a wash over it, the type on
+   top. `isolation` keeps the three layers to themselves so nothing here can
+   blend with whatever section happens to sit above or below.
+
+   THE MIN-HEIGHT IS THE MAP'S OWN SHAPE. 1000 / 394.4 is 39.4vw of height
+   for a full-width map, so the band is given that much and the map lands at
+   its natural size with nothing cropped away. It matters more than it
+   sounds: New Zealand sits at 88% of the way down the drawing and 98% of
+   the way across it, so it is the first thing lost to a band that is even
+   slightly too short or a map even slightly too wide, and losing it from a
+   map whose entire job is to point at New Zealand would be a quiet
+   embarrassment. Capped, because past ~1730px the band would start eating
+   the screen. */
+.journey-cta {
+  position: relative; isolation: isolate; overflow: hidden;
+  padding: clamp(4rem, 7vw, 6rem) 0 clamp(3.5rem, 6vw, 5rem);
+  min-height: min(39.4vw, 680px);
+  display: grid; align-content: center;
+}
+.journey-map { position: absolute; inset: 0; display: grid; place-items: center; }
+/* THE ASPECT RATIO IS LOAD-BEARING. The <img> backdrop and the inline SVG
+   overlay share a viewBox but are different elements; they line up only
+   because this box has exactly the viewBox's proportions, so "fit to the
+   box" means the same thing to both. Change 1000 / 394.4 here and the seven
+   highlighted countries slide off the map underneath them. */
+.journey-map-box {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1000 / 394.4;
+}
+.journey-map-base,
+.journey-map-live {
+  position: absolute; inset: 0; width: 100%; height: 100%; display: block;
+}
+/* The quiet 169. Faint enough to be texture, not so faint it turns into a
+   grey smudge on a laptop panel. */
+.journey-map-base { opacity: 0.26; }
+
+/* ---- the eight ---- */
+.jm-c {
+  fill: var(--color-hero-ink); fill-opacity: 0.15;
+  stroke: var(--color-hero-ink); stroke-opacity: 0.62;
+  stroke-width: 0.9; stroke-linejoin: round;
+  transition: fill-opacity 0.6s ease, stroke-opacity 0.6s ease;
+}
+/* Lit while the pointer is parked on it. A lift, not a switch: the country
+   was already highlighted before the pointer arrived and stays highlighted
+   after it leaves. */
+.jm-c.is-on { fill-opacity: 0.34; stroke-opacity: 1; }
+
+.jm-eu-disc { fill: #003399; fill-opacity: 0.55; transition: fill-opacity 0.6s ease; }
+.jm-eu-stars { fill: #ffcc00; fill-opacity: 0.85; transition: fill-opacity 0.6s ease; }
+.jm-eu.is-on .jm-eu-disc { fill-opacity: 0.9; }
+.jm-eu.is-on .jm-eu-stars { fill-opacity: 1; }
+
+/* ---- the travelling pointer ---- */
+/* The glide between stops. Slow out, slow in, and long enough to read as
+   crossing a distance — a fast tween here just looks like the dot is
+   snapping and the transition is a mistake. */
+.jm-pointer { transition: transform 1.05s cubic-bezier(0.66, 0, 0.24, 1); }
+.jm-dot { fill: var(--color-hero-red); }
+.jm-dot-still { fill-opacity: 0.75; }
+.jm-ping {
+  fill: none; stroke: var(--color-hero-red); stroke-width: 1.4;
+  /* Scaled about its own centre rather than the SVG origin, which is what
+     `fill-box` buys — without it the rings fly off toward the top-left. */
+  transform-box: fill-box; transform-origin: center;
+  animation: jm-ping 2.1s cubic-bezier(0.15, 0.6, 0.3, 1) infinite;
+}
+.jm-ping-late { animation-delay: 1.05s; }
+@keyframes jm-ping {
+  0%   { transform: scale(0.35); opacity: 0; }
+  18%  { opacity: 0.85; }
+  100% { transform: scale(3.1); opacity: 0; }
+}
+
+/* The wash. Nearly opaque where the headline lands, gone by the edges, so
+   the map stays a map out there and stops competing in here. Two layers:
+   a centred ellipse for the type, and a top-to-bottom pass that keeps the
+   cropped edges from ending on a hard line. */
+/* Layered inside the map box, over the <img> and under the live overlay —
+   see the note in ConsultBanner.tsx for why the order matters. */
+.journey-map-scrim {
+  position: absolute; inset: 0; pointer-events: none;
+  background:
+    radial-gradient(ellipse 52% 62% at 50% 46%,
+      rgba(255, 255, 255, 0.94) 0%,
+      rgba(255, 255, 255, 0.78) 38%,
+      rgba(255, 255, 255, 0) 74%),
+    linear-gradient(to bottom,
+      var(--color-bg) 0%,
+      rgba(255, 255, 255, 0) 22%,
+      rgba(255, 255, 255, 0) 78%,
+      var(--color-bg) 100%);
+}
+
+.journey-inner { position: relative; z-index: 1; margin-inline: auto; }
+
+@media (prefers-reduced-motion: reduce) {
+  /* The component already declines to start the journey and draws eight
+     still dots instead; these two are the belt to that pair of braces, in
+     case a stop is ever rendered by something that has not asked. */
+  .jm-pointer { transition: none; }
+  .jm-ping { animation: none; opacity: 0; }
+}
+
+@media (max-width: 900px) {
+  /* No min-height here: below this the band is as tall as its type, and the
+     map becomes a thin strip of world across the middle of it. That is the
+     right trade — the alternative is scaling the map up to fill a tall
+     narrow box, which crops it to whichever ocean happens to be in the
+     middle and throws away six of the eight countries. */
+  .journey-cta { min-height: 0; }
+  .journey-map-base { opacity: 0.3; }
+  .journey-map-scrim {
+    background:
+      radial-gradient(ellipse 78% 58% at 50% 46%,
+        rgba(255, 255, 255, 0.95) 0%,
+        rgba(255, 255, 255, 0.8) 42%,
+        rgba(255, 255, 255, 0) 78%),
+      linear-gradient(to bottom,
+        var(--color-bg) 0%,
+        rgba(255, 255, 255, 0) 26%,
+        rgba(255, 255, 255, 0) 74%,
+        var(--color-bg) 100%);
+  }
+}
+
 /* No card, no panel: the type carries this on the page itself. Centred,
    generous, and ending on a single action — everything else that used to be
    here (the blue card, the student photo, the tray of social tiles) was
@@ -2857,7 +2911,6 @@ a.greview-author:hover { text-decoration: underline; }
      sizing down — at 58px a row of three left most of a phone screen empty.
      Sized off the viewport here instead, which keeps the row filling the
      width it has. */
-  .uni-tile { width: clamp(84px, 26vw, 124px); }
   .testimonials-head { margin-bottom: 1.75rem; }
   /* Reviews: heading and score stack, cards go one-up */
   .greviews-head { flex-direction: column; gap: 1rem; }
@@ -3711,22 +3764,6 @@ a.greview-author:hover { text-decoration: underline; }
   color: rgba(255, 255, 255, 0.9); font-size: 0.98rem;
   line-height: 1.6; margin-bottom: 1.75rem; max-width: 42ch;
 }
-/* The pill: white on the colour, and the one thing in the band you can
-   click. Letter-spaced small caps rather than sentence case, so it reads as
-   a button at a glance and does not compete with the heading above it. */
-.sa-figures-btn {
-  display: inline-block; border-radius: 999px;
-  padding: 1rem 2.25rem;
-  background: #fff; color: var(--color-footer-bg);
-  font-family: var(--font-display); font-weight: 700;
-  font-size: 0.78rem; letter-spacing: 0.12em; text-transform: uppercase;
-  text-align: center;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-.sa-figures-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.22);
-}
 /* Two by two, as in the reference. Not four across: at four the numbers
    have to shrink to fit and the band loses the one thing it is for. */
 .sa-figures-grid {
@@ -3877,94 +3914,10 @@ a.greview-author:hover { text-decoration: underline; }
 .sa-support-item h3 { color: var(--color-hero-ink); font-size: 1.08rem; margin-bottom: 0.3rem; }
 .sa-support-item p { color: var(--color-muted); font-size: 0.94rem; margin: 0; }
 
-/* ---- enquiry form ---- */
-.sa-form-section { background: var(--color-hero-ink); }
-.sa-form-wrap {
-  display: grid; grid-template-columns: 0.9fr 1.1fr; gap: 3.5rem; align-items: start;
-}
-.sa-form-intro .dpage-title, .sa-form-intro .dpage-eyebrow-sm { color: #fff; }
-.sa-form-intro .dpage-section-lead { color: rgba(255, 255, 255, 0.82); }
-.sa-form-intro .dpage-eyebrow-sm { color: rgba(255, 255, 255, 0.7); }
-.sa-form-intro .dpage-checks li { color: rgba(255, 255, 255, 0.9); }
-.sa-form-intro .dpage-checks li > span { color: #fff; }
-/* The outlined heading treatment is drawn in navy; on navy it would vanish */
-.sa-form-intro .h-outline { -webkit-text-stroke-color: #fff; }
-
-.sa-form {
-  background: #fff; border-radius: 20px; padding: 2rem;
-  display: grid; gap: 1.15rem;
-}
-.sa-field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.15rem; }
-.sa-field { display: grid; gap: 0.45rem; border: none; padding: 0; margin: 0; min-width: 0; }
-.sa-field > span, .sa-field legend {
-  color: var(--color-hero-ink); font-weight: 600; font-size: 0.88rem; padding: 0;
-}
-.sa-field input, .sa-field select {
-  width: 100%; font: inherit; font-size: 0.95rem; color: var(--color-text);
-  background: #f4f7fb; border: 1px solid transparent; border-radius: 10px;
-  padding: 0.7rem 0.9rem;
-  transition: border-color 0.2s ease, background-color 0.2s ease;
-}
-.sa-field input:focus, .sa-field select:focus {
-  outline: none; background: #fff; border-color: var(--color-hero-red);
-}
-/* The country code is fixed, so it is furniture rather than an input */
-.sa-phone {
-  display: flex; align-items: center; gap: 0.55rem;
-  background: #f4f7fb; border: 1px solid transparent; border-radius: 10px;
-  padding-left: 0.9rem; transition: border-color 0.2s ease, background-color 0.2s ease;
-}
-.sa-phone:focus-within { background: #fff; border-color: var(--color-hero-red); }
-.sa-phone > span { color: var(--color-muted); font-size: 0.95rem; }
-.sa-phone input { background: transparent; border: none; padding-left: 0; }
-.sa-phone input:focus { background: transparent; }
-.sa-hint { color: var(--color-muted); font-size: 0.82rem; margin: -0.2rem 0 0.15rem; }
-
-/* Checkboxes styled as chips — a multi-select listbox is miserable on a
-   phone, and there are only six options. The real input stays in the DOM
-   for keyboard and screen-reader users; it is just moved out of sight. */
-.sa-chips { display: flex; flex-wrap: wrap; gap: 0.55rem; }
-.sa-chips label {
-  display: inline-flex; align-items: center; cursor: pointer;
-  border: 1px solid var(--color-border); border-radius: 999px;
-  padding: 0.5rem 1rem; font-size: 0.9rem; color: var(--color-hero-ink);
-  transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease;
-}
-.sa-chips label:hover { border-color: var(--color-hero-red); }
-.sa-chips label.is-on {
-  background: var(--color-hero-red); border-color: var(--color-hero-red); color: #fff;
-}
-.sa-chips input {
-  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
-  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
-}
-.sa-chips label:focus-within {
-  outline: 2px solid var(--color-hero-red); outline-offset: 2px;
-}
-
-.sa-submit {
-  display: inline-flex; align-items: center; justify-content: center; gap: 0.6rem;
-  margin-top: 0.35rem; padding: 0.9rem 1.6rem;
-  background: var(--color-hero-red); color: #fff;
-  font: inherit; font-weight: 700; font-size: 1rem;
-  border: none; border-radius: 999px; cursor: pointer;
-  transition: background-color 0.2s ease, transform 0.2s ease;
-}
-.sa-submit:hover:not(:disabled) { background: var(--color-hero-ink); transform: translateY(-2px); }
-.sa-submit:disabled { opacity: 0.65; cursor: not-allowed; }
-.sa-submit svg { transition: transform 0.2s ease; }
-.sa-submit:hover:not(:disabled) svg { transform: translateX(3px); }
-/* Holds its line whether or not there is a message, so submitting does not
-   shunt the form around underneath the pointer. */
-.sa-status { min-height: 1.4rem; margin: 0; font-size: 0.9rem; }
-.sa-status .is-good { color: var(--color-success); font-weight: 600; }
-.sa-status .is-bad { color: var(--color-danger); font-weight: 600; }
-
 @media (max-width: 1024px) {
   /* Copy over figures; the figures keep their 2×2 underneath. */
   .sa-figures-inner { grid-template-columns: 1fr; gap: 2.5rem; }
   .dpage-cards { grid-template-columns: repeat(2, 1fr); }
-  .sa-form-wrap { grid-template-columns: 1fr; gap: 2.5rem; }
 }
 @media (max-width: 860px) {
   .sa-support { grid-template-columns: 1fr; gap: 1.5rem; }
@@ -3973,10 +3926,7 @@ a.greview-author:hover { text-decoration: underline; }
   /* One figure per row: at two columns on a phone the numerals were
      dropping below the size that makes this a band of figures at all. */
   .sa-figures-grid { grid-template-columns: 1fr; gap: 1.75rem; }
-  .sa-figures-btn { display: block; }
   .dpage-cards { grid-template-columns: 1fr; }
-  .sa-field-row { grid-template-columns: 1fr; }
-  .sa-form { padding: 1.35rem; }
 }
 
 /* ============================================================
@@ -4556,7 +4506,32 @@ a.greview-author:hover { text-decoration: underline; }
   padding-top: var(--section-y); padding-bottom: var(--section-y);
   align-items: start;
 }
-.usa-toc { position: sticky; top: calc(var(--navbar-h, 87px) + 1.5rem); }
+/* THE RAIL IS WHAT STICKS, and the two things in it divide the height
+   between them rather than queueing for it.
+ 
+   The obvious arrangement — one scrolling column holding both — is wrong,
+   and wrong in a way that is invisible on a big monitor. On a laptop the USA
+   guide's twenty-one contents entries fill the whole rail on their own, so
+   the articles below them sit past the bottom of a box nothing says can be
+   scrolled, and the block might as well not exist for most of the people
+   looking at the page.
+ 
+   So it is a flex column where THE CONTENTS LIST is the part that gives way:
+   it keeps the internal scroll it always had, shrinking to whatever is left
+   once the articles have their natural height, and the articles are
+   therefore always on screen. `min-height: 0` at each level is what lets a
+   flex item shrink below its content — without it the list refuses to
+   shrink and pushes the cards straight back out of view.
+ 
+   The articles are capped in turn at 45vh, because a rail where three cards
+   have squeezed the contents down to two entries has solved the problem
+   backwards. Past that cap the card list scrolls instead. */
+.usa-rail {
+  position: sticky; top: calc(var(--navbar-h, 87px) + 1.5rem);
+  max-height: calc(100vh - var(--navbar-h, 87px) - 3rem);
+  display: flex; flex-direction: column; min-height: 0;
+}
+.usa-toc { display: flex; flex-direction: column; min-height: 0; }
 .usa-toc-tag {
   color: var(--color-hero-red); font-size: 0.72rem; font-weight: 700;
   letter-spacing: 0.16em; text-transform: uppercase; margin-bottom: 0.9rem;
@@ -4564,7 +4539,8 @@ a.greview-author:hover { text-decoration: underline; }
 .usa-toc ol {
   list-style: none; margin: 0; padding: 0;
   display: grid; gap: 0.1rem;
-  max-height: calc(100vh - var(--navbar-h, 87px) - 6rem); overflow-y: auto;
+  min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+  scrollbar-width: thin; scrollbar-color: var(--color-border) transparent;
 }
 .usa-toc a {
   display: block; padding: 0.34rem 0 0.34rem 0.85rem;
@@ -4577,6 +4553,78 @@ a.greview-author:hover { text-decoration: underline; }
 .usa-toc a.is-here {
   color: var(--color-hero-red); font-weight: 600;
   border-left-color: var(--color-hero-red);
+}
+
+/* ---- related reading: the articles block under the contents rail ----
+   See components/RelatedReading.tsx for which posts land here.
+
+   It has to read as a different KIND of thing from the list above it, or the
+   rail becomes one undifferentiated column of links and the eye stops at the
+   first entry. Hence the rule across the top and the extra space: the
+   contents list is where you are, this is somewhere else to go. Same red
+   eyebrow though — it is still the rail, not a widget that wandered in. */
+.rr {
+  margin-top: 2.5rem; padding-top: 1.75rem;
+  border-top: 1px solid var(--color-border);
+  /* See .usa-rail: natural height, but never more than this share of the
+     screen, and never shrinking below it either — the contents list above
+     is the part that gives way. */
+  display: flex; flex-direction: column; flex: 0 0 auto;
+  max-height: 45vh; min-height: 0;
+}
+.rr-tag {
+  color: var(--color-hero-red); font-size: 0.72rem; font-weight: 700;
+  letter-spacing: 0.16em; text-transform: uppercase; margin-bottom: 0.9rem;
+}
+.rr-list {
+  list-style: none; margin: 0 0 1rem; padding: 0; display: grid; gap: 0.9rem;
+  /* The part that scrolls if the block hits its cap. A card cut off at the
+     boundary is its own affordance; there is nothing else to add. */
+  min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+  scrollbar-width: thin; scrollbar-color: var(--color-border) transparent;
+}
+.rr-card {
+  display: grid; gap: 0.6rem; color: inherit;
+  background: #fff; border: 1px solid var(--color-border);
+  border-radius: 14px; overflow: hidden;
+  transition: border-color 0.25s ease, transform 0.25s ease;
+}
+.rr-card:hover { border-color: var(--color-hero-ink); transform: translateY(-2px); }
+.rr-shot { display: block; aspect-ratio: 16 / 9; overflow: hidden; background: var(--color-surface); }
+.rr-shot img { width: 100%; height: 100%; object-fit: cover; display: block; }
+/* Same fallback as the cards on /blog — an initial on the tint rather than
+   a grey rectangle, so a post without a cover still looks intended. */
+.rr-noshot {
+  display: grid; place-items: center; width: 100%; height: 100%;
+  background: linear-gradient(135deg, #eef2fb, #dfe7f6);
+  font-family: var(--font-display); font-weight: 800;
+  font-size: 2.4rem; color: rgba(23, 39, 92, 0.22);
+}
+.rr-copy { display: grid; gap: 0.3rem; padding: 0 0.85rem 0.95rem; }
+.rr-title {
+  color: var(--color-hero-ink); font-weight: 700;
+  font-size: 0.92rem; line-height: 1.32; letter-spacing: -0.01em;
+  /* Three lines is where a headline in a 15rem column stops being a
+     headline. Clamped rather than truncated with an ellipsis on one line,
+     which throws away the half of the title that says what it is about. */
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3;
+  overflow: hidden;
+}
+.rr-excerpt {
+  color: var(--color-muted); font-size: 0.8rem; line-height: 1.5;
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+.rr-all {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  color: var(--color-hero-red); font-size: 0.82rem; font-weight: 600;
+}
+.rr-all svg { transition: transform 0.25s ease; }
+.rr-all:hover svg { transform: translateX(3px); }
+
+@media (prefers-reduced-motion: reduce) {
+  .rr-card, .rr-all svg { transition: none; }
+  .rr-card:hover { transform: none; }
 }
 
 /* The section counter. Numbering is real information on these pages — they
@@ -5086,9 +5134,27 @@ a.greview-author:hover { text-decoration: underline; }
 
 @media (max-width: 1080px) {
   /* The rail needs a column of its own; below this there is not one, and a
-     horizontal list of twenty-one entries would be worse than none. */
+     horizontal list of twenty-one entries would be worse than none.
+
+     THE CONTENTS LIST GOES; THE ARTICLES DO NOT. They are different things
+     wearing the same column: one is a shortcut within a page you are already
+     reading, which a phone gets no value from, and the other is somewhere to
+     go next, which is worth more at the end of a long scroll than at the
+     start. So the rail is unpinned, ordered after the body, and its cards
+     lay out across the full width. */
   .usa-shell { grid-template-columns: 1fr; }
   .usa-toc { display: none; }
+  .usa-rail {
+    position: static; max-height: none; overflow: visible;
+    order: 2; padding-bottom: 0;
+  }
+  .usa-body { order: 1; }
+  .rr { margin-top: 0; padding-top: clamp(2rem, 6vw, 3rem); max-height: none; }
+  .rr-list {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1.25rem;
+    overflow: visible;
+  }
+  .rr-card { border-radius: 16px; }
 }
 @media (max-width: 720px) {
   /* .usa-type used to be stacked here; the block is a TypeStack now, which
@@ -5351,47 +5417,6 @@ a.greview-author:hover { text-decoration: underline; }
 .who-visit .dpage-fineprint a:hover { color: var(--color-hero-red); }
 
 /* ---- contact ---- */
-.who-contact-split {
-  margin-top: 2.5rem;
-  display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 2.5rem;
-  align-items: start;
-}
-.who-form-panel {
-  background: var(--color-surface); border-radius: 22px;
-  padding: clamp(1.6rem, 3vw, 2.25rem);
-}
-/* The shared `.form` block is capped at 560px and left-aligned; inside this
-   panel it should fill the column instead. */
-.who-form { max-width: none; gap: 1.15rem; }
-.who-form label {
-  font-family: var(--font-display); font-size: 0.82rem; font-weight: 700;
-  letter-spacing: 0.1em; text-transform: uppercase;
-  color: var(--color-hero-ink); gap: 0.5rem;
-}
-.who-form input, .who-form select, .who-form textarea {
-  background: #fff; border-color: transparent; border-radius: 12px;
-  padding: 0.8rem 0.95rem; font-size: 1rem;
-  font-family: var(--font-body); font-weight: 400;
-  letter-spacing: normal; text-transform: none; color: var(--color-text);
-  box-shadow: 0 1px 2px rgba(23, 39, 92, 0.06);
-  transition: box-shadow 0.2s ease;
-}
-.who-form input:focus, .who-form select:focus, .who-form textarea:focus {
-  outline: none; box-shadow: 0 0 0 2px var(--color-hero-red);
-}
-.who-form textarea { resize: vertical; }
-.who-submit {
-  align-self: flex-start; cursor: pointer; border: none;
-  background: var(--color-hero-red); color: #fff;
-  font-family: var(--font-display); font-weight: 700; font-size: 1rem;
-  padding: 0.85rem 1.9rem; border-radius: 999px;
-  transition: background 0.25s ease, transform 0.2s ease;
-}
-.who-submit:hover:not(:disabled) {
-  background: var(--color-hero-ink); transform: translateY(-2px);
-}
-.who-submit:disabled { opacity: 0.65; cursor: not-allowed; }
-
 .who-contact-side h3 {
   color: var(--color-hero-ink); font-size: 1.3rem; margin-bottom: 1.25rem;
 }
@@ -5413,7 +5438,7 @@ a.greview-author:hover { text-decoration: underline; }
 
 @media (max-width: 1080px) {
   /* With three per row the vertical rules would fall in the wrong places */
-  .who-map-split, .who-contact-split { grid-template-columns: 1fr; }
+  .who-map-split { grid-template-columns: 1fr; }
   /* Nothing left beside it to stay in step with */
   .who-process { position: static; }
 }
@@ -5927,24 +5952,6 @@ a.rev-score:hover { background: rgba(255, 255, 255, 0.08); }
   .unip-dots button.is-on { background: #fff; }
 }
 
-/* ---- the figures ---- */
-.unip-figures-band { background: var(--color-bg); padding: clamp(2.5rem, 5vw, 3.5rem) 0; }
-.unip-figures {
-  display: grid; grid-template-columns: repeat(3, 1fr);
-  gap: 1.5rem; text-align: center;
-}
-.unip-figures div { position: relative; padding: 0 1rem; }
-.unip-figures div + div::before {
-  content: ""; position: absolute; left: 0; top: 8%; bottom: 8%;
-  width: 1px; background: var(--color-border);
-}
-.unip-figures strong {
-  display: block; font-family: var(--font-display); font-weight: 800;
-  font-size: clamp(2.4rem, 5vw, 4rem); line-height: 1;
-  letter-spacing: -0.04em; color: var(--color-hero-ink); margin-bottom: 0.4rem;
-}
-.unip-figures span { color: var(--color-muted); font-size: 0.9rem; }
-
 /* ---- what a partnership buys you ---- */
 .unip-means {
   margin-top: 2.25rem;
@@ -6013,50 +6020,56 @@ a.rev-score:hover { background: rgba(255, 255, 255, 0.08); }
 /* ---- the logo wall ----
    auto-fill rather than a fixed count, so the wall stays even whether there
    are ten partners or two hundred and no breakpoint has to be added. */
+/* ---- the logo wall ----
+   Four across at full width, dropping a column at a time as the page
+   narrows. `auto-fill` with a minimum rather than a fixed four: a hard
+   `repeat(4, 1fr)` would keep four columns on a phone and squeeze each mark
+   into a stamp. */
 .unip-grid {
-  display: grid; gap: 1.25rem;
+  display: grid; gap: clamp(0.9rem, 1.8vw, 1.6rem);
   grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
 }
+
+/* 2:1, which is the reference's proportion and also the shape that suits
+   the most logos: wordmarks are wide, crests are square, and a landscape box
+   holds both without either being cropped or stranded. `aspect-ratio` rather
+   than a fixed height so the cards stay in proportion at every column count. */
 .unip-card {
-  background: #fff; border: 1px solid var(--color-border); border-radius: 16px;
-  overflow: hidden; display: flex; flex-direction: column;
-  transition: border-color 0.25s ease;
+  display: grid; place-items: center;
+  aspect-ratio: 2 / 1;
+  padding: clamp(1.1rem, 2.4vw, 1.9rem);
+  background: #fff;
+  border: 1px solid var(--color-border); border-radius: 12px;
+  color: inherit;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
-/* Still on hover — see the note on .dpage-card. */
-.unip-card:hover {
-  border-color: transparent;
+/* Only the ones that go somewhere respond to a pointer — see the note in
+   the Logo component about cards that look clickable and are not. */
+a.unip-card:hover {
+  border-color: #cfd4dd;
+  box-shadow: 0 6px 18px -12px rgba(9, 16, 38, 0.4);
 }
-/* The logos arrive as photographs of wildly different proportions, so each
-   gets a fixed, padded frame and is contained inside it. `contain` rather
-   than `cover`: cropping somebody's crest is worse than white space. */
-.unip-logo {
-  height: 118px; display: grid; place-items: center;
-  padding: 1.1rem 1.25rem; background: #fff;
-  border-bottom: 1px solid var(--color-border);
+a.unip-card:focus-visible {
+  outline: 2px solid var(--color-hero-ink); outline-offset: 2px;
 }
-.unip-logo img { max-width: 100%; max-height: 100%; object-fit: contain; }
+
+/* `contain`, never `cover`: cropping somebody's crest is worse than white
+   space around it. Capped well inside the card so marks of very different
+   proportions still sit on a common optical baseline instead of one
+   wordmark running edge to edge beside a small round seal. */
+.unip-card img {
+  max-width: 82%; max-height: 68%;
+  object-fit: contain;
+}
+
+/* What a missing file falls back to. It has to look deliberate, because on
+   a wall of marks a card of plain text is conspicuous. */
 .unip-logo-fallback {
-  font-family: var(--font-display); font-weight: 700; font-size: 0.95rem;
-  color: var(--color-hero-ink); text-align: center; line-height: 1.3;
+  font-family: var(--font-display); font-weight: 700;
+  font-size: 0.95rem; line-height: 1.3; text-align: center;
+  color: var(--color-hero-ink);
 }
-.unip-card-body { padding: 1rem 1.15rem 1.2rem; }
-.unip-card-body h3 {
-  color: var(--color-hero-ink); font-size: 1rem; line-height: 1.3;
-  margin-bottom: 0.25rem;
-}
-.unip-card-body h3 a { color: inherit; }
-.unip-card-body h3 a:hover { color: var(--color-hero-red); }
-.unip-where { color: var(--color-muted); font-size: 0.85rem; margin: 0; }
-.unip-note { color: var(--color-muted); font-size: 0.88rem; margin: 0.55rem 0 0; }
-.unip-levels {
-  list-style: none; display: flex; flex-wrap: wrap; gap: 0.35rem;
-  margin: 0.7rem 0 0; padding: 0;
-}
-.unip-levels li {
-  padding: 0.18rem 0.55rem; border-radius: 999px;
-  background: var(--color-surface); color: var(--color-muted);
-  font-size: 0.74rem; font-weight: 600;
-}
+
 .unip-promises {
   margin: 2.5rem 0 0; padding-top: 1.75rem;
   border-top: 1px solid var(--color-border);
@@ -6065,8 +6078,6 @@ a.rev-score:hover { background: rgba(255, 255, 255, 0.08); }
 @media (max-width: 860px) {
   .unip-accent { padding-left: 0; }
   .unip-means { grid-template-columns: 1fr; }
-  .unip-figures { grid-template-columns: 1fr; gap: 1.75rem; }
-  .unip-figures div + div::before { display: none; }
   .unip-stage { min-height: clamp(460px, 70vh, 640px); }
   .unip-controls { margin-top: 1.75rem; }
   .unip-dots button { width: 30px; }
@@ -6522,67 +6533,11 @@ a.rev-score:hover { background: rgba(255, 255, 255, 0.08); }
 .ctc-map-btn:hover svg { transform: translateX(3px); }
 
 /* ---- the form ---- */
-.ctc-form-section { background: #f4f7fb; padding: clamp(3rem, 7vw, 5rem) 0; }
-.ctc-form-split {
-  display: grid; grid-template-columns: 0.85fr 1.15fr; gap: clamp(2rem, 4vw, 3.5rem);
-  align-items: start;
-}
-.ctc-h2 {
-  font-size: clamp(1.9rem, 4vw, 3rem); line-height: 1.08;
-  letter-spacing: -0.04em; color: var(--color-hero-ink);
-  max-width: 16ch; margin-bottom: 1rem;
-}
 /* No italic is loaded for this family, so the emphasis is drawn — a thick
    soft underline in the accent colour, same device as the pull quotes. */
-.ctc-h2-accent {
-  color: var(--color-hero-red);
-  box-shadow: inset 0 -0.12em 0 rgba(185, 56, 21, 0.28);
-}
-.ctc-form-intro p { color: var(--color-muted); margin-bottom: 1.75rem; }
-.ctc-promises { margin: 0; }
-.ctc-promises li { font-size: 0.93rem; }
-
-.ctc-form-panel {
-  background: #fff; border-radius: 22px;
-  padding: clamp(1.6rem, 3vw, 2.25rem);
-  box-shadow: 0 18px 44px rgba(23, 39, 92, 0.09);
-}
-/* The shared `.form` block caps itself at 560px; inside this panel it fills
-   the column instead. */
-.ctc-form { max-width: none; gap: 1.15rem; }
-.ctc-form label {
-  font-family: var(--font-display); font-size: 0.8rem; font-weight: 700;
-  letter-spacing: 0.1em; text-transform: uppercase;
-  color: var(--color-hero-ink); gap: 0.5rem;
-}
-.ctc-form input, .ctc-form select, .ctc-form textarea {
-  background: var(--color-surface); border-color: transparent; border-radius: 12px;
-  padding: 0.8rem 0.95rem; font-size: 1rem;
-  font-family: var(--font-body); font-weight: 400;
-  letter-spacing: normal; text-transform: none; color: var(--color-text);
-  transition: box-shadow 0.2s ease, background 0.2s ease;
-}
-.ctc-form input:focus, .ctc-form select:focus, .ctc-form textarea:focus {
-  outline: none; background: #fff;
-  box-shadow: 0 0 0 2px var(--color-hero-red);
-}
-.ctc-form textarea { resize: vertical; }
-.ctc-submit {
-  align-self: flex-start; cursor: pointer; border: none;
-  background: var(--color-hero-red); color: #fff;
-  font-family: var(--font-display); font-weight: 700; font-size: 1rem;
-  padding: 0.85rem 1.9rem; border-radius: 999px;
-  transition: background 0.25s ease, transform 0.2s ease;
-}
-.ctc-submit:hover:not(:disabled) {
-  background: var(--color-hero-ink); transform: translateY(-2px);
-}
-.ctc-submit:disabled { opacity: 0.65; cursor: not-allowed; }
 
 @media (max-width: 980px) {
   .ctc-panel { grid-template-columns: 1fr; }
-  .ctc-form-split { grid-template-columns: 1fr; }
-  .ctc-h2 { max-width: none; }
 }
 
 @media (max-width: 620px) {
@@ -6896,6 +6851,19 @@ a.rev-score:hover { background: rgba(255, 255, 255, 0.08); }
 .blg-card-tags span {
   padding: 0.15rem 0.55rem; border-radius: 999px;
   background: var(--color-surface); font-size: 0.72rem; font-weight: 600;
+}
+
+/* The "you are looking at one page's articles" line. Sits above the tag
+   chips and looks nothing like them on purpose — it is a different axis. */
+.blg-on {
+  display: flex; align-items: center; gap: 0.9rem; flex-wrap: wrap;
+  margin: 1.5rem 0 0; font-size: 0.95rem; color: var(--color-muted);
+}
+.blg-on strong { color: var(--color-hero-ink); }
+.blg-on button {
+  border: 0; background: none; cursor: pointer; padding: 0;
+  color: var(--color-hero-red); font-family: inherit; font-size: 0.88rem;
+  font-weight: 600; text-decoration: underline; text-underline-offset: 3px;
 }
 
 /* ---- empty state and pager ---- */
@@ -7250,6 +7218,37 @@ a.rev-score:hover { background: rgba(255, 255, 255, 0.08); }
 }
 .ed-cover-clear:hover { background: var(--color-danger); }
 
+/* ---- "Appears on": the placement checkboxes ----
+   A fieldset per heading, because thirteen checkboxes in one run is a list
+   nobody reads to the end of, and the two halves answer different questions
+   ("which country is this about" / "which service does this belong to").
+   The whole row is the label, so the target is the width of the panel
+   rather than a 13px box. */
+.ed-pages { border: 0; margin: 0; padding: 0; width: 100%; display: grid; gap: 0.1rem; }
+.ed-pages legend {
+  padding: 0; margin-bottom: 0.35rem;
+  color: var(--color-muted); font-size: 0.7rem; font-weight: 700;
+  letter-spacing: 0.12em; text-transform: uppercase;
+}
+.ed-pages label {
+  display: flex; align-items: center; gap: 0.5rem; cursor: pointer;
+  padding: 0.28rem 0.4rem; margin: 0 -0.4rem; border-radius: 6px;
+  font-size: 0.84rem; color: var(--color-text);
+}
+.ed-pages label:hover { background: #fff; }
+.ed-pages input { accent-color: var(--color-hero-red); width: 15px; height: 15px; margin: 0; }
+.ed-pages input:checked + span { color: var(--color-hero-ink); font-weight: 600; }
+
+/* Placement pills in the posts table. Wrapped rather than truncated: a post
+   on five pages is exactly the row you want to be able to read. */
+.adm-places { display: inline-flex; flex-wrap: wrap; gap: 0.3rem; max-width: 22rem; }
+.adm-places span {
+  padding: 0.12rem 0.5rem; border-radius: 999px;
+  background: var(--color-surface); border: 1px solid var(--color-border);
+  font-size: 0.72rem; font-weight: 600; color: var(--color-hero-ink);
+  white-space: nowrap;
+}
+
 .ed-tags { list-style: none; display: flex; flex-wrap: wrap; gap: 0.35rem; margin: 0; padding: 0; }
 .ed-tags li {
   padding: 0.18rem 0.6rem; border-radius: 999px; background: #fff;
@@ -7355,7 +7354,6 @@ a.rev-score:hover { background: rgba(255, 255, 255, 0.08); }
   /* ---- forms and panels ----
      Rounded panels with generous inner padding lose too much of a narrow
      screen to their own edges. */
-  .who-form-panel, .ctc-form-panel { padding: 1.15rem; }
   .evt-empty-card, .blg-empty-card { padding: 1.5rem 1.15rem; }
 }
 
@@ -7384,7 +7382,6 @@ a.rev-score:hover { background: rgba(255, 255, 255, 0.08); }
   .unip-dots button { width: 20px; }
 
   /* Two figures per row is still one too many at this width. */
-  .unip-figures { grid-template-columns: 1fr; }
 
   .container { padding: 0 1.1rem; }
 }
@@ -8587,3 +8584,340 @@ a.rev-score:hover { background: rgba(255, 255, 255, 0.08); }
   margin: 0 0 1.25rem; font-size: 0.82rem; color: var(--color-muted);
 }
 .yta-state strong { color: var(--color-hero-ink); font-weight: 600; }
+
+/* ============================================================
+   The call-back strip (components/CallbackStrip.tsx) — a name,
+   a number, and a button, on pages with no fuller form.
+   ============================================================ */
+
+/* A label that is read but not seen. The inputs carry placeholders, and a
+   placeholder is not a label: it disappears the moment somebody types, and
+   screen readers are not required to announce it at all. */
+.sr-only {
+  position: absolute; width: 1px; height: 1px;
+  margin: -1px; padding: 0; overflow: hidden;
+  clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
+}
+
+.cbs { padding: clamp(2.25rem, 5vw, 3.5rem) 0; background: var(--color-bg); }
+
+/* ---- straddling the section above ----
+   `--cbs-lift` is 40% of the band's own height, measured in the component —
+   see the note there on why neither `margin-top: -40%` nor a transform will
+   do it. A NEGATIVE MARGIN rather than a transform, so the rest of the page
+   comes up with the band instead of a band-shaped gap being left behind.
+
+   No background of its own on the section, so the film shows through the
+   part that overhangs it — the tinted box inside is the only thing painted,
+   which is what makes the band read as sitting ON the video rather than as
+   a white strip with a panel in it. */
+.cbs[data-overlap] {
+  position: relative;
+  /* Above the film (0) and the hero copy (2), both of which sit in the root
+     stacking context — .hero is positioned but sets no z-index, so it makes
+     no context of its own for them to hide inside. */
+  z-index: 3;
+  margin-top: calc(-1 * var(--cbs-lift, 0px));
+  padding-top: 0;
+  background: none;
+}
+
+/* Below the stacking breakpoint the hero is no longer held to the window's
+   height, so a band reaching up into it would land on the buttons rather
+   than on film. It simply sits in the flow there, as everywhere else. */
+@media (max-width: 860px) {
+  .cbs[data-overlap] {
+    margin-top: 0;
+    padding-top: clamp(2.25rem, 5vw, 3.5rem);
+  }
+}
+
+/* A warm off-white panel rather than a grey one. The site's accent is an
+   orange-red, and a neutral with a little warmth in it sits under that
+   without looking like an unstyled block — a cool grey beside a warm accent
+   reads as the section having been forgotten. Deliberately without a border:
+   the tint alone is enough separation on white, and an outline as well makes
+   a quiet panel look like a dialog.
+
+   Copy left, form right, both centred on the same line. `1fr auto` rather
+   than two halves: the form is as wide as its own fields need and the
+   sentence takes what is left, so the button never drifts away from the
+   inputs on a wide screen. */
+.cbs-box {
+  display: grid; grid-template-columns: 1fr auto;
+  gap: clamp(1.25rem, 3vw, 3rem); align-items: center;
+  padding: clamp(1.6rem, 3.5vw, 2.75rem) clamp(1.4rem, 3.5vw, 3rem);
+  background: #faf7f2;
+  border-radius: 16px;
+}
+
+.cbs-eyebrow {
+  margin: 0 0 0.3rem;
+  font-family: var(--font-display); font-weight: 700;
+  font-size: 0.9rem; letter-spacing: -0.01em;
+  color: var(--color-hero-red);
+}
+.cbs-head {
+  margin: 0; max-width: 20ch;
+  font-family: var(--font-display); font-weight: 800;
+  font-size: clamp(1.4rem, 2.6vw, 2rem);
+  line-height: 1.15; letter-spacing: -0.03em;
+  color: var(--color-hero-ink);
+}
+
+.cbs-form { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; }
+.cbs-field { display: block; }
+/* White on the tint, not `--color-surface`: a grey field on a warm panel is
+   barely a field at all. The contrast is what says "type here". */
+.cbs-field input {
+  width: clamp(10rem, 18vw, 15rem); padding: 0.85rem 1rem;
+  font: inherit; font-size: 0.95rem; color: var(--color-text);
+  background: #fff;
+  border: 1px solid #e7e0d5; border-radius: 8px;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+.cbs-field input::placeholder { color: var(--color-muted); }
+.cbs-field input:focus {
+  outline: none; background: #fff;
+  border-color: var(--color-hero-ink);
+  box-shadow: 0 0 0 3px rgba(23, 39, 92, 0.08);
+}
+
+.cbs-form button {
+  padding: 0.85rem 2rem;
+  font: inherit; font-size: 0.9rem; font-weight: 700;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  color: #fff; background: var(--color-hero-ink);
+  border: 1px solid var(--color-hero-ink); border-radius: 8px; cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+.cbs-form button:hover:not(:disabled) { background: #0f1d47; }
+.cbs-form button:disabled { opacity: 0.6; cursor: not-allowed; }
+.cbs-form button:focus-visible { outline: 2px solid var(--color-hero-ink); outline-offset: 2px; }
+
+/* Full width so an error under a wrapped row does not sit beside a field. */
+.cbs-error { flex: 1 0 100%; margin: 0; font-size: 0.85rem; color: var(--color-danger); }
+
+.cbs-done {
+  margin: 0; padding: 0.9rem 1.1rem; max-width: 30rem;
+  font-size: 0.95rem; line-height: 1.5; color: var(--color-success);
+  background: #e8f3ec; border-left: 3px solid var(--color-success);
+  border-radius: 8px;
+}
+
+/* Stacked below this: side by side, the sentence and three controls each get
+   too little room to read as either. */
+@media (max-width: 900px) {
+  .cbs-box { grid-template-columns: 1fr; }
+  .cbs-head { max-width: none; }
+  .cbs-field { flex: 1 1 12rem; }
+  .cbs-field input { width: 100%; }
+  .cbs-form button { flex: 1 1 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cbs-field input, .cbs-form button { transition: none; }
+}
+
+/* ---- the orbiting mark (components/OrbitMark.tsx) ----
+   The hero's ring, self-contained and with a photograph in the middle. It
+   replaced the consultation form that used to close the steps section.
+
+   The ITEMS are the hero's own classes — .orbit-item, .orbit-badge,
+   .orbit-plane and the orbit-revolve keyframe — so the badges, their sizes
+   and their counter-spin are defined once. Only the box around them is new,
+   because the hero's wrapper carries layout this has no use for. Both read
+   --orbit-size and --orbit-duration, which is the whole contract. */
+.omk {
+  /* Up from 430px. The `vh` term is new and is not decoration: this sits in
+     a stage exactly one viewport tall, so a circle sized only against width
+     would be cropped top and bottom on any short window. */
+  --orbit-size: min(560px, 76vw, 68vh);
+  --orbit-duration: 55s;
+  position: relative; margin-inline: auto;
+  width: var(--orbit-size); height: var(--orbit-size);
+  /* Inert: it sits over a scroll-linked stage, and a decorative circle that
+     swallowed a click meant for a step underneath would be a bug nobody
+     would think to look for here. */
+  pointer-events: none;
+}
+.omk-ring {
+  position: absolute; inset: 7%;
+  border: 1.5px dashed #d4d7e5; border-radius: 50%;
+}
+/* The disc is tinted in its own right, so a slow or missing photograph
+   leaves a deliberate circle rather than a hole inside the ring. */
+.omk-photo {
+  position: absolute; inset: 14%;
+  border-radius: 50%; overflow: hidden;
+  background: var(--color-surface);
+  box-shadow: 0 18px 44px -20px rgba(23, 39, 92, 0.35);
+}
+.omk-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.omk-spin {
+  position: absolute; inset: 0;
+  animation: orbit-revolve var(--orbit-duration) linear infinite;
+}
+
+/* One revolution a minute is atmosphere; stopping it dead leaves the badges
+   frozen at angles that read as a mistake rather than as a design. Slowed
+   right down instead, so the ring is still and the shape still makes sense. */
+@media (prefers-reduced-motion: reduce) {
+  .omk { --orbit-duration: 600s; }
+}
+
+/* ============================================================
+   "Drop us a line" (components/ContactForm.tsx) — the enquiry
+   form as a section, with an illustration beside it. The FIELD
+   styling below is shared: the contact and Who We Are pages
+   render the same .cfm-form inside their own layouts, so the
+   form looks identical wherever it appears.
+   ============================================================ */
+.cfm { padding: clamp(3rem, 7vw, 5.5rem) 0; background: var(--color-bg); }
+
+/* WHITE, HELD IN BY A HAIRLINE. What separates this from the page is the
+   outline rather than a fill — one pixel of the accent already used by the
+   eyebrow inside it, so the box is bounded without a second colour being
+   introduced to do it. */
+.cfm-box {
+  border: 1px solid var(--color-hero-red);
+  border-radius: 16px;
+  background: var(--color-bg);
+  padding: clamp(1.6rem, 3.5vw, 2.75rem) clamp(1.4rem, 3.5vw, 2.75rem);
+}
+
+/* Form left, drawing right — the reference's arrangement. The illustration
+   column is declared only when there IS one: `data-art` comes off the image's
+   own onError, so a missing file leaves a single centred column rather than
+   an empty half. */
+.cfm-box { display: grid; gap: clamp(1.5rem, 4vw, 3.5rem); align-items: center; }
+/* Weighted towards the form now that it lays out in two columns of fields —
+   at the old near-even split the pairs were too narrow to sit side by side
+   and it collapsed straight back to a stack. */
+.cfm-box[data-art] { grid-template-columns: minmax(0, 1.45fr) minmax(0, 0.55fr); }
+.cfm-copy { max-width: 46rem; }
+
+.cfm-eyebrow {
+  margin: 0 0 0.5rem;
+  font-family: var(--font-display); font-weight: 700;
+  font-size: 0.78rem; letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--color-hero-red);
+}
+.cfm-head {
+  margin: 0 0 0.75rem;
+  font-size: clamp(1.8rem, 3.4vw, 2.6rem);
+  font-weight: 800; letter-spacing: -0.03em; line-height: 1.12;
+  color: var(--color-hero-ink);
+}
+.cfm-lead {
+  margin: 0 0 1.75rem; max-width: 46ch;
+  color: var(--color-muted); line-height: 1.7;
+}
+
+/* ---- the fields ----
+   InquiryForm renders each field as a <label> with its text and control
+   inside, so the label needs to be a block for the control to sit under it
+   rather than beside it. */
+/* PAIRED ACROSS, NOT STACKED. Five fields in a column made this the tallest
+   thing on the page for the least information on it. Name sits beside email
+   and phone beside service, which halves the height and lets the whole
+   section read at a glance.
+
+   `auto-fit` with a minimum rather than a fixed two columns, because the
+   same form renders inside the contact page's split and the Who We Are
+   panel — both far narrower than this section. There it simply stays one
+   column, without either place needing to know about the other. */
+.cfm-form {
+  display: grid; gap: 0.85rem 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(13.5rem, 1fr));
+  align-items: start;
+}
+.cfm-form label {
+  display: grid; gap: 0.4rem; min-width: 0;
+  font-size: 0.82rem; font-weight: 600; color: var(--color-text);
+}
+/* The long ones, and the button, take the whole width whatever the count.
+   Addressed by name — see the note in InquiryForm on why not nth-of-type. */
+.cfm-form label[data-field="message"],
+.cfm-form > button,
+.cfm-form > p { grid-column: 1 / -1; }
+/* A FIELD THE SAME COLOUR AS WHAT IT SITS ON IS NOT OBVIOUSLY A FIELD, and
+   this form now renders in the same white box on three pages. So the colour
+   is a variable rather than a literal, so a panel with a different ground
+   can say so in one line. Every place it renders today is white, hence the
+   grey default and no overrides. */
+.cfm-form { --field-bg: var(--color-surface); }
+
+.cfm-form input, .cfm-form select, .cfm-form textarea {
+  width: 100%; padding: 0.72rem 0.9rem;
+  font: inherit; font-size: 0.95rem; font-weight: 400; color: var(--color-text);
+  background: var(--field-bg);
+  border: 1px solid var(--color-border); border-radius: 8px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.cfm-form textarea { resize: vertical; line-height: 1.6; min-height: 5.5rem; }
+.cfm-form input::placeholder, .cfm-form textarea::placeholder { color: #a1a1aa; }
+.cfm-form input:focus, .cfm-form select:focus, .cfm-form textarea:focus {
+  outline: none; background: #fff; border-color: var(--color-hero-ink);
+  box-shadow: 0 0 0 3px rgba(23, 39, 92, 0.08);
+}
+
+/* Full width, as in the reference — it is the only action on the form and
+   a button sized to its own text would float in the space beside it. */
+/* Sized to itself and set to the left, rather than a full-width slab. A
+   button stretched across two columns is the heaviest thing in a section
+   that is meant to feel light, and it is the one control here — nobody is
+   going to miss it. */
+.cfm-go {
+  justify-self: start; margin-top: 0.35rem; padding: 0.85rem 2.4rem;
+  font: inherit; font-size: 0.95rem; font-weight: 700;
+  color: #fff; background: var(--color-hero-ink);
+  border: 1px solid var(--color-hero-ink); border-radius: 8px; cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+.cfm-go:hover:not(:disabled) { background: #0f1d47; }
+.cfm-go:disabled { opacity: 0.6; cursor: not-allowed; }
+.cfm-go:focus-visible { outline: 2px solid var(--color-hero-ink); outline-offset: 2px; }
+
+/* ---- the drawing ----
+   Capped and centred rather than filling its column: these illustrations are
+   drawn at one size and blowing one up to fill a wide screen makes the line
+   weights look wrong beside the text. */
+.cfm-art { display: grid; place-items: center; }
+.cfm-art img { width: min(100%, 26rem); height: auto; }
+
+/* Stacked below this, drawing first — it is the friendlier thing to meet at
+   the top of a narrow screen, and it keeps the submit button near the
+   thumb rather than pushing it a screen further down. */
+@media (max-width: 860px) {
+  .cfm-box[data-art] { grid-template-columns: 1fr; }
+  .cfm-copy { max-width: none; order: 2; }
+  .cfm-art { order: 1; }
+  .cfm-art img { width: min(100%, 17rem); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cfm-form input, .cfm-form select, .cfm-form textarea, .cfm-go { transition: none; }
+}
+
+/* ---- the direct details, under the form (pages/About.tsx) ----
+   This list used to be the narrow column beside the enquiry form. The form
+   is now a full-width box above it, so on its own the list would stretch
+   the container with a rule under each item — a very wide five-row table of
+   two short words each. As a row it reads as what it is: four ways to reach
+   the office, at a glance.
+
+   No top padding: it is a continuation of the form above rather than a
+   section in its own right, and dpage-section's full padding would open a
+   gap that makes it look unrelated to it. */
+.who-direct { padding-top: 0; }
+.who-direct .who-contact-side h3 { font-size: 1.05rem; margin-bottom: 1rem; }
+.who-direct .who-contact-list {
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: 1.1rem 2rem;
+}
+/* The rules under each item separated rows in a column; across a row they
+   would be underlining words rather than dividing anything. */
+.who-direct .who-contact-list li { padding-bottom: 0; border-bottom: none; }
+.who-direct .dpage-fineprint { max-width: 52ch; }

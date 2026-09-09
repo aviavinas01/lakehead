@@ -10,6 +10,7 @@ import {
   countriesWithPartners,
   type University,
 } from "../data/universities";
+import CallbackStrip from "../components/CallbackStrip";
 
 /**
  * University Partners — /university-partners.
@@ -61,49 +62,56 @@ const WHAT_IT_MEANS = [
   },
 ];
 
+/**
+ * One partner: the mark, on a card, and nothing else.
+ *
+ * A LOGO WALL RATHER THAN A CARD WITH A CAPTION. Institutions are recognised
+ * by their crest, not read off a list — the mark IS the name, and setting it
+ * twice makes the grid busier without making it clearer. It also survives
+ * the awkward truth that these are all still called "University 1": a wall
+ * of marks reads correctly today, where a wall of placeholder captions
+ * reads as unfinished.
+ *
+ * THE NAME IS NOT LOST, it has just stopped being decoration. It is the
+ * image's alt text, so a screen reader announces the institution rather than
+ * skipping an unlabelled picture; it is the `title`, so a pointer can ask;
+ * and it is what the search box matches on. If the file is missing the name
+ * is what the card shows instead, so a typo degrades to a legible card
+ * rather than a broken image.
+ */
 function Logo({ uni }: { uni: University }) {
   const [broken, setBroken] = useState(false);
 
-  return (
-    <article className="unip-card">
-      <div className="unip-logo">
-        {broken ? (
-          <span className="unip-logo-fallback">{uni.name}</span>
-        ) : (
-          <img
-            src={uni.logo}
-            alt=""
-            loading="lazy"
-            decoding="async"
-            onError={() => setBroken(true)}
-          />
-        )}
-      </div>
-      <div className="unip-card-body">
-        <h3>
-          {uni.url ? (
-            <a href={uni.url} target="_blank" rel="noopener noreferrer">
-              {uni.name}
-            </a>
-          ) : (
-            uni.name
-          )}
-        </h3>
-        {uni.country || uni.city ? (
-          <p className="unip-where">
-            {[uni.city, uni.country].filter(Boolean).join(", ")}
-          </p>
-        ) : null}
-        {uni.note ? <p className="unip-note">{uni.note}</p> : null}
-        {uni.levels?.length ? (
-          <ul className="unip-levels">
-            {uni.levels.map((l) => (
-              <li key={l}>{l}</li>
-            ))}
-          </ul>
-        ) : null}
-      </div>
-    </article>
+  const mark = broken ? (
+    <span className="unip-logo-fallback">{uni.name}</span>
+  ) : (
+    <img
+      src={uni.logo}
+      /* Named, not decorative: this is the only thing on the card, so an
+         empty alt would leave a screen reader with an empty card. */
+      alt={uni.name}
+      loading="lazy"
+      decoding="async"
+      onError={() => setBroken(true)}
+    />
+  );
+
+  /* Linked only when there is somewhere to go. A card that looks clickable
+     and is not is worse than one that never suggested it. */
+  return uni.url ? (
+    <a
+      className="unip-card"
+      href={uni.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      title={uni.name}
+    >
+      {mark}
+    </a>
+  ) : (
+    <div className="unip-card" title={uni.name}>
+      {mark}
+    </div>
   );
 }
 
@@ -305,24 +313,6 @@ export default function UniversityPartners() {
         </div>
       </section>
 
-      {/* ---- the figures ---- */}
-      <section className="unip-figures-band">
-        <div className="container unip-figures">
-          <div>
-            <strong>{UNIVERSITIES.length}</strong>
-            <span>Partner institutions</span>
-          </div>
-          <div>
-            <strong>{DESTINATIONS.length}</strong>
-            <span>Destinations served</span>
-          </div>
-          <div>
-            <strong>1</strong>
-            <span>Application desk, start to finish</span>
-          </div>
-        </div>
-      </section>
-
       {/* ---- what a partnership means ---- */}
       <section className="dpage-section">
         <div className="container dpage-split">
@@ -456,6 +446,8 @@ export default function UniversityPartners() {
           </ul>
         </div>
       </section>
+
+      <CallbackStrip service="study-abroad" />
 
       <section className="dpage-cta">
         <div className="container dpage-cta-inner">

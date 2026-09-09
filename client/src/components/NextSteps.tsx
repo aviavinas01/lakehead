@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { Link } from "react-router-dom";
-import ConsultCard from "./ConsultCard";
+import OrbitMark from "./OrbitMark";
 import { JOURNEY, JOURNEY_CLOSER, type JourneyStep } from "../data/journey";
 
 /**
@@ -39,7 +39,7 @@ import { JOURNEY, JOURNEY_CLOSER, type JourneyStep } from "../data/journey";
  * wrong.
  */
 
-/** The consultation form is the panel after the last step. */
+/** The closing panel after the last step — the orbiting mark. */
 const CONSULT = JOURNEY.length;
 /** Panels: one per step, plus the form. */
 const PANEL_COUNT = JOURNEY.length + 1;
@@ -64,13 +64,23 @@ const BLOCKS = [...JOURNEY, JOURNEY_CLOSER];
 const VH_PER_PANEL = 0.55;
 
 /**
- * Viewport heights held at the end, with the form landed and nothing moving.
+ * Viewport heights held at the end, with the last panel landed and nothing
+ * moving.
  *
- * The form is the one panel with something to do on it. Without this the
- * band released the moment it arrived, and the form slid away under the
- * hands of anyone who started filling it in.
+ * CUT FROM 0.85 WHEN THE FORM BECAME A CIRCLE. This was long because the
+ * last panel used to be the consultation form: releasing the band the moment
+ * it arrived slid the form away under the hands of anyone who had started
+ * filling it in, so it was pinned for most of a screen while they typed.
+ *
+ * The panel is now the orbiting mark, which is decoration — there is nothing
+ * to fill in and nothing to be interrupted. Held that long it just read as
+ * the page refusing to move: most of a screen of scrolling that changed
+ * nothing on it. What is left is enough for the circle to land and be seen
+ * to have landed before the section lets go.
+ *
+ * If a form ever returns to the last panel, this has to go back up with it.
  */
-const HOLD_VH = 0.85;
+const HOLD_VH = 0.25;
 
 /** Total scroll room the section reserves, in viewport heights. */
 const SCROLL_VH = (PANEL_COUNT - 1) * VH_PER_PANEL + HOLD_VH;
@@ -211,7 +221,7 @@ export default function NextSteps() {
 
       /* The hold at the end is what MOVE_SHARE buys: past that share of the
          section, `pos` is already at its maximum and stays there while the
-         rest of the scroll goes by with the form standing still. */
+         rest of the scroll goes by with the last panel standing still. */
       const pos = clamp(progress / MOVE_SHARE, 0, 1) * (PANEL_COUNT - 1);
 
       stageEl.style.setProperty("--nsx-pos", pos.toFixed(4));
@@ -291,7 +301,7 @@ export default function NextSteps() {
             data-on={onCloser || undefined}
             {...inertWhenHidden(onCloser)}
           >
-            <ConsultCard />
+            <OrbitMark />
           </div>
         </div>
 
@@ -362,7 +372,7 @@ export default function NextSteps() {
             </Link>
           </article>
         ))}
-        <ConsultCard />
+        <OrbitMark />
       </div>
     </section>
   );

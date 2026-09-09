@@ -11,6 +11,7 @@ import type { Guide } from "./types";
  * British higher education.
  */
 export const UK_GUIDE: Guide = {
+  page: "study-in-uk",
   name: "Study in the UK",
   hero: "/uk.jpg",
   head: ["Four nations. ", { text: "One small country.", as: "accent" }],

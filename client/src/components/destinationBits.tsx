@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { registerParallax } from "../lib/parallax";
 
 /**
@@ -149,7 +149,25 @@ export function Shot({
     },
     [still]
   );
-  useEffect(() => () => undrift.current(), []);
+  /* THERE IS DELIBERATELY NO `useEffect(() => () => undrift.current(), [])`
+     HERE, and it is worth knowing why, because adding one back looks like an
+     obvious safety net and silently kills the effect in development.
+ 
+     React detaches a ref on unmount — `drift(null)` always runs — so an
+     unmount cleanup is redundant for the real case. Under StrictMode it is
+     worse than redundant. StrictMode mounts, simulates an unmount, and
+     mounts again; the simulated unmount runs that cleanup and unregisters
+     the picture, and the simulated remount re-runs an effect whose body does
+     nothing but return a cleanup. Nothing re-registers, and the ref is not
+     re-invoked because its identity has not changed.
+ 
+     The picture is then left in exactly the state this had for months: still
+     carrying `px-shot` — because `drifting` is state, and nothing set it
+     back — so the stylesheet's `scale: 1.3` applies, while `--px` is never
+     written again and the picture never moves. A zoom with no drift, in
+     development only, with the production build perfectly fine. If the
+     parallax ever looks dead on localhost and correct on the deployed site,
+     this is the shape of the bug to look for. */
 
   if (missing) {
     return <div className={`dpage-shot-empty ${className ?? ""}`} aria-hidden="true" />;

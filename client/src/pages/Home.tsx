@@ -6,12 +6,13 @@ import { PlaneIcon } from "../components/HeroOrbit";
 import NextSteps from "../components/NextSteps";
 import StatsStrip from "../components/StatsStrip";
 import LegacyBand from "../components/LegacyBand";
+import CallbackStrip from "../components/CallbackStrip";
+import ContactForm from "../components/ContactForm";
 import Destinations from "../components/Destinations";
 import ConsultPopup from "../components/ConsultPopup";
 import VideoTestimonials from "../components/VideoTestimonials";
 import Testimonials from "../components/Testimonials";
 import ConsultBanner from "../components/ConsultBanner";
-import UniversityPartners from "../components/UniversityPartners";
 import type { Album, Media } from "../types/api";
 
 /**
@@ -174,11 +175,21 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Who we are, with a frosted shape that starts inside the hero above
-          and finishes on the white down here — see the component. It sits
-          between the film and the figures deliberately: the film says what
-          we do, this says who is doing it, and only then do the numbers
-          mean anything. */}
+      {/* Straddles the bottom edge of the film — 40% of the band on the
+          video, the rest on the white below. It has to be a sibling of the
+          hero rather than a child: .hero clips its overflow, so a band
+          reaching below from inside would be cut off at the section edge.
+
+          TWO ASKS ON THIS PAGE, ON PURPOSE. This one wants a name and a
+          number and takes ten seconds; the form above the footer wants the
+          whole story. They are for different readers at different points,
+          not a duplicate. */}
+      <CallbackStrip service="study-abroad" overlap />
+
+      {/* Who we are. It sits between the film and the figures deliberately:
+          the film says what we do, this says who is doing it, and only then
+          do the numbers mean anything. It reaches nowhere near the hero, so
+          the band above has that overlap zone to itself. */}
       <LegacyBand />
 
       <StatsStrip />
@@ -232,13 +243,16 @@ export default function Home() {
 
       <Testimonials />
 
-      <UniversityPartners />
-
       <NextSteps />
 
       <VideoTestimonials />
 
       <ConsultBanner />
+
+      {/* The last thing before the footer. Everything above has been an
+          argument for getting in touch; this is where that is finally
+          possible without leaving the page. */}
+      <ContactForm source="home" />
 
       {/* Opens over the page a beat after it loads, once a session. Renders
           nothing until then, and nothing at all on a return visit in the same

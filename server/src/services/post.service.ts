@@ -1,24 +1,44 @@
-import { Post, type IPost, type PostDocument } from "../models/Post.js";
+import { Post, type IPost, type PostDocument, type PostPage } from "../models/Post.js";
 import { ApiError } from "../utils/ApiError.js";
 import type { PaginatedResult, PaginationQuery } from "../types/common.js";
 
 type CreatePostInput = Pick<IPost, "title" | "content"> &
-  Partial<Pick<IPost, "excerpt" | "coverImage" | "tags" | "status">>;
+  Partial<Pick<IPost, "excerpt" | "coverImage" | "tags" | "pages" | "status">>;
+
+/** The optional narrowings on the public list. Both are simple equality. */
+export interface PostFilters {
+  /** A free-text tag, as written by the author. */
+  tag?: string;
+  /** A page key from POST_PAGES — where the post has been placed. */
+  on?: PostPage;
+}
 
 export const postService = {
+  /**
+   * The public list. Two narrowings, and they compose: `on` is placement
+   * (which page asked), `tag` is subject (what the piece is about).
+   *
+   * `pages` is an array in the document, so `{ pages: "study-in-usa" }` is
+   * mongo's array-contains — the same shape the `tags` filter has always
+   * used. Nothing here needs $in.
+   *
+   * The projection carries `pages` as well as `tags` so a card can say where
+   * else a post lives without a second round trip.
+   */
   async listPublished(
     { page, limit }: PaginationQuery,
-    tag?: string
+    { tag, on }: PostFilters = {}
   ): Promise<PaginatedResult<Partial<PostDocument>>> {
     const filter: Record<string, unknown> = { status: "published" };
     if (tag) filter.tags = tag;
+    if (on) filter.pages = on;
 
     const [items, total] = await Promise.all([
       Post.find(filter)
         .sort({ publishedAt: -1 })
         .skip((page - 1) * limit)
         .limit(limit)
-        .select("title slug excerpt coverImage tags publishedAt"),
+        .select("title slug excerpt coverImage tags pages publishedAt"),
       Post.countDocuments(filter),
     ]);
 

@@ -9,6 +9,7 @@ import type { Guide } from "./types";
  * from Korean government sources and are stamped as such.
  */
 export const SOUTH_KOREA_GUIDE: Guide = {
+  page: "study-in-south-korea",
   name: "Study in South Korea",
   hero: "/southkorea.jpg",
   head: ["Smaller than Nepal. ", { text: "Considerably busier.", as: "accent" }],

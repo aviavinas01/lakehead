@@ -5,6 +5,7 @@ import { fetchGallery, type GalleryAlbum, type GalleryImage } from "../api/galle
 import { PLACEHOLDER_ALBUMS } from "../data/gallery";
 import { armReveals } from "../lib/reveal";
 import HelpVideo from "../components/HelpVideo";
+import CallbackStrip from "../components/CallbackStrip";
 
 /**
  * Gallery — /gallery.
@@ -398,6 +399,8 @@ export default function Gallery() {
           </p>
         </div>
       ) : null}
+
+      <CallbackStrip service="other" />
 
       <section className="dpage-cta">
         <div className="container dpage-cta-inner">

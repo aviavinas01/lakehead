@@ -4,6 +4,7 @@ import { PlaneIcon } from "../components/HeroOrbit";
 import { Check, Arrow, Shot } from "../components/destinationBits";
 import { SERVICES, findService } from "../data/services";
 import HelpVideo from "../components/HelpVideo";
+import CallbackStrip from "../components/CallbackStrip";
 
 /**
  * One page, every service. The route is /services/:slug and everything on the
@@ -107,6 +108,8 @@ export default function ServiceDetail() {
           </div>
         </div>
       </section>
+
+      <CallbackStrip service="other" />
 
       <section className="dpage-cta">
         <div className="container dpage-cta-inner">

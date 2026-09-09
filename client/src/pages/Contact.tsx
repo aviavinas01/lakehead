@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { Arrow, Pin, Check } from "../components/destinationBits";
-import InquiryForm from "../components/InquiryForm";
+import { Arrow, Pin } from "../components/destinationBits";
+import ContactForm from "../components/ContactForm";
 import { OFFICES, contact, mapEmbedFor, mapLinkFor } from "../config/contact";
 
 /**
@@ -187,43 +187,11 @@ export default function Contact() {
         </div>
       </section>
 
-      {/* ---- the form ---- */}
-      <section className="ctc-form-section" id="enquire">
-        <div className="container ctc-form-split">
-          <div className="ctc-form-intro">
-            <h2 className="ctc-h2">
-              Or just <span className="ctc-h2-accent">tell us where you are</span>
-            </h2>
-            <p>
-              A country in mind, a score you need, or nothing at all beyond
-              wanting to go. A counsellor replies within one working day, from
-              whichever office is nearest you.
-            </p>
-            <ul className="dpage-checks ctc-promises">
-              <li>
-                <span aria-hidden="true"><Check /></span>
-                One working day, every working day
-              </li>
-              <li>
-                <span aria-hidden="true"><Check /></span>
-                A counsellor replies, not an autoresponder
-              </li>
-              <li>
-                <span aria-hidden="true"><Check /></span>
-                Nothing you send is passed to an institution
-              </li>
-            </ul>
-          </div>
+      {/* The same section as the home page and Who We Are. It replaced a
+          bespoke heading, lead and promises column that said in three
+          different voices what one component now says once. */}
+      <ContactForm source="contact" id="enquire" />
 
-          <div className="ctc-form-panel">
-            <InquiryForm
-              className="form ctc-form"
-              submitLabel="Send enquiry"
-              submitClassName="ctc-submit"
-            />
-          </div>
-        </div>
-      </section>
     </article>
   );
 }

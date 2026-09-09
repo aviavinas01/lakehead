@@ -4,6 +4,7 @@ import { PlaneIcon } from "../components/HeroOrbit";
 import { Check, Arrow, Shot } from "../components/destinationBits";
 import { revealInit } from "../lib/reveal";
 import HelpVideo from "../components/HelpVideo";
+import CallbackStrip from "../components/CallbackStrip";
 
 /**
  * Career Counselling & Aptitude Testing — /services/career-counselling.
@@ -302,6 +303,8 @@ export default function CareerCounselling() {
           <span>What you do with it is still yours to decide.</span>
         </div>
       </section>
+
+      <CallbackStrip service="career-counselling" />
 
       <section className="dpage-cta">
         <div className="container dpage-cta-inner">

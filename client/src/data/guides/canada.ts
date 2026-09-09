@@ -10,6 +10,7 @@ import type { Guide } from "./types";
  * the current position and gets re-checked.
  */
 export const CANADA_GUIDE: Guide = {
+  page: "study-in-canada",
   name: "Study in Canada",
   hero: "/canada.jpg",
   head: ["A very large country, ", { text: "and a very polite one", as: "accent" }],

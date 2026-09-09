@@ -30,6 +30,16 @@ export const INQUIRY_SOURCES = [
   "contact",
   "about",
   "study-abroad",
+  /* The "Drop us a line" section above the footer on the home page. Its own
+     value rather than "unknown": that one means we genuinely do not know,
+     and spending it on a source we DO know would make the honest case
+     unreadable. */
+  "home",
+  /* The two-field strip that appears under several sections: a name and a
+     phone number and nothing else. It is the only source that arrives with
+     no email address and no message, which is why both of those stopped
+     being required below. */
+  "callback",
   "unknown",
 ] as const;
 export type InquirySource = (typeof INQUIRY_SOURCES)[number];
@@ -47,9 +57,19 @@ export interface NotifyRecord {
 
 export interface IInquiry {
   name: string;
-  email: string;
+  /**
+   * OPTIONAL, and the schema below enforces "email or phone, at least one".
+   *
+   * It was required until the callback strip existed, which asks for a name
+   * and a number and nothing else — the shortest form that is still worth
+   * submitting. Requiring an address there would mean either turning a
+   * two-field ask into a three-field one, or writing a fake address into the
+   * database, and a column of `noreply@` rows is worse than an empty one.
+   */
+  email?: string;
   phone?: string;
   service: ServiceType;
+  /** Empty for a callback request — there is no box to type one in. */
   message: string;
   status: InquiryStatus;
   source: InquirySource;
@@ -66,10 +86,10 @@ export type InquiryDocument = HydratedDocument<IInquiry>;
 const inquirySchema = new Schema<IInquiry>(
   {
     name: { type: String, required: true, trim: true, maxlength: 100 },
-    email: { type: String, required: true, trim: true, lowercase: true },
+    email: { type: String, trim: true, lowercase: true },
     phone: { type: String, trim: true, maxlength: 20 },
     service: { type: String, enum: SERVICES, default: "other" },
-    message: { type: String, required: true, maxlength: 2000 },
+    message: { type: String, default: "", maxlength: 2000 },
     status: { type: String, enum: INQUIRY_STATUSES, default: "new" },
     source: { type: String, enum: INQUIRY_SOURCES, default: "unknown" },
     notes: { type: String, maxlength: 2000 },
@@ -89,5 +109,22 @@ const inquirySchema = new Schema<IInquiry>(
   },
   { timestamps: true }
 );
+
+/**
+ * AT LEAST ONE WAY TO REACH THEM. Neither field is required on its own any
+ * more, which without this would allow a row with a name and no contact
+ * details at all — an enquiry nobody can answer, which is worse than a
+ * rejected submission because it looks like work waiting to be done.
+ *
+ * On the schema rather than only in the request validator, so it also holds
+ * for anything written by a script or a future endpoint.
+ */
+inquirySchema.pre("validate", function (next) {
+  if (!this.email && !this.phone) {
+    next(new Error("An inquiry needs either an email address or a phone number"));
+    return;
+  }
+  next();
+});
 
 export const Inquiry: Model<IInquiry> = mongoose.model<IInquiry>("Inquiry", inquirySchema);

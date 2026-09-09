@@ -4,6 +4,7 @@ import { PlaneIcon } from "../components/HeroOrbit";
 import { Arrow, Shot } from "../components/destinationBits";
 import { TESTS, findTest } from "../data/tests";
 import HelpVideo from "../components/HelpVideo";
+import CallbackStrip from "../components/CallbackStrip";
 
 /**
  * One page, eight tests — /services/test-preparation/:test.
@@ -122,6 +123,8 @@ export default function TestDetail() {
           </div>
         </div>
       </section>
+
+      <CallbackStrip service="test-preparation" />
 
       <section className="dpage-cta">
         <div className="container dpage-cta-inner">

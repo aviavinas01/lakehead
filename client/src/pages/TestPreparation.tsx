@@ -5,6 +5,7 @@ import { Check, Arrow, Shot } from "../components/destinationBits";
 import { TESTS } from "../data/tests";
 import HelpVideo from "../components/HelpVideo";
 import TikTokStrip from "../components/TikTokStrip";
+import CallbackStrip from "../components/CallbackStrip";
 
 /**
  * Test Preparation — /services/test-preparation, and the parent of the
@@ -190,6 +191,8 @@ export default function TestPreparation() {
         eyebrow="On TikTok"
         heading={<>The tests, <span className="h-accent">in short</span></>}
       />
+
+      <CallbackStrip service="test-preparation" />
 
       <section className="dpage-cta">
         <div className="container dpage-cta-inner">

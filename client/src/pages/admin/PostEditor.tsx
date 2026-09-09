@@ -10,7 +10,8 @@ import {
   autoExcerpt,
   SYNTAX_HELP,
 } from "../../lib/richText";
-import type { Media, Post, PostStatus } from "../../types/api";
+import { POST_PAGES } from "../../types/api";
+import type { Media, Post, PostPage, PostStatus } from "../../types/api";
 
 /**
  * The post editor — /admin/posts/new and /admin/posts/:id/edit.
@@ -33,6 +34,15 @@ import type { Media, Post, PostStatus } from "../../types/api";
  * published" in a select and then pressing Save is two decisions to express
  * one intent, and it is the arrangement that gets a half-written post
  * published by accident.
+ *
+ * "APPEARS ON" IS CHECKBOXES AND TAGS ARE A TEXT BOX, and the difference is
+ * not laziness in one or fussiness in the other. Tags describe the article
+ * and the writer invents them; nothing breaks if two posts say "visas" and
+ * "visa". Placement decides which page an article shows up on, so it is
+ * chosen from a fixed list the pages themselves are built from — typing
+ * "study in usa" into a box and finding out weeks later that the guide's
+ * sidebar never picked it up is exactly the failure the closed list exists
+ * to make impossible. See POST_PAGES in types/api.ts.
  */
 
 interface EditorForm {
@@ -41,6 +51,8 @@ interface EditorForm {
   content: string;
   coverImage: string;
   tags: string;
+  /** Page keys ticked in the "Appears on" panel. */
+  pages: PostPage[];
   status: PostStatus;
 }
 
@@ -50,8 +62,17 @@ const initial: EditorForm = {
   content: "",
   coverImage: "",
   tags: "",
+  pages: [],
   status: "draft",
 };
+
+/* The checkbox list, split into its two headings. Derived from POST_PAGES
+   rather than written out again, so adding a destination there is the only
+   edit adding a destination needs. */
+const PAGE_GROUPS = [...new Set(POST_PAGES.map((p) => p.group))].map((group) => ({
+  group,
+  pages: POST_PAGES.filter((p) => p.group === group),
+}));
 
 /** What the toolbar buttons do to the selection. */
 type Tool =
@@ -99,6 +120,10 @@ export default function PostEditor() {
           content: p.content,
           coverImage: p.coverImage ?? "",
           tags: p.tags.join(", "),
+          /* `?? []` because posts written before placement existed have no
+             `pages` at all, and a missing array here would crash the panel
+             on the first post anyone opens. */
+          pages: p.pages ?? [],
           status: p.status,
         });
       })
@@ -121,6 +146,16 @@ export default function PostEditor() {
   const set = (
     e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
+
+  /* Kept in POST_PAGES order rather than tick order, so the summary line
+     under the panel reads the same way twice running. */
+  const togglePage = (key: PostPage) =>
+    setForm((f) => ({
+      ...f,
+      pages: f.pages.includes(key)
+        ? f.pages.filter((p) => p !== key)
+        : POST_PAGES.filter((p) => p.key === key || f.pages.includes(p.key)).map((p) => p.key),
+    }));
 
   /**
    * Replaces the current selection and restores the caret afterwards.
@@ -245,6 +280,7 @@ export default function PostEditor() {
       content: form.content,
       coverImage: form.coverImage,
       tags: form.tags.split(",").map((t) => t.trim()).filter(Boolean),
+      pages: form.pages,
       status,
     };
 
@@ -476,6 +512,39 @@ export default function PostEditor() {
                     {form.excerpt
                       ? `${form.excerpt.length}/300`
                       : "Left empty, the opening of the article is used."}
+                  </p>
+                </section>
+
+                {/* PLACEMENT SITS ABOVE TAGS because it is the decision
+                    with consequences. Nothing happens if the tags are
+                    imperfect; leave this empty and the article exists only
+                    on /blog, which is a choice worth making on purpose
+                    rather than discovering. */}
+                <section className="ed-panel">
+                  <h2>Appears on</h2>
+                  <p className="ed-hint">
+                    Tick the pages this article belongs to. It shows in the
+                    sidebar of each one, and on the blog either way.
+                  </p>
+                  {PAGE_GROUPS.map((g) => (
+                    <fieldset className="ed-pages" key={g.group}>
+                      <legend>{g.group}</legend>
+                      {g.pages.map((pg) => (
+                        <label key={pg.key}>
+                          <input
+                            type="checkbox"
+                            checked={form.pages.includes(pg.key)}
+                            onChange={() => togglePage(pg.key)}
+                          />
+                          <span>{pg.label}</span>
+                        </label>
+                      ))}
+                    </fieldset>
+                  ))}
+                  <p className="ed-hint">
+                    {form.pages.length === 0
+                      ? "Not placed on any page — it will appear on the blog only."
+                      : `On ${form.pages.length} ${form.pages.length === 1 ? "page" : "pages"}.`}
                   </p>
                 </section>
 

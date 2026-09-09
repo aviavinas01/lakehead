@@ -4,7 +4,8 @@ import api, { getErrorMessage } from "../api/client";
 import { mediaSrc } from "../api/media";
 import Loader from "../components/Loader";
 import { Arrow } from "../components/destinationBits";
-import type { Paginated, PostSummary } from "../types/api";
+import { POST_PAGES, postPageLabel } from "../types/api";
+import type { Paginated, PostPage, PostSummary } from "../types/api";
 
 /**
  * Blog & Articles — /blog.
@@ -29,6 +30,18 @@ import type { Paginated, PostSummary } from "../types/api";
  * Tags are collected from the posts on the page rather than from an endpoint
  * of their own. That means the chip row reflects what is actually here, and
  * it costs nothing.
+ *
+ * `?on=study-in-canada` IS THE SECOND FILTER, and it is placement rather
+ * than subject — the list a destination guide's sidebar is showing three of.
+ * It is where "All articles on this" from that sidebar lands, so the reader
+ * gets the full list in the same order they saw the first three, with the
+ * page it came from named at the top and one click back out of it.
+ *
+ * The two filters are deliberately not merged into one chip row. Tags are
+ * whatever the writers invented; placement is a fixed list of pages, and a
+ * row mixing "ielts" with "Study in Canada" would suggest they are the same
+ * kind of thing and can be combined freely — which is a promise about
+ * results this page cannot keep for every pair.
  */
 
 const PER_PAGE = 9;
@@ -92,6 +105,11 @@ export default function Blog() {
 
   const tag = params.get("tag") ?? "";
   const page = Math.max(1, Number(params.get("page") ?? 1) || 1);
+  /* Ignored unless it is a real page key. A stale or hand-edited `?on=`
+     should read as "no filter" and show the blog, not an empty grid that
+     looks like the site lost its articles. */
+  const onRaw = params.get("on") ?? "";
+  const on = (POST_PAGES.find((p) => p.key === onRaw)?.key ?? "") as PostPage | "";
 
   useEffect(() => {
     const previous = document.title;
@@ -108,6 +126,7 @@ export default function Blog() {
 
     const query = new URLSearchParams({ page: String(page), limit: String(PER_PAGE) });
     if (tag) query.set("tag", tag);
+    if (on) query.set("on", on);
 
     api
       .get<Paginated<PostSummary>>(`/posts?${query}`)
@@ -121,7 +140,7 @@ export default function Blog() {
     return () => {
       cancelled = true;
     };
-  }, [page, tag]);
+  }, [page, tag, on]);
 
   /* Every tag on the posts we can see, alphabetically. */
   const tags = useMemo(() => {
@@ -134,6 +153,11 @@ export default function Blog() {
      a list that no longer has four pages is how you land on an empty grid. */
   const setTag = (next: string) => {
     const q = new URLSearchParams();
+    /* The page filter survives a tag change — someone reading the Canada
+       list who then picks "visas" wants Canadian visa articles, not every
+       visa article on the site. Dropping to page one is the same rule as
+       before: page four of a shorter list is an empty grid. */
+    if (on) q.set("on", on);
     if (next) q.set("tag", next);
     setParams(q);
   };
@@ -147,7 +171,7 @@ export default function Blog() {
 
   const items = data?.items ?? [];
   /* The lead card only makes sense at the top of the unfiltered list. */
-  const showLead = page === 1 && !tag && items.length > 0;
+  const showLead = page === 1 && !tag && !on && items.length > 0;
   const lead = showLead ? items[0] : undefined;
   const rest = showLead ? items.slice(1) : items;
 
@@ -165,6 +189,18 @@ export default function Blog() {
             actually needs to say, and the questions students ask us most.
             Written by the counsellors who answer them.
           </p>
+
+          {/* Where the reader came from, and the way back out. Named rather
+              than shown as another chip, because it is not one of the tag
+              chips below and must not look like one it can be swapped for. */}
+          {on ? (
+            <p className="blg-on">
+              <span>Articles on <strong>{postPageLabel(on)}</strong></span>
+              <button type="button" onClick={() => setParams(new URLSearchParams())}>
+                Show every article
+              </button>
+            </p>
+          ) : null}
 
           {tags.length > 0 ? (
             <div className="blg-tags" role="group" aria-label="Filter by tag">
@@ -202,14 +238,26 @@ export default function Blog() {
             </div>
           ) : items.length === 0 ? (
             <div className="blg-empty-card">
-              <h2>{tag ? `Nothing tagged “${tag}” yet` : "No articles yet"}</h2>
+              <h2>
+                {tag
+                  ? `Nothing tagged “${tag}” yet`
+                  : on
+                    ? `Nothing on ${postPageLabel(on)} yet`
+                    : "No articles yet"}
+              </h2>
               <p>
                 {tag
                   ? "That tag has no published articles at the moment. Try another, or read everything."
-                  : "The first pieces are being written. In the meantime, the destination guides cover most of what students ask us."}
+                  : on
+                    ? "We haven’t placed an article on that page yet. Everything else we have written is one click away."
+                    : "The first pieces are being written. In the meantime, the destination guides cover most of what students ask us."}
               </p>
-              {tag ? (
-                <button type="button" className="blg-reset" onClick={() => setTag("")}>
+              {tag || on ? (
+                <button
+                  type="button"
+                  className="blg-reset"
+                  onClick={() => setParams(new URLSearchParams())}
+                >
                   Read everything <Arrow />
                 </button>
               ) : (

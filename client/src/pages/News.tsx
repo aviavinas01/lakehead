@@ -4,6 +4,7 @@ import { Arrow } from "../components/destinationBits";
 import { fetchNews, type NewsItem } from "../api/happenings";
 import { mediaSrc } from "../api/media";
 import { formatDay, hostOf } from "../lib/datetime";
+import CallbackStrip from "../components/CallbackStrip";
 
 /**
  * News — /news.
@@ -121,6 +122,8 @@ export default function News() {
           )}
         </div>
       </section>
+
+      <CallbackStrip service="other" />
     </article>
   );
 }

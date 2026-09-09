@@ -20,6 +20,11 @@ const SOURCE_LABELS: Record<InquirySource, string> = {
   contact: "Contact form enquiry",
   about: "Enquiry from Who We Are",
   "study-abroad": "Study abroad enquiry",
+  home: "Enquiry from the home page",
+  /* Says what it is in the subject line, because it needs a different
+     response from the rest: there is no message to read and no address to
+     reply to — somebody has to pick up the phone. */
+  callback: "Call-back request",
   unknown: "Website enquiry",
 };
 
@@ -61,7 +66,10 @@ export function buildInquiryEmail(inquiry: InquiryDocument): MailMessage {
   const when = formatWhen(inquiry.createdAt ?? new Date());
 
   const name = escapeHtml(inquiry.name);
-  const email = escapeHtml(inquiry.email);
+  /* A call-back request carries neither. Every use below is guarded rather
+     than defaulted: an empty string would print "Email:" with nothing after
+     it and a mailto: link that goes nowhere. */
+  const email = inquiry.email ? escapeHtml(inquiry.email) : "";
   const phone = inquiry.phone ? escapeHtml(inquiry.phone) : "";
 
   const subject = `${label} — ${inquiry.name}`;
@@ -70,14 +78,16 @@ export function buildInquiryEmail(inquiry: InquiryDocument): MailMessage {
     label,
     "",
     `Name:    ${inquiry.name}`,
-    `Email:   ${inquiry.email}`,
+    inquiry.email ? `Email:   ${inquiry.email}` : null,
     inquiry.phone ? `Phone:   ${inquiry.phone}` : null,
     `Service: ${inquiry.service}`,
     `Sent:    ${when}`,
     "",
-    inquiry.message,
+    inquiry.message || "(No message — they asked to be called back.)",
     "",
-    "— Reply to this email and it goes straight to them.",
+    inquiry.email
+      ? "— Reply to this email and it goes straight to them."
+      : "— No email address was given. Call the number above.",
   ]
     .filter((line) => line !== null)
     .join("\n");
@@ -98,7 +108,7 @@ export function buildInquiryEmail(inquiry: InquiryDocument): MailMessage {
       <td style="padding:8px 24px 4px;">
         <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;">
           ${row("Name", name)}
-          ${row("Email", `<a href="mailto:${email}" style="color:${ACCENT};text-decoration:none;">${email}</a>`)}
+          ${email ? row("Email", `<a href="mailto:${email}" style="color:${ACCENT};text-decoration:none;">${email}</a>`) : ""}
           ${phone ? row("Phone", `<a href="tel:${phone.replace(/[^\d+]/g, "")}" style="color:${ACCENT};text-decoration:none;">${phone}</a>`) : ""}
           ${row("Service", escapeHtml(inquiry.service))}
           ${row("Received", escapeHtml(when))}
@@ -108,14 +118,21 @@ export function buildInquiryEmail(inquiry: InquiryDocument): MailMessage {
     <tr>
       <td style="padding:16px 24px 24px;">
         <p style="margin:0 0 6px;color:${MUTED};font-size:13px;">Message</p>
-        <div style="padding:14px 16px;background:#f5f5f6;border-radius:10px;color:#26262e;font-size:15px;line-height:1.6;white-space:pre-wrap;">${escapeHtml(inquiry.message)}</div>
+        <div style="padding:14px 16px;background:#f5f5f6;border-radius:10px;color:#26262e;font-size:15px;line-height:1.6;white-space:pre-wrap;">${
+          inquiry.message
+            ? escapeHtml(inquiry.message)
+            : "No message — they asked to be called back."
+        }</div>
       </td>
     </tr>
     <tr>
       <td style="padding:0 24px 24px;">
         <p style="margin:0;color:${MUTED};font-size:13px;line-height:1.6;">
-          Reply to this email and it goes straight to ${name}. A copy of this
-          enquiry is in the admin dashboard.
+          ${
+            email
+              ? `Reply to this email and it goes straight to ${name}.`
+              : `${name} left no email address — call the number above.`
+          } A copy of this enquiry is in the admin dashboard.
         </p>
       </td>
     </tr>
@@ -127,7 +144,9 @@ export function buildInquiryEmail(inquiry: InquiryDocument): MailMessage {
     text,
     html,
     /* The whole point of the notification: hit Reply and you are writing to
-       the student, not to ourselves. */
-    replyTo: inquiry.email,
+       the student, not to ourselves. Omitted when there is no address, so
+       Reply falls back to the mailbox it was sent from rather than to an
+       empty header some clients turn into a broken recipient. */
+    ...(inquiry.email ? { replyTo: inquiry.email } : {}),
   };
 }

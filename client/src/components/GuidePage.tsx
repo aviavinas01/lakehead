@@ -6,6 +6,8 @@ import { armReveals } from "../lib/reveal";
 import TypeStack from "./TypeStack";
 import type { Block, Guide, HeadPart } from "../data/guides/types";
 import HelpVideo from "./HelpVideo";
+import CallbackStrip from "./CallbackStrip";
+import RelatedReading from "./RelatedReading";
 
 /**
  * Renders a destination guide from data — see data/guides/types.ts for the
@@ -313,18 +315,29 @@ export default function GuidePage({ guide }: { guide: Guide }) {
       </header>
 
       <div className="usa-shell container">
-        <nav className="usa-toc" aria-label="On this page">
-          <p className="usa-toc-tag">On this page</p>
-          <ol>
-            {guide.sections.map((s) => (
-              <li key={s.id}>
-                <a href={`#${s.id}`} className={active === s.id ? "is-here" : undefined}>
-                  {s.label}
-                </a>
-              </li>
-            ))}
-          </ol>
-        </nav>
+        {/* The left rail: where you are in this page, and what else there is
+            to read about this destination. Both are navigation away from the
+            middle of a very long article, which is why they share a column
+            and a sticky position rather than the articles block being
+            dropped at the foot of the page where nobody deep in section
+            eleven will ever reach it. Below 1080px the column collapses and
+            the rail moves under the body — see .usa-rail in styles.css. */}
+        <div className="usa-rail">
+          <nav className="usa-toc" aria-label="On this page">
+            <p className="usa-toc-tag">On this page</p>
+            <ol>
+              {guide.sections.map((s) => (
+                <li key={s.id}>
+                  <a href={`#${s.id}`} className={active === s.id ? "is-here" : undefined}>
+                    {s.label}
+                  </a>
+                </li>
+              ))}
+            </ol>
+          </nav>
+
+          <RelatedReading page={guide.page} />
+        </div>
 
         <div className="usa-body">
           {guide.sections.map((s) => (
@@ -335,6 +348,8 @@ export default function GuidePage({ guide }: { guide: Guide }) {
           ))}
         </div>
       </div>
+
+      <CallbackStrip service="study-abroad" />
 
       <section className="dpage-cta">
         <div className="container dpage-cta-inner">

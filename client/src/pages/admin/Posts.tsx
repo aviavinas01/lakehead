@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import api from "../../api/client";
 import AdminNav from "./AdminNav";
 import { useAuth } from "../../context/AuthContext";
+import { postPageLabel } from "../../types/api";
 import type { Post } from "../../types/api";
 
 /**
@@ -12,6 +13,12 @@ import type { Post } from "../../types/api";
  * never a dashboard — it was one list, and it meant the first screen after
  * signing in answered "what have I written?" rather than "what is the state
  * of the site?". The real dashboard has that address now; this has its own.
+ *
+ * THE "APPEARS ON" COLUMN IS HERE so that placement is visible from the
+ * list rather than only from inside the editor. A post that is published
+ * and placed nowhere looks identical to a correctly placed one until you
+ * open it, and "why isn't my article on the Canada page" is a question the
+ * table should be able to answer on its own.
  */
 export default function Posts() {
   const { user } = useAuth();
@@ -46,13 +53,24 @@ export default function Posts() {
           ) : (
             <table className="admin-table">
               <thead>
-                <tr><th>Title</th><th>Status</th><th>Updated</th><th></th></tr>
+                <tr><th>Title</th><th>Status</th><th>Appears on</th><th>Updated</th><th></th></tr>
               </thead>
               <tbody>
                 {posts.map((p) => (
                   <tr key={p._id}>
                     <td>{p.title}</td>
                     <td><span className={`badge badge-${p.status}`}>{p.status}</span></td>
+                    <td>
+                      {p.pages?.length ? (
+                        <span className="adm-places">
+                          {p.pages.map((key) => (
+                            <span key={key}>{postPageLabel(key)}</span>
+                          ))}
+                        </span>
+                      ) : (
+                        <span className="adm-quiet">Blog only</span>
+                      )}
+                    </td>
                     <td>{new Date(p.updatedAt).toLocaleDateString()}</td>
                     <td>
                       <Link to={`/admin/posts/${p._id}/edit`}>Edit</Link>{" "}

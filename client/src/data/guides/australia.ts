@@ -9,6 +9,7 @@ import type { Guide } from "./types";
  * launch; it is the one figure on this page with a shelf life.
  */
 export const AUSTRALIA_GUIDE: Guide = {
+  page: "study-in-australia",
   name: "Study in Australia",
   hero: "/australia.jpg",
   head: ["The academic year starts in ", { text: "February", as: "accent" }],

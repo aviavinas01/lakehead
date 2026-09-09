@@ -6,6 +6,8 @@ import { Check, Arrow, Shot } from "../components/destinationBits";
 import { armReveals } from "../lib/reveal";
 import TypeStack from "../components/TypeStack";
 import HelpVideo from "../components/HelpVideo";
+import CallbackStrip from "../components/CallbackStrip";
+import RelatedReading from "../components/RelatedReading";
 
 /**
  * Study in the USA — the long-form guide, built from Lakehead's own master
@@ -307,19 +309,25 @@ export default function StudyInUSA() {
       </header>
 
       <div className="usa-shell container">
-        {/* Contents rail. A twenty-one section page without one is a wall. */}
-        <nav className="usa-toc" aria-label="On this page">
-          <p className="usa-toc-tag">On this page</p>
-          <ol>
-            {SECTIONS.map((s) => (
-              <li key={s.id}>
-                <a href={`#${s.id}`} className={active === s.id ? "is-here" : undefined}>
-                  {s.label}
-                </a>
-              </li>
-            ))}
-          </ol>
-        </nav>
+        {/* Contents rail. A twenty-one section page without one is a wall.
+            Under it, what else we have written about the USA — the same
+            block the data-driven guides carry, see GuidePage.tsx. */}
+        <div className="usa-rail">
+          <nav className="usa-toc" aria-label="On this page">
+            <p className="usa-toc-tag">On this page</p>
+            <ol>
+              {SECTIONS.map((s) => (
+                <li key={s.id}>
+                  <a href={`#${s.id}`} className={active === s.id ? "is-here" : undefined}>
+                    {s.label}
+                  </a>
+                </li>
+              ))}
+            </ol>
+          </nav>
+
+          <RelatedReading page="study-in-usa" />
+        </div>
 
         <div className="usa-body">
           {/* 1 */}
@@ -1081,6 +1089,8 @@ export default function StudyInUSA() {
           </section>
         </div>
       </div>
+
+      <CallbackStrip service="study-abroad" />
 
       <section className="dpage-cta">
         <div className="container dpage-cta-inner">

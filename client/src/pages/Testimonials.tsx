@@ -8,6 +8,7 @@ import { DESTINATIONS, type ReviewSource } from "../data/testimonials";
 import { GOOGLE_MAPS_URL } from "../api/googleRating";
 import HelpVideo from "../components/HelpVideo";
 import TikTokStrip from "../components/TikTokStrip";
+import CallbackStrip from "../components/CallbackStrip";
 
 /**
  * Testimonials & Reviews — /testimonials.
@@ -534,6 +535,8 @@ export default function Testimonials() {
           </>
         }
       />
+
+      <CallbackStrip service="other" />
 
       <section className="dpage-cta">
         <div className="container dpage-cta-inner">

@@ -1,13 +1,13 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import type { ChangeEvent, FormEvent } from "react";
 import { Link } from "react-router-dom";
-import api, { getErrorMessage } from "../api/client";
 import { PlaneIcon } from "../components/HeroOrbit";
-import { Check, Arrow, Shot } from "../components/destinationBits";
+import { Arrow, Shot } from "../components/destinationBits";
 import { useYouTubeFeed } from "../hooks/useYouTubeFeed";
 import RollingFigure from "../components/RollingFigure";
 import HelpVideo from "../components/HelpVideo";
 import TikTokStrip from "../components/TikTokStrip";
+import ContactForm from "../components/ContactForm";
 
 /**
  * Study Abroad — the landing page behind the navbar's "Study Abroad" item,
@@ -63,182 +63,6 @@ const SUPPORT = [
   { title: "Pre-departure support", text: "Accommodation, insurance, travel and finances, before you leave Nepal." },
   { title: "After you arrive", text: "Settling in, and knowing who to call when something does not go to plan." },
 ];
-
-/* Destinations offered in the form. Kept in step with DESTINATIONS above. */
-const FORM_DESTINATIONS = DESTINATIONS.map((d) => d.name);
-const MONTHS = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December",
-];
-const YEARS = ["2026", "2027", "2028", "2029"];
-
-interface EnquiryForm {
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  course: string;
-  month: string;
-  year: string;
-}
-
-const EMPTY: EnquiryForm = {
-  firstName: "", lastName: "", email: "", phone: "", course: "", month: "", year: "",
-};
-
-type Status =
-  | { state: "idle" }
-  | { state: "sending" }
-  | { state: "sent"; message: string }
-  | { state: "error"; message: string };
-
-function EnquirySection() {
-  const [form, setForm] = useState<EnquiryForm>(EMPTY);
-  const [picked, setPicked] = useState<string[]>([]);
-  const [status, setStatus] = useState<Status>({ state: "idle" });
-
-  const set = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
-    setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
-
-  const toggle = (name: string) =>
-    setPicked((p) => (p.includes(name) ? p.filter((n) => n !== name) : [...p, name]));
-
-  /* Posts to the same /inquiries endpoint as every other form on the site,
-     with the extra answers folded into the message — the endpoint takes a
-     name, an email, a service and a message, and adding columns to it for
-     one form would not be worth the migration. */
-  const submit = async (e: FormEvent) => {
-    e.preventDefault();
-    if (status.state === "sending") return;
-    setStatus({ state: "sending" });
-
-    const detail = [
-      picked.length ? `Destinations: ${picked.join(", ")}` : "Destinations: not specified",
-      form.course ? `Course: ${form.course}` : null,
-      form.month || form.year ? `Planned intake: ${[form.month, form.year].filter(Boolean).join(" ")}` : null,
-    ].filter(Boolean);
-
-    try {
-      const res = await api.post<{ message: string }>("/inquiries", {
-        name: `${form.firstName} ${form.lastName}`.trim(),
-        email: form.email,
-        phone: form.phone ? `+977 ${form.phone}` : undefined,
-        service: "study-abroad",
-        source: "study-abroad",
-        message: `Study abroad enquiry — ${detail.join("; ")}.`,
-      });
-      setStatus({ state: "sent", message: res.data.message });
-      setForm(EMPTY);
-      setPicked([]);
-    } catch (err) {
-      setStatus({ state: "error", message: getErrorMessage(err) });
-    }
-  };
-
-  return (
-    <section className="dpage-section sa-form-section" id="enquiry">
-      <div className="container sa-form-wrap">
-        <div className="sa-form-intro">
-          <p className="dpage-eyebrow-sm">Study Abroad</p>
-          <h2 className="dpage-title">
-            Let our team <span className="h-accent">reach out to you</span>
-          </h2>
-          <p className="dpage-section-lead">
-            Tell us roughly where you are heading and when. You do not need to
-            have it worked out — that is what the first conversation is for.
-          </p>
-          <ul className="dpage-checks">
-            <li><span aria-hidden="true"><Check /></span>A counsellor replies within one working day</li>
-            <li><span aria-hidden="true"><Check /></span>No charge for the first consultation</li>
-            <li><span aria-hidden="true"><Check /></span>Your details are never passed to anyone else</li>
-          </ul>
-        </div>
-
-        <form className="sa-form" onSubmit={submit} noValidate>
-          <div className="sa-field-row">
-            <label className="sa-field">
-              <span>First name</span>
-              <input name="firstName" value={form.firstName} onChange={set} required autoComplete="given-name" />
-            </label>
-            <label className="sa-field">
-              <span>Last name</span>
-              <input name="lastName" value={form.lastName} onChange={set} required autoComplete="family-name" />
-            </label>
-          </div>
-          <div className="sa-field-row">
-            <label className="sa-field">
-              <span>Email</span>
-              <input type="email" name="email" value={form.email} onChange={set} required autoComplete="email" />
-            </label>
-            <label className="sa-field">
-              <span>Mobile</span>
-              <div className="sa-phone">
-                <span aria-hidden="true">+977</span>
-                <input
-                  name="phone" value={form.phone} onChange={set}
-                  inputMode="tel" autoComplete="tel-national" placeholder="98XXXXXXXX"
-                />
-              </div>
-            </label>
-          </div>
-
-          <fieldset className="sa-field sa-destinations">
-            <legend>Preferred destination</legend>
-            <p className="sa-hint">Choose as many as you like</p>
-            <div className="sa-chips">
-              {FORM_DESTINATIONS.map((name) => (
-                <label key={name} className={picked.includes(name) ? "is-on" : undefined}>
-                  <input
-                    type="checkbox"
-                    checked={picked.includes(name)}
-                    onChange={() => toggle(name)}
-                  />
-                  {name}
-                </label>
-              ))}
-            </div>
-          </fieldset>
-
-          <label className="sa-field">
-            <span>Course you have in mind</span>
-            <input
-              name="course" value={form.course} onChange={set}
-              placeholder="Business, engineering, nursing…"
-            />
-          </label>
-
-          <div className="sa-field-row">
-            <label className="sa-field">
-              <span>When do you plan to study?</span>
-              <select name="month" value={form.month} onChange={set}>
-                <option value="">Select month</option>
-                {MONTHS.map((m) => <option key={m}>{m}</option>)}
-              </select>
-            </label>
-            <label className="sa-field">
-              <span>Preferred year</span>
-              <select name="year" value={form.year} onChange={set}>
-                <option value="">Select year</option>
-                {YEARS.map((y) => <option key={y}>{y}</option>)}
-              </select>
-            </label>
-          </div>
-
-          <button className="sa-submit" type="submit" disabled={status.state === "sending"}>
-            {status.state === "sending" ? "Sending…" : "Request my consultation"}
-            <Arrow />
-          </button>
-
-          {/* aria-live so the outcome is announced, not just shown */}
-          <p className="sa-status" role="status" aria-live="polite">
-            {status.state === "sent" && <span className="is-good">{status.message}</span>}
-            {status.state === "error" && <span className="is-bad">{status.message}</span>}
-          </p>
-        </form>
-      </div>
-    </section>
-  );
-}
 
 /**
  * Student testimonials, from their own YouTube playlist — set
@@ -349,9 +173,6 @@ export default function StudyAbroad() {
             </p>
             <div className="dpage-hero-actions">
               <a className="btn btn-outline" href="#enquiry">Free Expert Consultation →</a>
-              <Link className="dpage-jump" to="/contact">
-                Talk to a counsellor <Arrow />
-              </Link>
             </div>
           </div>
         </div>
@@ -376,9 +197,6 @@ export default function StudyAbroad() {
               people who know each destination properly rather than
               generally.
             </p>
-            <Link className="sa-figures-btn" to="/contact">
-              Talk to a counsellor
-            </Link>
           </div>
 
           <div className="sa-figures-grid">
@@ -451,7 +269,6 @@ export default function StudyAbroad() {
 
       <StudentStories />
 
-      <EnquirySection />
 
       {/* Beside the writing it explains rather than on the home page —
           somebody with this question is already here. Renders nothing until
@@ -462,20 +279,18 @@ export default function StudyAbroad() {
         heading={<>Studying abroad, <span className="h-accent">explained</span></>}
       />
 
-      <section className="dpage-cta">
-        <div className="container dpage-cta-inner">
-          <div>
-            <h2>Not sure where to start?</h2>
-            <p>
-              Most students aren&rsquo;t. Start with a conversation and
-              we&rsquo;ll work out the rest together.
-            </p>
-          </div>
-          <Link className="dpage-cta-btn" to="/contact">
-            Talk to Our Counsellors <Arrow />
-          </Link>
-        </div>
-      </section>
+      {/* The shared form, in place of the band that used to sit here. That
+          one asked a question and then sent you to another page to answer
+          it; this one takes the answer where it is asked. */}
+      {/* `id="enquiry"` inherited from the form this replaced, so the
+          hero's "Free Expert Consultation" button still has somewhere to
+          go. */}
+      <ContactForm
+        id="enquiry"
+        source="study-abroad"
+        heading="Not sure where to start?"
+        lead="Most students aren't. Tell us roughly where you are — a country in mind, a score you need, or nothing at all beyond wanting to go — and we will work out the rest together."
+      />
       {/* The one video for the whole site. Renders nothing until an id
           is set in config/video.ts. */}
       <HelpVideo />

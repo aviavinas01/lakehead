@@ -10,6 +10,7 @@ import type { Guide } from "./types";
  * Zealand reader notices immediately.
  */
 export const NEW_ZEALAND_GUIDE: Guide = {
+  page: "study-in-new-zealand",
   name: "Study in New Zealand",
   hero: "/newzealand.jpg",
   head: ["Small classes, ", { text: "by law", as: "accent" }],

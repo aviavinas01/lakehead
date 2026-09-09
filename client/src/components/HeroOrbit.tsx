@@ -140,7 +140,15 @@ interface OrbitEntry {
   node?: ReactNode;
 }
 
-const entries: OrbitEntry[] = [
+/**
+ * The badges and their angles, exported so the ring is defined once.
+ *
+ * OrbitMark draws the same circle in the steps section. Duplicating this
+ * list would mean the two rings quietly drifting apart — a flag added to the
+ * hero and not to the other, or the same flag at two different angles — and
+ * the whole point of the mark is that it is recognisably the same object.
+ */
+export const ORBIT_ENTRIES: OrbitEntry[] = [
   { angle: -90, kind: "flag", node: <FlagUS /> },
   { angle: -30, kind: "flag", node: <FlagSweden /> },
   { angle: 15, kind: "flag", small: true, node: <FlagItaly /> },
@@ -181,7 +189,7 @@ export default function HeroOrbit({
             width of the hero. All this marks is where it sits at rest. */}
         <div className="hero-photo-slot" ref={slotRef} />
         <div className="hero-orbit">
-          {entries.map((e) =>
+          {ORBIT_ENTRIES.map((e) =>
             e.kind === "flag" ? (
               <span
                 key={e.angle}

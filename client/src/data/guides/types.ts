@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import type { PostPage } from "../../types/api";
 
 /**
  * The shape of a destination guide — the long-form, communicative pages
@@ -95,6 +96,18 @@ export interface GuideSection {
 }
 
 export interface Guide {
+  /**
+   * Which page this is, in the vocabulary the blog uses for placement —
+   * see POST_PAGES in types/api.ts. It is also this page's own route, so
+   * `study-in-uk` is both the key the sidebar asks the API for and the
+   * address a reader can be sent back to.
+   *
+   * Written down rather than derived from the URL at render time. A guide
+   * knows which guide it is; making it read the address bar to find out
+   * would mean a route rename silently emptying its articles rail with
+   * nothing failing to say so.
+   */
+  page: PostPage;
   /** Page <title> and the eyebrow above the headline. */
   name: string;
   /** Hero headline. */

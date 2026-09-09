@@ -4,6 +4,7 @@ import { PlaneIcon } from "../components/HeroOrbit";
 import { Arrow, Shot } from "../components/destinationBits";
 import { revealInit } from "../lib/reveal";
 import HelpVideo from "../components/HelpVideo";
+import CallbackStrip from "../components/CallbackStrip";
 
 /**
  * Admission Guidance — /services/admission-guidance. A static route, so it
@@ -282,6 +283,8 @@ export default function AdmissionGuidance() {
           </p>
         </div>
       </section>
+
+      <CallbackStrip service="study-abroad" />
 
       <section className="dpage-cta">
         <div className="container dpage-cta-inner">
