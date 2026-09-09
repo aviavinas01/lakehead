@@ -57,7 +57,14 @@ const envSchema = z.object({
      MAIL_FROM    what recipients see. Must be a mailbox on a domain we are
                   allowed to send as, or SPF/DMARC will reject it. Defaults
                   to MAIL_USER.
-     MAIL_TO      who gets notified. Comma-separated for several people. */
+     MAIL_TO      who gets notified. Comma-separated for several people.
+                  Used by BOTH transports — it is who to write to, not how. */
+  /* RESEND — the preferred transport, and the one that wins when set.
+     A single API key over HTTPS: no SMTP port to be blocked or throttled,
+     and failures come back as a sentence rather than an SMTP transcript.
+     Unset, the MAIL_* variables below are used exactly as before, so this
+     is purely additive — see services/mail.service.ts. */
+  RESEND_API_KEY: z.string().optional(),
   MAIL_HOST: z.string().optional(),
   MAIL_PORT: z.coerce.number().optional(),
   MAIL_SECURE: z.enum(["true", "false"]).default("false"),

@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { PlaneIcon } from "../components/HeroOrbit";
 import { Check, Pin, Arrow, Shot } from "../components/destinationBits";
+import StaffGrid from "../components/StaffGrid";
 import { revealInit } from "../lib/reveal";
 import ContactForm from "../components/ContactForm";
 import { contact, OFFICES } from "../config/contact";
@@ -389,6 +390,17 @@ export default function About() {
           </span>
         </div>
       </section>
+
+      {/* ---- the team ----
+          Placed here on purpose: after the values and before the operational
+          detail. By this point a reader knows what the place claims to be
+          about, which is the moment that putting faces to it means something;
+          before it they are looking at strangers, and after the principles
+          and the address they have stopped reading.
+
+          Renders nothing at all until somebody has been added in the admin —
+          heading included. See components/StaffGrid.tsx. */}
+      <StaffGrid />
 
       {/* ---- what we will not bend on, and how a file moves ---- */}
       <section className="dpage-section">

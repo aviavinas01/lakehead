@@ -27,6 +27,7 @@ import Events from "./pages/Events";
 import News from "./pages/News";
 import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
+import Director from "./pages/Director";
 import Contact from "./pages/Contact";
 import Login from "./pages/admin/Login";
 import Dashboard from "./pages/admin/Dashboard";
@@ -35,6 +36,7 @@ import PostEditor from "./pages/admin/PostEditor";
 import Inquiries from "./pages/admin/Inquiries";
 import Media from "./pages/admin/Media";
 import Happenings from "./pages/admin/Happenings";
+import People from "./pages/admin/People";
 
 export default function App() {
   return (
@@ -64,6 +66,9 @@ export default function App() {
           <Route path="/study-in-usa" element={<StudyInUSA />} />
           <Route path="/study-in-new-zealand" element={<StudyInNewZealand />} />
           <Route path="/study-in-south-korea" element={<StudyInSouthKorea />} />
+          {/* The director's message sits under /about because it is part of
+              the about cluster, not a section of its own. */}
+          <Route path="/about/director" element={<Director />} />
           <Route path="/testimonials" element={<Testimonials />} />
           <Route path="/university-partners" element={<UniversityPartners />} />
           <Route path="/gallery" element={<Gallery />} />
@@ -88,6 +93,9 @@ export default function App() {
           {/* One section, two tabs — as with media above. */}
           <Route path="/admin/events" element={<Happenings />} />
           <Route path="/admin/news" element={<Happenings />} />
+          {/* One section, two tabs — as with media and events above. */}
+          <Route path="/admin/people" element={<People />} />
+          <Route path="/admin/people/staff" element={<People />} />
           <Route path="/admin/inquiries" element={<Inquiries />} />
         </Route>
 

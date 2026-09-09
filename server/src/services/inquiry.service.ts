@@ -44,7 +44,7 @@ export const inquiryService = {
   },
 
   /**
-   * Writes the outcome of the notification email onto the inquiry.
+   * Writes the outcome of one of the two emails onto the inquiry.
    *
    * Deliberately separate from `update`, which is the admin's endpoint and
    * only accepts status and notes — the delivery record is written by the
@@ -54,9 +54,15 @@ export const inquiryService = {
    * has already gone out, so there is nobody left to tell, and losing the
    * record of a sent email must not become a second error in the log.
    */
-  async recordNotification(id: string, record: NotifyRecord): Promise<void> {
+  async recordNotification(
+    id: string,
+    record: NotifyRecord,
+    /* Which of the two mails this was. Defaults to the office notification,
+       so every existing caller keeps its meaning. */
+    field: "notified" | "acknowledged" = "notified"
+  ): Promise<void> {
     try {
-      await Inquiry.updateOne({ _id: id }, { $set: { notified: record } });
+      await Inquiry.updateOne({ _id: id }, { $set: { [field]: record } });
     } catch (err) {
       console.error("[inquiry] Could not record mail result:", err);
     }

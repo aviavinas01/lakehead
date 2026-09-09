@@ -2470,61 +2470,74 @@ a.greview-author:hover { text-decoration: underline; }
   position: relative;
   width: 100%;
   aspect-ratio: 1000 / 394.4;
+  /* ---- the drift, driven by lib/parallax ----
+     `--px-t` is the band's progress across the window: +1 as it enters, 0
+     dead centre, -1 as it leaves. The engine writes it on this element; the
+     fallback of 0 is what makes the whole thing inert when the engine has
+     declined (touch, coarse pointer, reduced motion), with no class to
+     toggle and nothing for React to wipe. See ConsultBanner.tsx.
+
+     A number times a length, never a subtraction of one, so there is no
+     `- -` for a parser to trip over when the progress is negative. The third
+     value on `translate` is z, which is what puts the map on its own
+     compositor layer — a scrolled frame then moves an existing texture
+     rather than repainting two SVGs.
+
+     THE SCALE IS SQUARED, AND THAT IS THE WHOLE TRICK. Squaring makes it
+     symmetrical without needing abs(): 1.0 at centre, 0.94 at both
+     extremes. It can therefore never go ABOVE 1, which matters more here
+     than anywhere else on the site — this map is fitted so that New Zealand
+     sits at 98% of the way across it, so a scale of even 1.05 would crop New
+     Zealand off a map whose entire job is to point at New Zealand. It
+     recedes and returns; it never enlarges.
+
+     The vertical drift is ±22px against a scrim that fades the map to the
+     page background over the top and bottom 22% — about 125px at this width
+     — so the edges the drift exposes were already white. */
+  translate: 0 calc(var(--px-t, 0) * 22px) 0;
+  scale: calc(1 - (var(--px-t, 0) * var(--px-t, 0) * 0.06));
+  /* WILL-CHANGE IS LOAD-BEARING HERE, and it is a deliberate exception to
+     the note in lib/parallax.ts that says not to use it.
+
+     That note is about the editorial photographs, where a page carries up to
+     eight and pinning a compositor layer for each is real memory for
+     pictures mostly off screen. This is ONE element on one band.
+
+     Without it the scroll measured 31ms a frame with a worst case of 67ms —
+     two thirds of frames missing 60fps — because the box holds two SVGs of
+     about 25,000 vertices between them, and changing `scale` makes the
+     browser re-rasterise that vector artwork at the new size on EVERY frame
+     rather than transforming a texture it already has. With it, the same
+     scroll measures 16.7ms a frame and zero long frames: identical to having
+     no effect on the band at all.
+
+     It is also why the scale never goes above 1 (see above). The layer is
+     rasterised once at its natural size, so scaling DOWN from it resamples
+     cleanly, where scaling up would stretch a fixed-resolution texture and
+     show it. */
+  will-change: transform;
 }
+/* The two drawings and the wash between them all fill the box exactly. */
 .journey-map-base,
-.journey-map-live {
+.journey-map-pick,
+.journey-map-scrim {
   position: absolute; inset: 0; width: 100%; height: 100%; display: block;
 }
-/* The quiet 169. Faint enough to be texture, not so faint it turns into a
-   grey smudge on a laptop panel. */
-.journey-map-base { opacity: 0.26; }
+/* The quiet backdrop. Faint enough to be texture, not so faint it turns
+   into a grey smudge on a laptop panel. */
+.journey-map-base { opacity: 0.34; }
+/* The destinations, over the wash — see ConsultBanner.tsx for why the order
+   matters. Just short of full strength: at 1 the outlines start to read as
+   a second headline rather than as the map behind one. */
+.journey-map-pick { opacity: 0.9; }
 
-/* ---- the eight ---- */
-.jm-c {
-  fill: var(--color-hero-ink); fill-opacity: 0.15;
-  stroke: var(--color-hero-ink); stroke-opacity: 0.62;
-  stroke-width: 0.9; stroke-linejoin: round;
-  transition: fill-opacity 0.6s ease, stroke-opacity 0.6s ease;
-}
-/* Lit while the pointer is parked on it. A lift, not a switch: the country
-   was already highlighted before the pointer arrived and stays highlighted
-   after it leaves. */
-.jm-c.is-on { fill-opacity: 0.34; stroke-opacity: 1; }
-
-.jm-eu-disc { fill: #003399; fill-opacity: 0.55; transition: fill-opacity 0.6s ease; }
-.jm-eu-stars { fill: #ffcc00; fill-opacity: 0.85; transition: fill-opacity 0.6s ease; }
-.jm-eu.is-on .jm-eu-disc { fill-opacity: 0.9; }
-.jm-eu.is-on .jm-eu-stars { fill-opacity: 1; }
-
-/* ---- the travelling pointer ---- */
-/* The glide between stops. Slow out, slow in, and long enough to read as
-   crossing a distance — a fast tween here just looks like the dot is
-   snapping and the transition is a mistake. */
-.jm-pointer { transition: transform 1.05s cubic-bezier(0.66, 0, 0.24, 1); }
-.jm-dot { fill: var(--color-hero-red); }
-.jm-dot-still { fill-opacity: 0.75; }
-.jm-ping {
-  fill: none; stroke: var(--color-hero-red); stroke-width: 1.4;
-  /* Scaled about its own centre rather than the SVG origin, which is what
-     `fill-box` buys — without it the rings fly off toward the top-left. */
-  transform-box: fill-box; transform-origin: center;
-  animation: jm-ping 2.1s cubic-bezier(0.15, 0.6, 0.3, 1) infinite;
-}
-.jm-ping-late { animation-delay: 1.05s; }
-@keyframes jm-ping {
-  0%   { transform: scale(0.35); opacity: 0; }
-  18%  { opacity: 0.85; }
-  100% { transform: scale(3.1); opacity: 0; }
-}
-
-/* The wash. Nearly opaque where the headline lands, gone by the edges, so
-   the map stays a map out there and stops competing in here. Two layers:
-   a centred ellipse for the type, and a top-to-bottom pass that keeps the
-   cropped edges from ending on a hard line. */
-/* Layered inside the map box, over the <img> and under the live overlay —
-   see the note in ConsultBanner.tsx for why the order matters. */
+/* The wash, and it sits BETWEEN the two drawings — see ConsultBanner.tsx.
+   Nearly opaque where the headline lands, gone by the edges, so the map
+   stays a map out there and stops competing in here. Two layers: a centred
+   ellipse for the type, and a top-to-bottom pass that keeps the cropped
+   edges from ending on a hard line. */
 .journey-map-scrim {
-  position: absolute; inset: 0; pointer-events: none;
+  pointer-events: none;
   background:
     radial-gradient(ellipse 52% 62% at 50% 46%,
       rgba(255, 255, 255, 0.94) 0%,
@@ -2539,22 +2552,20 @@ a.greview-author:hover { text-decoration: underline; }
 
 .journey-inner { position: relative; z-index: 1; margin-inline: auto; }
 
-@media (prefers-reduced-motion: reduce) {
-  /* The component already declines to start the journey and draws eight
-     still dots instead; these two are the belt to that pair of braces, in
-     case a stop is ever rendered by something that has not asked. */
-  .jm-pointer { transition: none; }
-  .jm-ping { animation: none; opacity: 0; }
-}
-
 @media (max-width: 900px) {
   /* No min-height here: below this the band is as tall as its type, and the
      map becomes a thin strip of world across the middle of it. That is the
      right trade — the alternative is scaling the map up to fill a tall
      narrow box, which crops it to whichever ocean happens to be in the
-     middle and throws away six of the eight countries. */
+     middle and throws away most of the destinations with it. */
   .journey-cta { min-height: 0; }
-  .journey-map-base { opacity: 0.3; }
+  /* Held still below this width. The band is no longer tall enough to have
+     a map behind the type — it is a thin strip of world across the middle —
+     and 22px of travel on a 160px strip is a lurch rather than a drift.
+     Touch devices never start the engine at all; this is for a desktop
+     window dragged narrow. */
+  .journey-map-box { translate: none; scale: none; will-change: auto; }
+  .journey-map-base { opacity: 0.4; }
   .journey-map-scrim {
     background:
       radial-gradient(ellipse 78% 58% at 50% 46%,
@@ -5282,6 +5293,161 @@ a.greview-author:hover { text-decoration: underline; }
 .who-credo-card p { color: var(--color-muted); font-size: 0.97rem; margin: 0; }
 
 /* ---- the pull quote ---- */
+/* ============================================================
+   THE TEAM  (components/StaffGrid.tsx, on /about)
+   and THE DIRECTOR'S MESSAGE  (pages/Director.tsx, /about/director)
+
+   NOTE: the .dir-* block below is PROVISIONAL. It is the conventional
+   portrait-beside-statement shape and is honest about the content, but it
+   was not drawn from the office's reference image, which never arrived.
+   When it does, this block and pages/Director.tsx are the only two places
+   that change — the model, the API and the admin screen are settled and
+   none of them depends on how this looks.
+   ============================================================ */
+
+/* ---- the team grid ---- */
+.stf-grid {
+  list-style: none; margin: 2.5rem 0 0; padding: 0;
+  display: grid; gap: clamp(1.25rem, 2.5vw, 2rem);
+  /* Auto-fit rather than a fixed count: a team of four and a team of eleven
+     both have to look deliberate, and nobody is going to edit a breakpoint
+     when somebody joins. */
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+}
+.stf-card {
+  display: flex; flex-direction: column;
+  background: #fff; border: 1px solid var(--color-border);
+  border-radius: 18px; overflow: hidden;
+  transition: border-color 0.25s ease, transform 0.25s ease;
+}
+.stf-card:hover { border-color: var(--color-hero-ink); transform: translateY(-3px); }
+.stf-shot { aspect-ratio: 4 / 5; overflow: hidden; background: var(--color-surface); }
+.stf-shot img { width: 100%; height: 100%; object-fit: cover; display: block; }
+/* Same fallback as every other card on the site with no picture. */
+.stf-noshot {
+  display: grid; place-items: center; width: 100%; height: 100%;
+  background: linear-gradient(135deg, #eef2fb, #dfe7f6);
+  font-family: var(--font-display); font-weight: 800;
+  font-size: clamp(2.5rem, 5vw, 3.5rem); color: rgba(23, 39, 92, 0.22);
+}
+.stf-copy { padding: 1.15rem 1.25rem 1.35rem; display: flex; flex-direction: column; flex: 1; }
+.stf-copy h3 {
+  color: var(--color-hero-ink); font-size: 1.08rem;
+  letter-spacing: -0.02em; margin: 0 0 0.2rem;
+}
+.stf-role {
+  color: var(--color-hero-red); font-size: 0.78rem; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase; margin: 0;
+}
+/* The quote is optional, so it carries its own top spacing rather than the
+   name carrying a bottom margin that would leave a gap without it. */
+.stf-quote {
+  margin: 0.85rem 0 0; padding: 0 0 0 0.85rem;
+  border-left: 2px solid var(--color-border);
+  color: var(--color-muted); font-size: 0.9rem; line-height: 1.6;
+  font-style: italic;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stf-card { transition: none; }
+  .stf-card:hover { transform: none; }
+}
+
+/* ---- the director's message ----
+   Built from the office's reference: a large uppercase headline across the
+   top, the portrait beside a SHORT statement, and the long message running
+   full width beneath. See pages/Director.tsx for why the two pieces of text
+   are separate fields. */
+.dir-head { padding-top: clamp(2.5rem, 6vw, 5rem); }
+.dir-head h1 {
+  color: var(--color-hero-ink);
+  text-transform: uppercase; font-weight: 800;
+  font-size: clamp(2.1rem, 6.2vw, 5rem);
+  /* Tight, because this is two lines of capitals set large and the default
+     leading opens a gap you could park a paragraph in. */
+  line-height: 0.94; letter-spacing: -0.02em;
+  margin: 0; max-width: 14ch;
+}
+
+/* The portrait and the short statement. Bottom-aligned rather than top —
+   see the note in Director.tsx. */
+.dir-top {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: clamp(1.5rem, 4vw, 4rem);
+  align-items: end;
+  padding-top: clamp(1.5rem, 3vw, 2.5rem);
+}
+.dir-portrait { margin: 0; position: relative; }
+/* Natural aspect, no cap and no object-fit. A max-height plus `contain`
+   letterboxes the picture inside a taller box, and the block behind is
+   positioned against that box — so the two would come apart by however much
+   the letterboxing added, differently for every photograph uploaded. The
+   column already limits how large this can get. */
+.dir-portrait img {
+  position: relative; z-index: 1;
+  display: block; width: 100%; height: auto;
+}
+/* The angled block behind the picture. Deliberately overhanging on two
+   sides so it still reads as an accent behind an ordinary rectangular
+   photograph, not only behind a cut-out — see Director.tsx. */
+.dir-wedge {
+  position: absolute; z-index: 0;
+  /* Flush with the foot of the picture rather than hanging below it: an
+     overhang at the bottom reads as a bar under the photograph, where an
+     overhang at the side reads as the diagonal it is meant to be. */
+  left: 46%; right: -7%; top: 30%; bottom: 0;
+  background: var(--color-hero-red);
+  clip-path: polygon(100% 0%, 100% 100%, 0% 100%);
+}
+.dir-lead {
+  color: var(--color-muted);
+  font-size: clamp(1.02rem, 1.55vw, 1.4rem);
+  line-height: 1.55; margin: 0 0 clamp(1rem, 4vw, 3.5rem);
+  max-width: 34ch;
+}
+/* No photograph: the statement is the whole of this band, so it takes the
+   full measure instead of sitting in one column of an empty two. */
+.dir-nophoto .dir-top { grid-template-columns: minmax(0, 1fr); }
+.dir-nophoto .dir-lead { max-width: 48ch; margin-bottom: 0; }
+
+/* The long message. Capped rather than truly full width: the reference runs
+   it edge to edge, which at 1440px is a 150-character line and genuinely
+   hard to track back to the start of. 86ch is as wide as the reference
+   reads and still a measure somebody can follow. */
+.dir-full { padding-top: clamp(2.5rem, 5vw, 4rem); padding-bottom: var(--section-y); }
+/* Two classes on purpose. `.art-prose` sets 68ch and is declared later in
+   this file, so a single-class `.dir-body` loses to it on order alone — the
+   letter would silently keep the blog's narrower measure. Matching both
+   classes wins on specificity and is order-independent.
+
+   Paragraph spacing is left to .art-prose, which already gets it right on
+   the blog; a margin here would only fight it. */
+.dir-body.art-prose { max-width: 86ch; }
+.dir-sign { margin-top: 2.25rem; }
+.dir-name { margin: 0; color: var(--color-hero-ink); font-weight: 700; font-size: 1.05rem; }
+.dir-role { margin: 0.1rem 0 0; color: var(--color-text); font-size: 1.05rem; }
+
+.dir-empty { text-align: center; max-width: 34rem; margin-inline: auto; }
+.dir-empty h1 {
+  color: var(--color-hero-ink); font-size: clamp(1.8rem, 3.5vw, 2.6rem);
+  letter-spacing: -0.02em; margin: 0.5rem 0 1rem;
+}
+.dir-empty p { color: var(--color-muted); }
+.dir-empty-note { font-size: 0.85rem; margin-top: 0.75rem; }
+.dir-back {
+  display: inline-flex; align-items: center; gap: 0.45rem; margin-top: 1.5rem;
+  color: var(--color-hero-red); font-weight: 600;
+}
+
+@media (max-width: 860px) {
+  /* One column: the portrait leads and the statement follows it, which is
+     the same reading order as the two-column version rather than a
+     rearrangement of it. */
+  .dir-top { grid-template-columns: minmax(0, 1fr); align-items: start; }
+  .dir-head h1 { max-width: none; }
+  .dir-lead { max-width: none; margin-bottom: 0; }
+}
+
 .who-quote {
   background: var(--color-hero-ink); color: #fff;
   padding: clamp(3.5rem, 8vw, 6rem) 0; text-align: center;
@@ -7813,7 +7979,12 @@ a.unip-card:focus-visible {
   width: 34px; height: 34px; border-radius: 50%;
   background: var(--color-hero-ink); color: #fff;
   font-family: var(--font-display); font-weight: 700; font-size: 0.9rem;
+  /* A link now rather than a span — see AdminNav. Nothing about how it looks
+     changes; it just has somewhere to go. */
+  text-decoration: none; cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
+.adm-who:hover { background: var(--color-hero-red); color: #fff; }
 
 .adm-main {
   max-width: 1360px; margin: 0 auto;
@@ -8227,6 +8398,35 @@ a.unip-card:focus-visible {
 }
 .adm-main .inquiry-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
 
+/* ---- delivery badges ----
+   Two of them per inquiry: the office notification and the enquirer's
+   acknowledgement. Stacked rather than inline so a long failure reason
+   wraps under its own badge instead of shunting the other one around.
+
+   Three states, three weights of emphasis. `sent` is the quiet one — it is
+   the expected outcome and does not need to compete with the enquiry itself;
+   `failed` is the only one that wants somebody to look at it. */
+.adm-main .inquiry-mails {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 0.3rem;
+}
+.adm-main .inquiry-mail {
+  font-size: 0.78rem; font-weight: 600; line-height: 1.45;
+  padding: 0.22rem 0.6rem; border-radius: 999px;
+  border: 1px solid transparent;
+}
+.adm-main .inquiry-mail.is-sent {
+  color: var(--color-success); background: rgba(30, 126, 52, 0.08);
+}
+.adm-main .inquiry-mail.is-skipped {
+  color: var(--color-muted); background: var(--color-surface);
+  border-color: var(--color-border);
+}
+.adm-main .inquiry-mail.is-failed {
+  color: var(--color-danger); background: rgba(192, 57, 43, 0.08);
+  border-color: rgba(192, 57, 43, 0.25);
+}
+
+
 /* ---- the media grid ---- */
 .adm-main .media-grid {
   display: grid; gap: 1rem;
@@ -8419,6 +8619,90 @@ a.unip-card:focus-visible {
 }
 .hap-del, .hap-actions .hap-del { color: var(--color-danger); }
 .hap-del:hover, .hap-actions .hap-del:hover { border-color: var(--color-danger); }
+
+/* ---- our people: the director's message and the team ---- */
+.ppl-form { display: grid; gap: 1rem; }
+.ppl-h2 {
+  margin: 0; font-size: 0.76rem; font-weight: 700;
+  letter-spacing: 0.16em; text-transform: uppercase; color: var(--color-muted);
+}
+/* The statement needs room, the portrait and the two name fields do not —
+   so the message editor is a narrow column beside a wide one rather than
+   the even two-up the other panels use. */
+.ppl-split {
+  display: grid; grid-template-columns: minmax(0, 18rem) minmax(0, 1fr);
+  gap: clamp(1rem, 2.5vw, 2rem); align-items: start;
+}
+.ppl-side, .ppl-main { align-content: start; }
+.ppl-hint { font-size: 0.75rem; line-height: 1.5; margin: 0; }
+/* The derived headline, echoed under the title field. */
+.ppl-derived { color: var(--color-hero-ink); text-transform: uppercase; letter-spacing: 0.04em; }
+.ppl-statement-head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 1rem; margin-top: 0.25rem;
+}
+.ppl-area { min-height: 22rem; font-family: var(--font-body); line-height: 1.6; }
+/* The preview is drawn by the same function as the live page, so it wants
+   the page's own prose measure rather than the form's full width. */
+.ppl-preview {
+  border: 1px solid var(--color-border); border-radius: 10px;
+  padding: 1.25rem 1.4rem; background: var(--color-bg);
+  min-height: 22rem; max-width: 42rem;
+}
+.ppl-actions {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 1rem; flex-wrap: wrap;
+}
+.ppl-form .ppl-actions { justify-content: flex-end; }
+.ppl-form .ppl-check ~ .adm-btn { margin-left: auto; }
+.ppl-check {
+  display: flex; align-items: flex-start; gap: 0.6rem; cursor: pointer;
+  font-size: 0.88rem; color: var(--color-text);
+}
+.ppl-check input { margin: 0.2rem 0 0; accent-color: var(--color-hero-red); width: 16px; height: 16px; }
+.ppl-check small { display: block; color: var(--color-muted); font-size: 0.78rem; }
+
+/* ---- the team list ---- */
+.ppl-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.6rem; }
+.ppl-list > li {
+  border: 1px solid var(--color-border); border-radius: 12px;
+  padding: 0.75rem 0.85rem; background: var(--color-bg);
+}
+/* A hidden card is dimmed rather than moved or removed: its position in the
+   order is the thing being edited, and a row that jumps when you hide it
+   makes reordering guesswork. */
+.ppl-list > li.is-off { opacity: 0.55; }
+.ppl-row { display: flex; align-items: center; gap: 0.9rem; flex-wrap: wrap; }
+.ppl-thumb {
+  flex: 0 0 auto; width: 46px; height: 46px; border-radius: 50%;
+  overflow: hidden; background: var(--color-surface); display: block;
+}
+.ppl-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.ppl-row-copy { flex: 1 1 12rem; min-width: 0; display: grid; gap: 0.1rem; }
+.ppl-row-copy strong { color: var(--color-hero-ink); font-size: 0.95rem; }
+.ppl-role { color: var(--color-muted); font-size: 0.78rem; }
+.ppl-row-quote {
+  margin: 0.2rem 0 0; color: var(--color-muted); font-size: 0.82rem;
+  font-style: italic;
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+.ppl-row-tools { display: flex; gap: 0.35rem; flex-wrap: wrap; }
+.ppl-row-tools button {
+  padding: 0.35rem 0.7rem; font: inherit; font-size: 0.8rem; font-weight: 600;
+  color: var(--color-hero-ink); background: none;
+  border: 1px solid var(--color-border); border-radius: 8px; cursor: pointer;
+}
+.ppl-row-tools button:hover:not(:disabled) { border-color: var(--color-hero-ink); }
+.ppl-row-tools button:disabled { opacity: 0.4; cursor: not-allowed; }
+.ppl-row-tools .link-danger { color: var(--color-danger); }
+.ppl-row-tools .link-danger:hover:not(:disabled) { border-color: var(--color-danger); }
+.ppl-editing { display: grid; gap: 1rem; }
+
+@media (max-width: 900px) {
+  .ppl-split { grid-template-columns: minmax(0, 1fr); }
+  .ppl-preview { max-width: none; }
+}
 
 /* ---- the picture control ---- */
 .hap-image { display: grid; gap: 0.3rem; }

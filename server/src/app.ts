@@ -3,6 +3,7 @@ import cors from "cors";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
 import { env } from "./config/env.js";
+import { mailService } from "./services/mail.service.js";
 import v1Routes from "./routes/v1/index.js";
 import { errorHandler, notFound } from "./middleware/errorHandler.js";
 import { UPLOADS_DIR } from "./middleware/upload.js";
@@ -56,6 +57,13 @@ export const createApp = () => {
       commit: env.RENDER_GIT_COMMIT?.slice(0, 7) ?? "local",
       startedAt: STARTED_AT,
       admin: adminState(),
+      /* Answers "did this deploy pick up the mail credentials?" without a
+         shell. The transport name and whether it is usable, and nothing
+         else: this endpoint is public and unauthenticated, so the FROM and
+         TO addresses stay out of it rather than being handed to whatever
+         scrapes /api/health. "none" here with mail configured in the
+         dashboard means the variables did not reach the process. */
+      mail: { provider: mailService.provider, configured: mailService.configured },
       request: {
         origin: req.get("origin") ?? null,
         host: req.get("x-forwarded-host") ?? req.get("host") ?? null,

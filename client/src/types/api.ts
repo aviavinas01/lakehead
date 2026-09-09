@@ -112,9 +112,50 @@ export interface Inquiry {
      taken before this field existed have neither, and the admin has to
      render them all the same. */
   source?: InquirySource;
+  /** Did the office notification go out? Written by the server. */
   notified?: NotifyRecord;
+  /**
+   * Did the enquirer's acknowledgement go out? Tracked separately, because
+   * the two can differ and the difference is the useful part — see the note
+   * on the field in server/src/models/Inquiry.ts.
+   */
+  acknowledged?: NotifyRecord;
   notes?: string;
   createdAt: string;
+}
+
+/**
+ * The director's message — a singleton on the server, so the API answers
+ * with `director: null` rather than 404ing when nothing has been written
+ * yet. See server/src/models/Director.ts.
+ */
+export interface Director {
+  _id: string;
+  name: string;
+  title: string;
+  photo?: string;
+  /** A short line set large above the body, if there is one. */
+  lead?: string;
+  /** Stored in the same small markup as a blog post — see lib/richText. */
+  statement: string;
+  published: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** One person on the team, as shown on /about. */
+export interface StaffMember {
+  _id: string;
+  name: string;
+  title: string;
+  photo?: string;
+  /** One line in their own words. Optional, and cards are built to sit
+      correctly without it. */
+  quote?: string;
+  published: boolean;
+  order: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface Album {

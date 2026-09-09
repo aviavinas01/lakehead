@@ -82,6 +82,7 @@ const links: NavItem[] = [
       lead: "A team of certified consultants guiding students to the right university, the right course, and the right country.",
       links: [
         { label: "Who We Are", to: "/about" },
+        { label: "Message from Director", to: "/about/director" },
         /* Success Stories used to sit here pointing at /about as well. The
            video stories it meant are now cards on the reviews wall, so the
            entry below is the only one that leads to them. */

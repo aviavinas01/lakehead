@@ -9,6 +9,7 @@ import youtubeRoutes from "./youtube.routes.js";
 import tiktokRoutes from "./tiktok.routes.js";
 import eventRoutes from "./event.routes.js";
 import newsRoutes from "./news.routes.js";
+import peopleRoutes from "./people.routes.js";
 import gateRoutes from "./gate.routes.js";
 
 const v1 = Router();
@@ -31,6 +32,9 @@ v1.use("/tiktok", tiktokRoutes);
    point at. See the models for why neither reads the site it references. */
 v1.use("/events", eventRoutes);
 v1.use("/news", newsRoutes);
+/* The director's message and the team. Both are ours, both are edited in
+   one admin screen, and neither is fetched from anywhere. */
+v1.use("/people", peopleRoutes);
 v1.use("/gate", gateRoutes);
 
 export default v1;

@@ -8,33 +8,83 @@ import {
 } from "../models/Inquiry.js";
 import { mailService } from "../services/mail.service.js";
 import { buildInquiryEmail } from "../emails/inquiryEmail.js";
+import { buildInquiryAck } from "../emails/inquiryAck.js";
 
 /**
- * Emails the inquiry to whoever is on MAIL_TO and records what happened.
+ * Emails the inquiry to whoever is on MAIL_TO, then acknowledges it to the
+ * enquirer, and records what happened to each.
  *
  * Called AFTER the visitor's response has been sent, and never awaited by the
  * request. That ordering is the whole design: the inquiry is already saved
- * and already acknowledged, so a mail host that is slow, misconfigured or
- * down cannot turn a working form into a broken one. The worst case is an
- * inquiry sitting in the dashboard marked "failed" for someone to pick up.
+ * and already acknowledged on screen, so a mail provider that is slow,
+ * misconfigured or down cannot turn a working form into a broken one. The
+ * worst case is an inquiry sitting in the dashboard marked "failed" for
+ * someone to pick up.
  *
- * It cannot reject: mailService.send resolves either way, and the catch below
- * is for the genuinely unexpected. An unhandled rejection here would take the
- * Node process down with it.
+ * THE TWO MAILS ARE INDEPENDENT, AND IN THIS ORDER. The office notification
+ * goes first because it is the one the business actually needs; the
+ * acknowledgement is a courtesy to the enquirer. Each is awaited, caught and
+ * recorded on its own, so a bounced acknowledgement — a mistyped address,
+ * which is common — cannot stop the office copy or lose its record. They are
+ * sequential rather than concurrent so that a rate limit on the provider is
+ * hit by one message at a time rather than by two at once.
+ *
+ * Neither can reject: mailService.send resolves either way, and the catches
+ * are for the genuinely unexpected. An unhandled rejection here would take
+ * the Node process down with it.
  */
 async function notify(inquiry: InquiryDocument): Promise<void> {
+  const id = String(inquiry._id);
+
+  /* "skipped" rather than "failed" when mail is simply not set up — the
+     difference between nothing to do and something going wrong matters to
+     whoever reads this in the dashboard. */
+  const stateFor = (result: { ok: boolean }): "sent" | "failed" | "skipped" =>
+    result.ok ? "sent" : mailService.configured ? "failed" : "skipped";
+
   try {
     const result = await mailService.send(buildInquiryEmail(inquiry));
-    await inquiryService.recordNotification(String(inquiry._id), {
-      /* "skipped" rather than "failed" when mail is simply not set up — the
-         difference between nothing to do and something going wrong matters
-         to whoever reads this in the dashboard. */
-      state: result.ok ? "sent" : mailService.configured ? "failed" : "skipped",
+    await inquiryService.recordNotification(id, {
+      state: stateFor(result),
       at: new Date(),
       reason: result.ok ? undefined : result.reason,
     });
   } catch (err) {
     console.error("[inquiry] Notification failed unexpectedly:", err);
+  }
+
+  /* No address, nothing to acknowledge. This is the ordinary case for a
+     call-back request, which asks for a name and a phone number — so it is
+     recorded as "skipped" with the reason rather than left blank, which
+     would read in the dashboard as though nothing had been attempted. */
+  if (!inquiry.email) {
+    await inquiryService.recordNotification(
+      id,
+      { state: "skipped", at: new Date(), reason: "No email address was given" },
+      "acknowledged"
+    );
+    return;
+  }
+
+  try {
+    /* Replies go to the first address on MAIL_TO — a mailbox a person reads.
+       Only the first, not the whole list: MAIL_TO may name several
+       counsellors, and putting all of their addresses in a header the
+       enquirer can see hands out the office directory. */
+    const result = await mailService.send(
+      buildInquiryAck(inquiry, mailService.recipients[0] ?? "")
+    );
+    await inquiryService.recordNotification(
+      id,
+      {
+        state: stateFor(result),
+        at: new Date(),
+        reason: result.ok ? undefined : result.reason,
+      },
+      "acknowledged"
+    );
+  } catch (err) {
+    console.error("[inquiry] Acknowledgement failed unexpectedly:", err);
   }
 }
 

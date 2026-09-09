@@ -27,29 +27,41 @@ const SOURCE_LABELS: Record<InquirySource, string> = {
 };
 
 /**
- * Whether the notification email reached the counsellors.
+ * Whether an email went out, for one of the two the server sends.
  *
  * Renders nothing for an inquiry taken before mail existed — those have no
  * record at all, and "not emailed" would be a false accusation rather than
  * information. The three real states each say something different: sent is
- * done, skipped means mail is not configured on the server, and failed is
- * the one that needs a person, so it carries the reason with it.
+ * done, skipped means there was nothing to do (mail is not configured, or
+ * there was no address to write to), and failed is the one that needs a
+ * person, so it carries the reason with it.
+ *
+ * BOTH ARE SHOWN, and they are shown separately on purpose. The office copy
+ * going out while the enquirer's bounces means a mistyped address; the
+ * reverse means a problem with our own inbox. One combined badge would hide
+ * whichever of the two failed.
  */
-function MailState({ notified }: Pick<Inquiry, "notified">) {
-  if (!notified) return null;
-  if (notified.state === "sent") {
-    return <span className="inquiry-mail is-sent">✓ Emailed</span>;
+function MailState({
+  record,
+  label,
+}: {
+  record: Inquiry["notified"];
+  label: string;
+}) {
+  if (!record) return null;
+  if (record.state === "sent") {
+    return <span className="inquiry-mail is-sent">✓ {label} emailed</span>;
   }
-  if (notified.state === "skipped") {
+  if (record.state === "skipped") {
     return (
-      <span className="inquiry-mail is-skipped" title={notified.reason}>
-        Not emailed — mail is not set up
+      <span className="inquiry-mail is-skipped" title={record.reason}>
+        {label} not emailed{record.reason ? ` — ${record.reason}` : ""}
       </span>
     );
   }
   return (
-    <span className="inquiry-mail is-failed" title={notified.reason}>
-      ⚠ Email failed{notified.reason ? ` — ${notified.reason}` : ""}
+    <span className="inquiry-mail is-failed" title={record.reason}>
+      ⚠ {label} email failed{record.reason ? ` — ${record.reason}` : ""}
     </span>
   );
 }
@@ -113,7 +125,10 @@ export default function Inquiries() {
                   {new Date(q.createdAt).toLocaleString()}
                 </p>
                 <p>{q.message}</p>
-                <MailState notified={q.notified} />
+                <span className="inquiry-mails">
+                  <MailState record={q.notified} label="Office" />
+                  <MailState record={q.acknowledged} label="Enquirer" />
+                </span>
                 <div className="inquiry-actions">
                   {q.status !== "contacted" && (
                     <button className="btn btn-small" onClick={() => setStatus(q._id, "contacted")}>

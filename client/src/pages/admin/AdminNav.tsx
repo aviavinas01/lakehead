@@ -38,6 +38,12 @@ const LINKS: NavItem[] = [
     label: "Events & news",
     match: ["/admin/events", "/admin/news"],
   },
+  /* Same arrangement again: one pill, two addresses. See pages/admin/People. */
+  {
+    to: "/admin/people",
+    label: "Our people",
+    match: ["/admin/people"],
+  },
   { to: "/admin/inquiries", label: "Inquiries" },
 ];
 
@@ -83,9 +89,20 @@ export default function AdminNav() {
         </nav>
 
         <div className="adm-bar-end">
-          <span className="adm-who" title={user?.name}>
+          {/* THE DISC LEADS SOMEWHERE NOW. It used to be decoration — an
+              initial in a circle that looked like every account menu on the
+              internet and did nothing when you pressed it, which is its own
+              small papercut. It goes to the people screen, because that is
+              where the one photograph and one statement belonging to the
+              person signed in are edited. The pill in the rail goes to the
+              same place; this is the shortcut, not the only way in. */}
+          <Link
+            to="/admin/people"
+            className="adm-who"
+            title={`${user?.name ?? "Account"} — the director's message and the team`}
+          >
             {initial(user?.name)}
-          </span>
+          </Link>
           <button className="adm-ghost" onClick={handleLogout}>
             Log out
           </button>

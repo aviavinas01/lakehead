@@ -22,31 +22,45 @@ const wantsSend = process.argv.includes("--send");
 async function main() {
   console.log("Mail configuration");
   console.log("──────────────────");
+  console.log(`  transport  ${mailService.provider}`);
+  if (mailService.provider === "resend") {
+    console.log(
+      `  api key    ${env.RESEND_API_KEY ? `set, ${env.RESEND_API_KEY.length} characters` : "(unset)"}`
+    );
+  } else {
   console.log(`  host       ${env.MAIL_HOST ?? "(unset)"}`);
   console.log(`  port       ${env.MAIL_PORT ?? 587}`);
   console.log(`  secure     ${env.MAIL_SECURE}  ${env.MAIL_SECURE === "true" ? "(implicit TLS — expects port 465)" : "(STARTTLS — expects port 587)"}`);
   console.log(`  user       ${env.MAIL_USER ?? "(unset)"}`);
   console.log(`  pass       ${env.MAIL_PASS ? `set, ${env.MAIL_PASS.length} characters` : "(unset)"}`);
-  console.log(`  from       ${env.MAIL_FROM ?? env.MAIL_USER ?? "(unset)"}`);
+  }
+  console.log(`  from       ${mailService.from || "(unset)"}`);
   console.log(`  to         ${mailService.recipients.join(", ") || "(unset)"}`);
   console.log("");
 
   if (!mailService.configured) {
-    console.error(
-      "✗ Not configured. MAIL_HOST, MAIL_USER, MAIL_PASS and MAIL_TO are all\n" +
-        "  required before anything is sent. The site works without them —\n" +
-        "  inquiries save and reach the dashboard — but no email goes out."
-    );
+    console.error("✗ Not configured. MAIL_FROM and MAIL_TO are always required,");
+    console.error("  plus EITHER RESEND_API_KEY (preferred) OR all three of");
+    console.error("  MAIL_HOST, MAIL_USER and MAIL_PASS.");
+    console.error("");
+    console.error("  The site works without them — inquiries save and reach the");
+    console.error("  dashboard — but no email goes out.");
     process.exit(1);
   }
 
-  /* Connect and authenticate without sending. This is where a wrong password,
-     a blocked port or the wrong secure/port pairing shows up. */
+  /* Prove the credentials without sending. On SMTP this connects and
+     authenticates; on Resend it asks the API an authenticated question. */
   const check = await mailService.verify();
   if (!check.ok) {
     console.error(`✗ Could not authenticate: ${check.reason}`);
     console.error("");
     console.error("  Common causes:");
+    if (mailService.provider === "resend") {
+      console.error("    · The key was revoked, or copied with a space in it.");
+      console.error("    · A test key from a different Resend account.");
+      console.error("    · No outbound HTTPS from this network.");
+      process.exit(1);
+    }
     console.error("    · MAIL_SECURE=true on port 587, or false on 465 —");
     console.error("      they must match, 587 is STARTTLS and 465 is implicit TLS");
     console.error("    · Google Workspace needs an App Password with 2FA on,");
@@ -54,7 +68,11 @@ async function main() {
     console.error("    · Port 25 is blocked by every cloud host. Use 587.");
     process.exit(1);
   }
-  console.log("✓ Authenticated against the mail host.");
+  console.log(
+    mailService.provider === "resend"
+      ? "✓ Resend accepted the API key."
+      : "✓ Authenticated against the mail host."
+  );
 
   if (!wantsSend) {
     console.log("");
@@ -76,6 +94,12 @@ async function main() {
 
   if (!result.ok) {
     console.error(`✗ Authenticated, but the send failed: ${result.reason}`);
+    if (mailService.provider === "resend") {
+      console.error("");
+      console.error("  If this says the domain is not verified, MAIL_FROM is on a");
+      console.error("  domain Resend has not been given DNS records for yet. Add");
+      console.error("  the domain in the Resend dashboard and publish the records.");
+    }
     process.exit(1);
   }
   console.log(`✓ Test message sent to ${mailService.recipients.join(", ")}.`);

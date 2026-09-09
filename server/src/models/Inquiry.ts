@@ -77,6 +77,18 @@ export interface IInquiry {
   /* Optional because it is written after the document is created, and is
      absent entirely on every inquiry taken before mail existed. */
   notified?: NotifyRecord;
+  /**
+   * The acknowledgement sent to the ENQUIRER, tracked separately from the
+   * office notification above.
+   *
+   * Two records rather than one because they can genuinely differ, and the
+   * difference is the useful part: the office copy going out while the
+   * student's bounces is a wrong address, and the reverse is a problem with
+   * our own inbox. Collapsing them into one state would hide whichever
+   * failed. "skipped" here is the ordinary case for a call-back request,
+   * which leaves a phone number and no address.
+   */
+  acknowledged?: NotifyRecord;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -96,6 +108,18 @@ const inquirySchema = new Schema<IInquiry>(
     /* _id: false — this is one embedded record, not a collection of them,
        and an id on it would be noise in every API response. */
     notified: {
+      type: new Schema<NotifyRecord>(
+        {
+          state: { type: String, enum: NOTIFY_STATES, required: true },
+          at: { type: Date, required: true },
+          reason: { type: String, maxlength: 300 },
+        },
+        { _id: false }
+      ),
+      required: false,
+    },
+    /* Same shape, different question — see the note on the interface. */
+    acknowledged: {
       type: new Schema<NotifyRecord>(
         {
           state: { type: String, enum: NOTIFY_STATES, required: true },

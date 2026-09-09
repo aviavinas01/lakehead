@@ -69,6 +69,11 @@ services:
       # values themselves are typed into the dashboard, never committed.
       # See server/.env.example for what each one wants.
       # MAIL_PASS is a secret: for Google Workspace it is an App Password.
+      # Resend is the preferred transport: set RESEND_API_KEY and the SMTP
+      # block below is ignored. MAIL_FROM and MAIL_TO are still required
+      # either way. See server/.env.example for the setup steps.
+      - key: RESEND_API_KEY
+        sync: false
       - key: MAIL_HOST
         sync: false
       - key: MAIL_PORT      # 587 (STARTTLS). Never 25 — Render blocks it.
