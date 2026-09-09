@@ -5314,13 +5314,15 @@ a.greview-author:hover { text-decoration: underline; }
      when somebody joins. */
   grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
 }
+/* NO HOVER STATE, DELIBERATELY. These cards are not links and lead nowhere,
+   so a border that lights up and a card that lifts under the pointer are
+   promising a click that does not exist — the one thing a card should never
+   do. They are a photograph, a name and a role, and they sit still. */
 .stf-card {
   display: flex; flex-direction: column;
   background: #fff; border: 1px solid var(--color-border);
   border-radius: 18px; overflow: hidden;
-  transition: border-color 0.25s ease, transform 0.25s ease;
 }
-.stf-card:hover { border-color: var(--color-hero-ink); transform: translateY(-3px); }
 .stf-shot { aspect-ratio: 4 / 5; overflow: hidden; background: var(--color-surface); }
 .stf-shot img { width: 100%; height: 100%; object-fit: cover; display: block; }
 /* Same fallback as every other card on the site with no picture. */
@@ -5346,11 +5348,6 @@ a.greview-author:hover { text-decoration: underline; }
   border-left: 2px solid var(--color-border);
   color: var(--color-muted); font-size: 0.9rem; line-height: 1.6;
   font-style: italic;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .stf-card { transition: none; }
-  .stf-card:hover { transform: none; }
 }
 
 /* ---- the director's message ----
@@ -7272,6 +7269,15 @@ a.unip-card:focus-visible {
   display: flex; align-items: center; justify-content: space-between;
   gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem;
 }
+/* The way back to the posts list, sitting before the title it belongs to. */
+.ed-back {
+  color: var(--color-muted); font-size: 0.85rem; font-weight: 600;
+  white-space: nowrap;
+}
+.ed-back:hover { color: var(--color-hero-red); }
+/* A save confirmation with somewhere to go next. */
+.ed-msg-done { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+.ed-msg-done a { color: var(--color-hero-red); font-weight: 700; }
 .ed-bar-left { display: flex; align-items: center; gap: 0.85rem; }
 .ed-bar-left h1 { margin: 0; font-size: 1.5rem; }
 .ed-bar-right { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }

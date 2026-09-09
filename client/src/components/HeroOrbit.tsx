@@ -40,74 +40,200 @@ const FlagUS = () => (
   </svg>
 );
 
-const FlagIndia = () => (
+/**
+ * A five-pointed star, points up, as one path.
+ *
+ * Three of these flags are mostly stars, and a star drawn as a polygon of
+ * ten hand-typed points is ten chances to fat-finger a coordinate. Generated
+ * from an angle instead, so every star on every flag is the same shape at
+ * whatever size it is asked for.
+ */
+const star = (cx: number, cy: number, outer: number): string => {
+  const inner = outer * 0.382;
+  let d = "";
+  for (let i = 0; i < 10; i++) {
+    const r = i % 2 === 0 ? outer : inner;
+    const a = (-90 + i * 36) * (Math.PI / 180);
+    d += `${i ? "L" : "M"}${(cx + r * Math.cos(a)).toFixed(2)} ${(
+      cy +
+      r * Math.sin(a)
+    ).toFixed(2)}`;
+  }
+  return d + "Z";
+};
+
+/**
+ * The Union canton, shared by Australia and New Zealand.
+ *
+ * Their flags differ only in the stars to the right of it, so the canton is
+ * drawn once. At badge size the two are meant to be near-identical — they
+ * are near-identical in real life — and what separates them here is the same
+ * thing that separates them on a flagpole: Australia's stars are white and
+ * include the large Commonwealth star under the canton, New Zealand's are
+ * four red stars with a white edge.
+ */
+const UnionCanton = () => (
+  <g>
+    <rect width="16" height="10.5" fill="#26408b" />
+    <path d="M0 0l16 10.5M16 0L0 10.5" stroke="#fff" strokeWidth="2.6" />
+    <path d="M0 0l16 10.5M16 0L0 10.5" stroke="#d0342c" strokeWidth="1.1" />
+    <path d="M8 0v10.5M0 5.25h16" stroke="#fff" strokeWidth="3.6" />
+    <path d="M8 0v10.5M0 5.25h16" stroke="#d0342c" strokeWidth="2" />
+  </g>
+);
+
+const FlagAustralia = () => (
   <svg viewBox="0 0 32 32" aria-hidden="true">
-    <clipPath id="flag-in">
+    <clipPath id="flag-au">
       <circle cx="16" cy="16" r="16" />
     </clipPath>
-    <g clipPath="url(#flag-in)">
-      <rect width="32" height="10.7" fill="#ff9933" />
-      <rect y="10.7" width="32" height="10.6" fill="#fff" />
-      <rect y="21.3" width="32" height="10.7" fill="#138808" />
-      <circle
-        cx="16"
-        cy="16"
-        r="3"
-        fill="none"
-        stroke="#054187"
-        strokeWidth="1.4"
+    <g clipPath="url(#flag-au)">
+      <rect width="32" height="32" fill="#26408b" />
+      <UnionCanton />
+      <path d={star(7.5, 21.5, 4.2)} fill="#fff" />
+      <g fill="#fff">
+        <path d={star(24, 7.5, 2.5)} />
+        <path d={star(28, 15, 2.5)} />
+        <path d={star(22.5, 21, 2.5)} />
+        <path d={star(19.5, 14, 2.1)} />
+        <path d={star(26, 25.5, 1.5)} />
+      </g>
+    </g>
+  </svg>
+);
+
+const FlagNewZealand = () => (
+  <svg viewBox="0 0 32 32" aria-hidden="true">
+    <clipPath id="flag-nz">
+      <circle cx="16" cy="16" r="16" />
+    </clipPath>
+    <g clipPath="url(#flag-nz)">
+      <rect width="32" height="32" fill="#26408b" />
+      <UnionCanton />
+      {/* A white star with a smaller red one on top — which is how the flag
+          itself draws them, and cheaper than stroking a star path. */}
+      {([
+        [25, 8.5, 3],
+        [28.5, 17, 2.7],
+        [22, 21.5, 2.7],
+        [24.5, 14.5, 2.4],
+      ] as const).map(([x, y, r]) => (
+        <g key={`${x}-${y}`}>
+          <path d={star(x, y, r)} fill="#fff" />
+          <path d={star(x, y, r * 0.6)} fill="#d0342c" />
+        </g>
+      ))}
+    </g>
+  </svg>
+);
+
+const FlagCanada = () => (
+  <svg viewBox="0 0 32 32" aria-hidden="true">
+    <clipPath id="flag-ca">
+      <circle cx="16" cy="16" r="16" />
+    </clipPath>
+    <g clipPath="url(#flag-ca)">
+      <rect width="32" height="32" fill="#fff" />
+      <rect width="8" height="32" fill="#d0342c" />
+      <rect x="24" width="8" height="32" fill="#d0342c" />
+      {/* A simplified maple leaf. Eleven points rather than the flag's
+          proper eleven-point geometry with its precise notches — at thirty
+          pixels the notches are sub-pixel, and what has to survive is the
+          silhouette and the stem. */}
+      <path
+        d="M16 6.4l1.5 4.4 2.7-.8-.6 2.8 2.1-.5-.6 2 3.4 2.4-.9.8.9 2.2-4-.4v1.5l-3.1-.5.6 4.3h-1.6l.6-4.3-3.1.5v-1.5l-4 .4.9-2.2-.9-.8 3.4-2.4-.6-2 2.1.5-.6-2.8 2.7.8z"
+        fill="#d0342c"
       />
     </g>
   </svg>
 );
 
-const FlagSweden = () => (
+const FlagSouthKorea = () => (
   <svg viewBox="0 0 32 32" aria-hidden="true">
-    <clipPath id="flag-se">
+    <clipPath id="flag-kr">
       <circle cx="16" cy="16" r="16" />
     </clipPath>
-    <g clipPath="url(#flag-se)">
-      <rect width="32" height="32" fill="#0a6aa1" />
-      <rect x="9.5" width="5.5" height="32" fill="#fecc02" />
-      <rect y="13.3" width="32" height="5.5" fill="#fecc02" />
+    <g clipPath="url(#flag-kr)">
+      <rect width="32" height="32" fill="#fff" />
+      {/* The taegeuk is set on a diagonal on the real flag, so the whole
+          circle is rotated rather than the halves being redrawn.
+
+          THREE ARCS, NOT TWO. The red half is the big semicircle over the
+          top, then a half-size arc down to the centre and another half-size
+          arc back out — that S is what makes it a taegeuk. With the middle
+          arc missing the path asks for a radius-3.5 curve across fourteen
+          units, which is impossible, so the browser silently inflates the
+          radius and the red disappears under the blue. */}
+      <g transform="rotate(-33.7 16 16)">
+        <circle cx="16" cy="16" r="7" fill="#0047a0" />
+        <path
+          d="M9 16A7 7 0 0123 16A3.5 3.5 0 0116 16A3.5 3.5 0 009 16z"
+          fill="#cd2e3a"
+        />
+      </g>
+      {/* The four trigrams, three bars each. At this size they are dark
+          ticks rather than readable symbols — but without them the flag is
+          a circle on white, which is Japan's.
+
+          EACH GROUP IS ROTATED PERPENDICULAR TO ITS OWN RADIUS, which is
+          how they sit on the flag: a corner at angle θ from the centre gets
+          θ + 90. Get the sign the wrong way round and all four turn to face
+          the middle, crossing the taegeuk in an X. */}
+      <g fill="#1a1a1a">
+        {([
+          [23.5, 8.5, 45],
+          [8.5, 8.5, -45],
+          [8.5, 23.5, 45],
+          [23.5, 23.5, -45],
+        ] as const).map(([x, y, rot]) => (
+          <g key={`${x}-${y}`} transform={`rotate(${rot} ${x} ${y})`}>
+            <rect x={x - 2.6} y={y - 2} width="5.2" height="0.95" />
+            <rect x={x - 2.6} y={y - 0.475} width="5.2" height="0.95" />
+            <rect x={x - 2.6} y={y + 1.05} width="5.2" height="0.95" />
+          </g>
+        ))}
+      </g>
     </g>
   </svg>
 );
 
-const FlagSpain = () => (
+const FlagJapan = () => (
   <svg viewBox="0 0 32 32" aria-hidden="true">
-    <clipPath id="flag-es">
+    <clipPath id="flag-jp">
       <circle cx="16" cy="16" r="16" />
     </clipPath>
-    <g clipPath="url(#flag-es)">
-      <rect width="32" height="32" fill="#c60b1e" />
-      <rect y="8" width="32" height="16" fill="#ffc400" />
+    <g clipPath="url(#flag-jp)">
+      <rect width="32" height="32" fill="#fff" />
+      <circle cx="16" cy="16" r="8.2" fill="#bc002d" />
     </g>
   </svg>
 );
 
-const FlagItaly = () => (
+/**
+ * The European emblem — twelve gold stars in a ring on blue.
+ *
+ * Twelve, in a circle, always: the number is fixed and has nothing to do
+ * with how many members there are. Generated from an angle for the same
+ * reason as the stars above.
+ */
+const FlagEU = () => (
   <svg viewBox="0 0 32 32" aria-hidden="true">
-    <clipPath id="flag-it">
+    <clipPath id="flag-eu">
       <circle cx="16" cy="16" r="16" />
     </clipPath>
-    <g clipPath="url(#flag-it)">
-      <rect width="10.7" height="32" fill="#169b62" />
-      <rect x="10.7" width="10.6" height="32" fill="#fff" />
-      <rect x="21.3" width="10.7" height="32" fill="#d62828" />
-    </g>
-  </svg>
-);
-
-const FlagBelgium = () => (
-  <svg viewBox="0 0 32 32" aria-hidden="true">
-    <clipPath id="flag-be">
-      <circle cx="16" cy="16" r="16" />
-    </clipPath>
-    <g clipPath="url(#flag-be)">
-      <rect width="10.7" height="32" fill="#2d2926" />
-      <rect x="10.7" width="10.6" height="32" fill="#ffd90c" />
-      <rect x="21.3" width="10.7" height="32" fill="#f31830" />
+    <g clipPath="url(#flag-eu)">
+      <rect width="32" height="32" fill="#003399" />
+      <g fill="#ffcc00">
+        {Array.from({ length: 12 }, (_, i) => {
+          const a = (-90 + i * 30) * (Math.PI / 180);
+          return (
+            <path
+              key={i}
+              d={star(16 + 9.2 * Math.cos(a), 16 + 9.2 * Math.sin(a), 2.4)}
+            />
+          );
+        })}
+      </g>
     </g>
   </svg>
 );
@@ -149,17 +275,31 @@ interface OrbitEntry {
  * the whole point of the mark is that it is recognisably the same object.
  */
 export const ORBIT_ENTRIES: OrbitEntry[] = [
+  /* The eight destinations, evenly spaced at 45 degrees and running roughly
+     west to east from the top — the same order, and the same eight, as the
+     map on the "Get Ready To Begin" band. Even spacing rather than the
+     hand-picked angles this list used to carry: seven flags chosen for
+     looks could sit wherever they balanced, but eight that mean something
+     should not look as though one of them was squeezed in.
+
+     All the same size, for the same reason. The old list shrank two of the
+     seven to break up the ring; doing that here would be saying one
+     destination matters less than another. */
   { angle: -90, kind: "flag", node: <FlagUS /> },
-  { angle: -30, kind: "flag", node: <FlagSweden /> },
-  { angle: 15, kind: "flag", small: true, node: <FlagItaly /> },
-  { angle: 95, kind: "flag", node: <FlagUK /> },
-  { angle: 150, kind: "flag", node: <FlagBelgium /> },
-  { angle: 185, kind: "flag", small: true, node: <FlagSpain /> },
-  { angle: -145, kind: "flag", node: <FlagIndia /> },
-  { angle: -120, kind: "plane" },
-  { angle: -55, kind: "plane" },
-  { angle: 55, kind: "plane" },
-  { angle: 215, kind: "plane" },
+  { angle: -45, kind: "flag", node: <FlagCanada /> },
+  { angle: 0, kind: "flag", node: <FlagUK /> },
+  { angle: 45, kind: "flag", node: <FlagEU /> },
+  { angle: 90, kind: "flag", node: <FlagSouthKorea /> },
+  { angle: 135, kind: "flag", node: <FlagJapan /> },
+  { angle: 180, kind: "flag", node: <FlagAustralia /> },
+  { angle: -135, kind: "flag", node: <FlagNewZealand /> },
+  /* Between the flags, not on them — the midpoints of four of the eight
+     gaps, so the ring reads as travel between places rather than as a row
+     of badges. */
+  { angle: -112.5, kind: "plane" },
+  { angle: -22.5, kind: "plane" },
+  { angle: 67.5, kind: "plane" },
+  { angle: 157.5, kind: "plane" },
 ];
 
 export default function HeroOrbit({

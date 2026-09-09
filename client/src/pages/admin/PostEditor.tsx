@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import api, { getErrorMessage } from "../../api/client";
 import { mediaSrc } from "../../api/media";
 import AdminNav from "./AdminNav";
@@ -129,6 +129,27 @@ export default function PostEditor() {
       })
       .catch((err) => setError(getErrorMessage(err, "Couldn't load that post")))
       .finally(() => setLoading(false));
+  }, [id]);
+
+  /**
+   * Empties the editor when the address becomes /admin/posts/new.
+   *
+   * REACT ROUTER REUSES THIS COMPONENT between the two addresses — same
+   * element type, so going from editing a post to writing a new one is a
+   * prop change, not a remount. The loader above is keyed on `id` and
+   * returns early when there is none, so without this the article you just
+   * published stays sitting in the boxes and the next save quietly writes a
+   * second copy of it.
+   *
+   * On the route it is a no-op: the form is already `initial` at mount, and
+   * after a first save the id goes from absent to present, which is the
+   * other direction.
+   */
+  useEffect(() => {
+    if (id) return;
+    setForm(initial);
+    setNotice("");
+    setError("");
   }, [id]);
 
   /* Ctrl/Cmd+S saves without publishing — the reflex every writer has. */
@@ -318,6 +339,16 @@ export default function PostEditor() {
         <div className="container">
           <div className="ed-bar">
             <div className="ed-bar-left">
+              {/* THE WAY BACK OUT. Without it the only exits from a saved
+                  post were the browser's back button and the logo, which
+                  leaves the admin entirely — so writing two posts in a row
+                  meant leaving the dashboard and coming back in. It is a
+                  link to the list rather than a "new post" button because
+                  the list is where you check what you just published before
+                  starting the next one. */}
+              <Link className="ed-back" to="/admin/posts">
+                ← All posts
+              </Link>
               <h1>{id ? "Edit post" : "New post"}</h1>
               <span className={`badge badge-${form.status}`}>{form.status}</span>
             </div>
@@ -354,7 +385,17 @@ export default function PostEditor() {
           </div>
 
           {error ? <p className="form-error ed-msg">{error}</p> : null}
-          {notice ? <p className="form-success ed-msg">{notice}</p> : null}
+          {/* Straight into the next one. Offered only after a save has
+              actually landed, so it appears at the moment somebody is most
+              likely to want it and never sits there as a way to abandon
+              unsaved work. The emptying is handled by the effect above, not
+              by this link — see it for why. */}
+          {notice ? (
+            <p className="form-success ed-msg ed-msg-done">
+              <span>{notice}</span>
+              <Link to="/admin/posts/new">Write another post →</Link>
+            </p>
+          ) : null}
 
           {loading ? (
             <p className="ed-loading">Loading…</p>

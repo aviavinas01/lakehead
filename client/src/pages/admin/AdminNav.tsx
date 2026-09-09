@@ -38,12 +38,6 @@ const LINKS: NavItem[] = [
     label: "Events & news",
     match: ["/admin/events", "/admin/news"],
   },
-  /* Same arrangement again: one pill, two addresses. See pages/admin/People. */
-  {
-    to: "/admin/people",
-    label: "Our people",
-    match: ["/admin/people"],
-  },
   { to: "/admin/inquiries", label: "Inquiries" },
 ];
 
@@ -89,13 +83,17 @@ export default function AdminNav() {
         </nav>
 
         <div className="adm-bar-end">
-          {/* THE DISC LEADS SOMEWHERE NOW. It used to be decoration — an
-              initial in a circle that looked like every account menu on the
-              internet and did nothing when you pressed it, which is its own
-              small papercut. It goes to the people screen, because that is
-              where the one photograph and one statement belonging to the
-              person signed in are edited. The pill in the rail goes to the
-              same place; this is the shortcut, not the only way in. */}
+          {/* THE DISC IS THE WAY INTO "OUR PEOPLE", and the only one. It used
+              to be decoration — an initial in a circle that looked like
+              every account menu on the internet and did nothing when you
+              pressed it. It now opens the director's message and the team,
+              which is the right home for it: those are the pages about
+              whoever is signed in, not another content type.
+
+              There is deliberately no pill for it in the rail beside
+              Posts and Media. That rail is for the things the site
+              publishes; this is closer to an account screen, and giving it
+              both entrances made it look like a sixth content section. */}
           <Link
             to="/admin/people"
             className="adm-who"
