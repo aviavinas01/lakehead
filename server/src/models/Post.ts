@@ -34,6 +34,8 @@ export const POST_PAGES = [
   "study-in-australia",
   "study-in-new-zealand",
   "study-in-south-korea",
+  "study-in-japan",
+  "study-in-europe",
   "test-preparation",
   "visa-guidance",
   "career-counselling",

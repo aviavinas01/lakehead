@@ -264,6 +264,10 @@ interface OrbitEntry {
   kind: "flag" | "plane";
   small?: boolean;
   node?: ReactNode;
+  /** The guide this flag opens. Flags carry one; planes do not. */
+  to?: string;
+  /** Named for a screen reader and for the tooltip — see OrbitMark. */
+  label?: string;
 }
 
 /**
@@ -285,14 +289,14 @@ export const ORBIT_ENTRIES: OrbitEntry[] = [
      All the same size, for the same reason. The old list shrank two of the
      seven to break up the ring; doing that here would be saying one
      destination matters less than another. */
-  { angle: -90, kind: "flag", node: <FlagUS /> },
-  { angle: -45, kind: "flag", node: <FlagCanada /> },
-  { angle: 0, kind: "flag", node: <FlagUK /> },
-  { angle: 45, kind: "flag", node: <FlagEU /> },
-  { angle: 90, kind: "flag", node: <FlagSouthKorea /> },
-  { angle: 135, kind: "flag", node: <FlagJapan /> },
-  { angle: 180, kind: "flag", node: <FlagAustralia /> },
-  { angle: -135, kind: "flag", node: <FlagNewZealand /> },
+  { angle: -90, kind: "flag", node: <FlagUS />, to: "/study-in-usa", label: "Study in the USA" },
+  { angle: -45, kind: "flag", node: <FlagCanada />, to: "/study-in-canada", label: "Study in Canada" },
+  { angle: 0, kind: "flag", node: <FlagUK />, to: "/study-in-uk", label: "Study in the UK" },
+  { angle: 45, kind: "flag", node: <FlagEU />, to: "/study-in-europe", label: "Study in Europe" },
+  { angle: 90, kind: "flag", node: <FlagSouthKorea />, to: "/study-in-south-korea", label: "Study in South Korea" },
+  { angle: 135, kind: "flag", node: <FlagJapan />, to: "/study-in-japan", label: "Study in Japan" },
+  { angle: 180, kind: "flag", node: <FlagAustralia />, to: "/study-in-australia", label: "Study in Australia" },
+  { angle: -135, kind: "flag", node: <FlagNewZealand />, to: "/study-in-new-zealand", label: "Study in New Zealand" },
   /* Between the flags, not on them — the midpoints of four of the eight
      gaps, so the ring reads as travel between places rather than as a row
      of badges. */

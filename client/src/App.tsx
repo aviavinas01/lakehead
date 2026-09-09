@@ -20,6 +20,8 @@ import StudyInUK from "./pages/StudyInUK";
 import StudyInUSA from "./pages/StudyInUSA";
 import StudyInNewZealand from "./pages/StudyInNewZealand";
 import StudyInSouthKorea from "./pages/StudyInSouthKorea";
+import StudyInJapan from "./pages/StudyInJapan";
+import StudyInEurope from "./pages/StudyInEurope";
 import Testimonials from "./pages/Testimonials";
 import UniversityPartners from "./pages/UniversityPartners";
 import Gallery from "./pages/Gallery";
@@ -66,6 +68,8 @@ export default function App() {
           <Route path="/study-in-usa" element={<StudyInUSA />} />
           <Route path="/study-in-new-zealand" element={<StudyInNewZealand />} />
           <Route path="/study-in-south-korea" element={<StudyInSouthKorea />} />
+          <Route path="/study-in-japan" element={<StudyInJapan />} />
+          <Route path="/study-in-europe" element={<StudyInEurope />} />
           {/* The director's message sits under /about because it is part of
               the about cluster, not a section of its own. */}
           <Route path="/about/director" element={<Director />} />

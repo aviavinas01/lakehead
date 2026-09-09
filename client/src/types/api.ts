@@ -36,6 +36,8 @@ export const POST_PAGES = [
   { key: "study-in-australia", label: "Study in Australia", group: "Destinations" },
   { key: "study-in-new-zealand", label: "Study in New Zealand", group: "Destinations" },
   { key: "study-in-south-korea", label: "Study in South Korea", group: "Destinations" },
+  { key: "study-in-japan", label: "Study in Japan", group: "Destinations" },
+  { key: "study-in-europe", label: "Study in Europe", group: "Destinations" },
   { key: "test-preparation", label: "Test preparation", group: "Services" },
   { key: "visa-guidance", label: "Visa guidance", group: "Services" },
   { key: "career-counselling", label: "Career counselling", group: "Services" },

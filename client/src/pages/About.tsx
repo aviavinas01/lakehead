@@ -95,7 +95,7 @@ const WORK = [
   },
   {
     title: "Test preparation",
-    text: "IELTS, PTE, TOEFL, Duolingo, SAT, GRE and GMAT, taught in-house by instructors who sit the exams themselves. Foundations first, strategy second, mock tests until the score is repeatable.",
+    text: "IELTS, PTE, TOEFL, Duolingo and SAT, taught in-house by instructors who sit the exams themselves. Foundations first, strategy second, mock tests until the score is repeatable.",
     image: "/about/classroom.jpg",
   },
 ];

@@ -74,7 +74,7 @@ export default function TestPreparation() {
               done it a dozen times.
             </p>
             <p>
-              We coach IELTS, TOEFL, PTE, Duolingo, GRE, GMAT, SAT and ACT.
+              We coach IELTS, TOEFL, PTE, Duolingo and SAT.
               Pick the one your universities actually want — we will help with
               that too, because sitting the wrong test is more common than you
               would think.

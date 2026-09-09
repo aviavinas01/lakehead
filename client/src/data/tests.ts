@@ -68,24 +68,6 @@ export const TESTS: Test[] = [
     image: "/tests/duolingo.jpg",
   },
   {
-    slug: "gre",
-    name: "GRE",
-    full: "Graduate Record Examinations",
-    blurb: "For master's and doctoral admission across a wide range of subjects.",
-    intro:
-      "The GRE is asked for by graduate programmes across most disciplines, not just one field. It tests verbal reasoning, quantitative reasoning and analytical writing — which is to say it tests how you think under time pressure rather than what you happen to know.",
-    image: "/tests/gre.jpg",
-  },
-  {
-    slug: "gmat",
-    name: "GMAT",
-    full: "Graduate Management Admission Test",
-    blurb: "The business school test — MBAs and management master's.",
-    intro:
-      "The GMAT is built for business and management programmes, with a heavy emphasis on data reasoning and problem solving. Some schools now accept the GRE instead, so it is worth checking whether you actually need this one before committing months to it.",
-    image: "/tests/gmat.jpg",
-  },
-  {
     slug: "sat",
     name: "SAT",
     full: "Scholastic Assessment Test",
@@ -93,15 +75,6 @@ export const TESTS: Test[] = [
     intro:
       "The SAT is for students applying to US universities straight from school, covering reading, writing and maths. Plenty of institutions have gone test-optional in recent years — but a strong score still helps, particularly where scholarships are involved.",
     image: "/tests/sat.jpg",
-  },
-  {
-    slug: "act",
-    name: "ACT",
-    full: "American College Testing",
-    blurb: "The other US undergraduate test, with a science reasoning section.",
-    intro:
-      "The ACT does the same job as the SAT and US universities treat the two equally, so you only need one. It runs slightly faster, and it adds a science reasoning section — students who are comfortable reading charts under time pressure often prefer it.",
-    image: "/tests/act.jpg",
   },
 ];
 

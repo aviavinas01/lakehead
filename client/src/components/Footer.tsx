@@ -47,6 +47,8 @@ const COLUMNS: { title: string; links: FooterLink[] }[] = [
       { label: "Canada", to: "/study-in-canada" },
       { label: "New Zealand", to: "/study-in-new-zealand" },
       { label: "South Korea", to: "/study-in-south-korea" },
+      { label: "Japan", to: "/study-in-japan" },
+      { label: "Europe", to: "/study-in-europe" },
       { label: "All destinations", to: "/study-abroad" },
     ],
   },

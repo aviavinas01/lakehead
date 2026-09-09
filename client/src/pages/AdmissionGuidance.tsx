@@ -37,7 +37,7 @@ const STAGES = [
   },
   {
     title: "International test preparation",
-    text: "Coaching for TOEFL, PTE, IELTS, GMAT, GRE, SAT and ACT, with guidance from faculty who teach these tests rather than generalists. Comprehensive courseware and regular internal testing, so you find out where you stand well before the real thing.",
+    text: "Coaching for TOEFL, PTE, IELTS, Duolingo and SAT, with guidance from faculty who teach these tests rather than generalists. Comprehensive courseware and regular internal testing, so you find out where you stand well before the real thing.",
     image: "/services/admission/test-prep.jpg",
     link: { to: "/services/test-preparation", label: "See the tests we coach" },
   },
@@ -84,7 +84,7 @@ const CHECKLIST = [
   },
   {
     label: "Entrance exams",
-    need: "GRE, GMAT, SAT or ACT, if required",
+    need: "SAT, if required",
     text: "Depending on the programme, a standardised test may be expected. We advise whether yours needs one, what a competitive score looks like for your target institutions, and how to schedule preparation around your other deadlines.",
   },
   {

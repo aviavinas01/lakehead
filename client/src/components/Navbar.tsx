@@ -43,6 +43,8 @@ const links: NavItem[] = [
         { label: "Study in Australia", to: "/study-in-australia" },
         { label: "Study in Canada", to: "/study-in-canada" },
         { label: "Study in New Zealand", to: "/study-in-new-zealand" },
+        { label: "Study in Japan", to: "/study-in-japan" },
+        { label: "Study in Europe", to: "/study-in-europe" },
       ],
     },
   },

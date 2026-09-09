@@ -13,6 +13,7 @@ import ConsultPopup from "../components/ConsultPopup";
 import VideoTestimonials from "../components/VideoTestimonials";
 import Testimonials from "../components/Testimonials";
 import ConsultBanner from "../components/ConsultBanner";
+import BlogStrip from "../components/BlogStrip";
 import type { Album, Media } from "../types/api";
 
 /**
@@ -248,6 +249,11 @@ export default function Home() {
       <VideoTestimonials />
 
       <ConsultBanner />
+
+      {/* A trailer for the blog, not a second blog page. Renders nothing at
+          all until a post exists — heading included. See the component for
+          why it lives here and not in Layout. */}
+      <BlogStrip />
 
       {/* The last thing before the footer. Everything above has been an
           argument for getting in touch; this is where that is finally

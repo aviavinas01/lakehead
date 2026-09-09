@@ -51,6 +51,10 @@ const DESTINATIONS = [
   { name: "Australia", to: "/study-in-australia", image: "/australia.jpg", blurb: "Strong post-study work rights in every state." },
   { name: "New Zealand", to: "/study-in-new-zealand", image: "/newzealand.jpg", blurb: "Small classes by law, and up to three years of work rights after." },
   { name: "South Korea", to: "/study-in-south-korea", image: "/southkorea.jpg", blurb: "Technology, research, and a growing number of English-taught programmes." },
+  /* Both are drawn by `Shot`, which renders a tinted panel rather than a
+     broken image while /japan.jpg and /europe.jpg are still to be supplied. */
+  { name: "Japan", to: "/study-in-japan", image: "/japan.jpg", blurb: "Deep research culture, a real scholarship route, and more English-taught degrees than most expect." },
+  { name: "Europe", to: "/study-in-europe", image: "/europe.jpg", blurb: "Comparable degrees across thirty systems — and tuition that ranges from nothing to a great deal." },
 ];
 
 const SUPPORT = [

@@ -1,4 +1,5 @@
 import { useState, type CSSProperties } from "react";
+import { Link } from "react-router-dom";
 import { ORBIT_ENTRIES, PlaneIcon } from "./HeroOrbit";
 
 /**
@@ -22,8 +23,29 @@ import { ORBIT_ENTRIES, PlaneIcon } from "./HeroOrbit";
  * split that makes sharing worthwhile.
  * ------------------------------------------------------------------
  *
- * Decorative throughout. The section it sits in already says what it means
- * in text, so a screen reader should walk past the whole thing.
+ * ------------------------------------------------------------------
+ * THE FLAGS ARE LINKS; EVERYTHING ELSE IS DECORATION. Each badge opens that
+ * country's guide. Three things had to change together for that to be safe:
+ *
+ *   · The wrapper KEEPS `pointer-events: none` and the badges alone get it
+ *     back. This circle sits over a scroll-linked stage, and a decorative
+ *     ring that swallowed a click meant for a step underneath would be a bug
+ *     nobody would think to look for here. Only the eight badges are
+ *     clickable; the ring, the photograph and the planes stay inert.
+ *
+ *   · `aria-hidden` moved OFF the wrapper and onto the parts that are still
+ *     decorative. A focusable link inside an aria-hidden subtree is the
+ *     worst of both worlds — reachable by keyboard, invisible to the screen
+ *     reader announcing it — so the whole thing could no longer be hidden
+ *     wholesale once any of it became interactive.
+ *
+ *   · Each link carries the country's name as its accessible label, because
+ *     its visible content is a flag with no text in it.
+ *
+ * The panel this sits in already sets `inert` while it is off screen (see
+ * inertWhenHidden in NextSteps), so the links are not reachable by keyboard
+ * before the section is in play.
+ * ------------------------------------------------------------------
  */
 
 /** Swap this for the real photograph when there is one. */
@@ -43,13 +65,12 @@ export default function OrbitMark({
     <div
       className="omk"
       style={{ "--orbit-duration": `${duration}s` } as CSSProperties}
-      aria-hidden="true"
     >
-      <div className="omk-ring" />
+      <div className="omk-ring" aria-hidden="true" />
 
       {/* Its own tinted disc underneath, so a missing or slow file leaves a
           deliberate circle rather than a hole in the middle of the ring. */}
-      <div className="omk-photo">
+      <div className="omk-photo" aria-hidden="true">
         {missing ? null : (
           <img
             src={image}
@@ -69,15 +90,33 @@ export default function OrbitMark({
               className="orbit-item"
               style={{ "--angle": `${e.angle}deg` } as CSSProperties}
             >
-              <span className={`orbit-badge${e.small ? " orbit-badge-sm" : ""}`}>
-                {e.node}
-              </span>
+              {/* A flag with a destination is a link; one without falls back
+                  to the plain badge, so adding a flag to ORBIT_ENTRIES
+                  before its guide exists degrades rather than 404s. */}
+              {e.to ? (
+                <Link
+                  to={e.to}
+                  className={`orbit-badge orbit-badge-link${e.small ? " orbit-badge-sm" : ""}`}
+                  aria-label={e.label}
+                  title={e.label}
+                >
+                  {e.node}
+                </Link>
+              ) : (
+                <span
+                  className={`orbit-badge${e.small ? " orbit-badge-sm" : ""}`}
+                  aria-hidden="true"
+                >
+                  {e.node}
+                </span>
+              )}
             </span>
           ) : (
             <span
               key={e.angle}
               className="orbit-item orbit-plane"
               style={{ "--angle": `${e.angle}deg` } as CSSProperties}
+              aria-hidden="true"
             >
               <PlaneIcon />
             </span>
