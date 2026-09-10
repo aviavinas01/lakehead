@@ -10327,13 +10327,22 @@ a.unip-card:focus-visible {
 
 /* ---- the posts list ----
    A five-column table does not fit a phone, and the usual fix — letting it
-   scroll sideways — is the wrong one here: the two things you actually do on
-   this screen are read the title and press Edit, and both would be off the
-   edge. So below the breakpoint each row becomes a card, with the headers
-   dropped and each cell labelled by its own `data-label`.
+   scroll sideways — is the wrong one here: the two things you do on this
+   screen are recognise the post and press Edit, and both would be off the
+   edge.
 
-   The labels come from the markup rather than from `nth-child` guesses in
-   CSS, so a column added or reordered cannot silently mislabel a cell. */
+   So below the breakpoint each row becomes a CARD: the headline, whether it
+   is live, its cover, and the two buttons. Placement and the updated date
+   are dropped rather than shrunk — they are reference material, they are one
+   tap away in the editor, and carrying them made every card four labelled
+   rows tall so only two posts fitted on a screen.
+
+   THE WIDE TABLE IS UNTOUCHED. Everything here is inside the media query,
+   and the cover column it reveals is hidden at every width above it. */
+
+/* Off by default — it exists for the card and nowhere else. */
+.pst-shot { display: none; }
+
 @media (max-width: 760px) {
   .admin-table thead { display: none; }
   .admin-table,
@@ -10342,39 +10351,65 @@ a.unip-card:focus-visible {
   .admin-table td {
     display: block; width: 100%;
   }
+
+  /* The card itself. The section around it already has a border, so these
+     sit inside it as separated tiles rather than boxes within a box. */
   .admin-table tr {
-    padding: 0.9rem 0; border-bottom: 1px solid var(--color-border);
+    padding: 1rem; margin-bottom: 0.85rem;
+    border: 1px solid var(--color-border); border-radius: 14px;
+    background: var(--color-bg);
   }
-  .admin-table tr:last-child { border-bottom: none; }
-  .admin-table td {
-    padding: 0.2rem 0; border: none;
-    display: flex; align-items: baseline; gap: 0.75rem;
+  .admin-table tr:last-child { margin-bottom: 0; }
+  .admin-table td { padding: 0; border: none; }
+
+  /* Everything the card does not carry. Dropped at this width only. */
+  .admin-table td[data-label="Appears on"],
+  .admin-table td[data-label="Updated"] {
+    display: none;
   }
-  /* The label sits to the left of the value at a fixed width, so the values
-     line up down the card instead of stepping in and out. */
-  .admin-table td::before {
-    content: attr(data-label);
-    flex: none; width: 5.5rem;
-    font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em;
-    text-transform: uppercase; color: var(--color-muted);
-  }
-  /* The title is the heading of its card, so it loses the label and takes
-     the weight instead. */
+
+  /* The headline, doing the work the header row did. */
   .admin-table td[data-label="Title"] {
-    display: block; margin-bottom: 0.5rem;
-    font-family: var(--font-display); font-weight: 700; font-size: 1.02rem;
+    font-family: var(--font-display); font-weight: 700;
+    font-size: 1.02rem; line-height: 1.35;
     color: var(--color-hero-ink);
+    margin-bottom: 0.6rem;
   }
-  .admin-table td[data-label="Title"]::before { content: none; }
-  /* Actions become real tap targets on their own row. */
+
+  .admin-table td[data-label="Status"] { margin-bottom: 0.85rem; }
+
+  /* The cover. A fixed ratio so a tall photograph and a wide one make the
+     same card, and `cover` so neither is letterboxed. */
+  .admin-table td.pst-shot {
+    display: block;
+    aspect-ratio: 16 / 9; overflow: hidden;
+    border-radius: 10px; background: var(--color-surface);
+    margin-bottom: 0.9rem;
+  }
+  .admin-table td.pst-shot img {
+    width: 100%; height: 100%; object-fit: cover;
+  }
+  /* No cover, or one whose file has gone. Both look the same on purpose —
+     see the note on the Cover component. */
+  .pst-shot-empty {
+    display: block; width: 100%; height: 100%;
+    background:
+      linear-gradient(135deg, #eef1f6 0%, #e4e9f2 100%);
+  }
+
+  /* The two actions, given room to be pressed. The rule above them
+     separates them from the picture without needing a gap that would make
+     the card taller. */
   .admin-table td[data-label="Actions"] {
-    margin-top: 0.6rem; gap: 1.1rem;
+    display: flex; align-items: center; gap: 1.4rem;
+    padding-top: 0.85rem;
+    border-top: 1px solid var(--color-border);
   }
-  .admin-table td[data-label="Actions"]::before { content: none; }
   .admin-table td[data-label="Actions"] a,
   .admin-table td[data-label="Actions"] button {
-    padding: 0.45rem 0; font-size: 0.95rem;
+    padding: 0.2rem 0; font-size: 0.95rem; font-weight: 600;
   }
+  .admin-table td[data-label="Actions"] a { color: var(--color-hero-ink); }
 }
 
 /* ---- the post editor ----
