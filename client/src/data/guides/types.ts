@@ -7,7 +7,7 @@ import type { PostPage } from "../../types/api";
  *
  * These pages are content, not code. Everything that differs between the USA
  * and New Zealand is a data file; the layout, the contents rail, the reveal
- * animations and every callout style live once in components/GuidePage.tsx.
+ * animations and every callout style live once in components/study-abroad/GuidePage.tsx.
  * Writing a new destination means writing prose, not JSX.
  *
  * On tone: these guides are deliberately informal, because they are read by

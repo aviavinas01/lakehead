@@ -9,7 +9,7 @@
  * IMAGES are referenced but not yet supplied. Drop a file at the path each
  * entry names into client/public/services/ and it appears; until then the
  * card and hero show a tinted panel rather than a broken image (see Shot in
- * components/destinationBits.tsx). Nothing needs re-deploying but the file.
+ * components/shared/destinationBits.tsx). Nothing needs re-deploying but the file.
  *
  * The `detail` copy below is deliberately short and factual — what the
  * service covers, in plain terms. It carries no success rates, no promises
@@ -97,7 +97,7 @@ export const SERVICES: Service[] = [
   {
     slug: "visa-guidance",
     title: "Visa Guidance",
-    /* Has a page of its own (pages/VisaGuidance.tsx) that outranks the
+    /* Has a page of its own (pages/services/VisaGuidance.tsx) that outranks the
        generic route, so only `title`, `summary` and `image` are read from
        here — the fields below feed the hub card, not the page. */
     summary: "Documentation, financial evidence and preparation — handled carefully.",
@@ -117,7 +117,7 @@ export const SERVICES: Service[] = [
   {
     slug: "career-counselling",
     title: "Career Counselling",
-    /* Has a page of its own (pages/CareerCounselling.tsx) that outranks the
+    /* Has a page of its own (pages/services/CareerCounselling.tsx) that outranks the
        generic route, so only `title`, `summary` and `image` are read from
        here — the fields below feed the hub card, not the page. */
     summary: "Choosing a course with the ten years after it in view, not just the three.",
@@ -137,7 +137,7 @@ export const SERVICES: Service[] = [
   {
     slug: "student-accommodation",
     title: "Student Accommodation",
-    /* Has a page of its own (pages/StudentAccommodation.tsx) that outranks
+    /* Has a page of its own (pages/services/StudentAccommodation.tsx) that outranks
        the generic route, so only `title`, `summary` and `image` are read
        from here — the fields below feed the hub card, not the page. */
     summary: "Somewhere to live from day one, arranged before you fly.",
@@ -157,7 +157,7 @@ export const SERVICES: Service[] = [
   {
     slug: "admission-guidance",
     title: "Admission Guidance",
-    /* Has a page of its own (pages/AdmissionGuidance.tsx) that outranks the
+    /* Has a page of its own (pages/services/AdmissionGuidance.tsx) that outranks the
        generic route, so only `title`, `summary` and `image` are read from
        here — the fields below feed the hub card, not the page.
 

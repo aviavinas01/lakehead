@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { Arrow, Pin } from "../components/destinationBits";
-import ContactForm from "../components/ContactForm";
+import { Arrow, Pin } from "../components/shared/destinationBits";
+import ContactForm from "../components/shared/ContactForm";
 import { OFFICES, contact, mapEmbedFor, mapLinkFor } from "../config/contact";
 
 /**

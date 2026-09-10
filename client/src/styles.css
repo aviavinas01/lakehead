@@ -154,7 +154,7 @@ html[data-scrolling] .dpage-table-scroll { pointer-events: auto; }
   .shot-load { animation: none; background-image: none; }
 }
 
-/* ---- the footer's hidden door (components/GateDoor.tsx) ----
+/* ---- the footer's hidden door (components/layout/GateDoor.tsx) ----
    The mark keeps the size and the white treatment the plain <img> had, so
    nothing about the footer looks different. `cursor: default` on purpose:
    a pointer would advertise that it does something. */
@@ -643,7 +643,7 @@ html[data-scrolling] .dpage-table-scroll { pointer-events: auto; }
 }
 
 /* ============================================================
-   Destinations (components/Destinations.tsx) — a grid of
+   Destinations (components/home/Destinations.tsx) — a grid of
    country tiles that turn over on hover, and a last tile out
    to the consultation form.
    ============================================================ */
@@ -1091,7 +1091,7 @@ html[data-scrolling] .dpage-table-scroll { pointer-events: auto; }
 .video-card-play svg { margin-left: 3px; }
 
 /* ============================================================
-   Student stories on the HOME page (components/VideoTestimonials.tsx) —
+   Student stories on the HOME page (components/home/VideoTestimonials.tsx) —
    copy down the left, a filmstrip running off the right edge of the screen.
 
    One card is featured: larger than the rest in both directions, standing
@@ -1598,7 +1598,7 @@ a.greview-author:hover { text-decoration: underline; }
    is what would break the sticky consultation form inside. */
 /* ============================================================
    "Your Journey to Global Education Starts Here"
-   (components/NextSteps.tsx).
+   (components/home/NextSteps.tsx).
 
    ONE pinned mechanism, not two. The previous version chose
    between a wide pin and a narrow pin with a media query that
@@ -2174,7 +2174,7 @@ a.greview-author:hover { text-decoration: underline; }
 .tta-actions .tta-del { color: var(--color-danger); border-color: #f0c8c2; }
 
 /* ============================================================
-   The legacy band (components/LegacyBand.tsx) — who we are, sitting between
+   The legacy band (components/home/LegacyBand.tsx) — who we are, sitting between
    the hero film and the figures.
    ============================================================ */
 .legacy {
@@ -2224,7 +2224,7 @@ a.greview-author:hover { text-decoration: underline; }
 }
 
 /* ============================================================
-   Stats strip below the hero (components/StatsStrip.tsx) — one long line
+   Stats strip below the hero (components/home/StatsStrip.tsx) — one long line
    of large navy figures gliding right to left, forever. Each carries a
    small label over an orange rule and, under that, the names behind the
    number: the countries, the tests, the cities.
@@ -2358,7 +2358,7 @@ a.greview-author:hover { text-decoration: underline; }
 }
 
 /* ============================================================
-   The free-consultation form (components/ConsultCard.tsx).
+   The free-consultation form (components/home/ConsultCard.tsx).
    Used only inside the journey band's closing panel.
    ============================================================ */
 /* Pushed to the right-hand edge of its panel, which the panel has lined up
@@ -3445,7 +3445,7 @@ a.greview-author:hover { text-decoration: underline; }
 .dpage-cta-btn:hover svg { transform: translateX(3px); }
 
 /* ============================================================
-   The video under the red band (components/HelpVideo.tsx) — one wide
+   The video under the red band (components/shared/HelpVideo.tsx) — one wide
    rectangle, no heading, on every page that carries a .dpage-cta.
 
    Deliberately bare. The band directly above has already made the ask, and a
@@ -3745,14 +3745,14 @@ a.greview-author:hover { text-decoration: underline; }
 }
 
 /* ============================================================
-   Study Abroad landing page (pages/StudyAbroad.tsx). Shares the
+   Study Abroad landing page (pages/study-abroad/StudyAbroad.tsx). Shares the
    .dpage section styles with the six country pages; only what is
    unique to this page lives here, under .sa-.
    ============================================================ */
 
 /* ---- credentials ---- */
 /* ============================================================
-   /study-abroad — the key-figures band (pages/StudyAbroad.tsx).
+   /study-abroad — the key-figures band (pages/study-abroad/StudyAbroad.tsx).
 
    Full-bleed, one flat colour, copy left and numbers right. It replaced
    four hairline-topped columns sitting in the page's ordinary flow, which
@@ -3820,7 +3820,7 @@ a.greview-author:hover { text-decoration: underline; }
   font-size: 0.85rem; line-height: 1.5;
 }
 
-/* ---- the rolling numerals (components/RollingFigure.tsx) ----
+/* ---- the rolling numerals (components/study-abroad/RollingFigure.tsx) ----
 
    THE CELL HEIGHT IS ONE NUMBER AND THE COMPONENT READS IT TOO. Each digit
    is a window one cell tall with a strip of numerals behind it, slid up by a
@@ -3962,7 +3962,7 @@ a.greview-author:hover { text-decoration: underline; }
 }
 
 /* ============================================================
-   Visa Guidance (pages/VisaGuidance.tsx) — four stages that
+   Visa Guidance (pages/services/VisaGuidance.tsx) — four stages that
    reveal one at a time as you scroll, with a dashed connector
    drawn between them.
    ============================================================ */
@@ -4091,7 +4091,7 @@ a.greview-author:hover { text-decoration: underline; }
 }
 
 /* ============================================================
-   Career Counselling (pages/CareerCounselling.tsx).
+   Career Counselling (pages/services/CareerCounselling.tsx).
    The typography does more work here than anywhere else on the
    site, deliberately — this is the page for students who have
    not decided anything, and it should read as an invitation.
@@ -4256,7 +4256,7 @@ a.greview-author:hover { text-decoration: underline; }
 }
 
 /* ============================================================
-   Student Accommodation (pages/StudentAccommodation.tsx).
+   Student Accommodation (pages/services/StudentAccommodation.tsx).
    Four housing cards that reveal on scroll, then two numbered
    columns. Deliberately a different shape from the visa page's
    alternating rows and the career page's staggered steps — the
@@ -4315,7 +4315,7 @@ a.greview-author:hover { text-decoration: underline; }
 }
 
 /* ============================================================
-   Admission Guidance (pages/AdmissionGuidance.tsx) — a dashed
+   Admission Guidance (pages/services/AdmissionGuidance.tsx) — a dashed
    spine with numbered nodes, content alternating either side,
    and a disclosure list for the documentation checklist.
    ============================================================ */
@@ -4445,7 +4445,7 @@ a.greview-author:hover { text-decoration: underline; }
 }
 
 /* ============================================================
-   Study in the USA (pages/StudyInUSA.tsx) — the long-form guide.
+   Study in the USA (pages/study-abroad/StudyInUSA.tsx) — the long-form guide.
    Twenty-one sections, so the furniture matters more than usual:
    a contents rail that tracks position, recurring callouts that
    give the eye somewhere to rest, and reveals that pace the read.
@@ -4592,7 +4592,7 @@ a.greview-author:hover { text-decoration: underline; }
 }
 
 /* ---- related reading: the articles block under the contents rail ----
-   See components/RelatedReading.tsx for which posts land here.
+   See components/study-abroad/RelatedReading.tsx for which posts land here.
 
    It has to read as a different KIND of thing from the list above it, or the
    rail becomes one undifferentiated column of links and the eye stops at the
@@ -4844,7 +4844,7 @@ a.greview-author:hover { text-decoration: underline; }
 .usa-body .usa-compare-note { font-size: 0.95rem; }
 
 
-/* ---- university types: the pinned stack (components/TypeStack.tsx) ----
+/* ---- university types: the pinned stack (components/study-abroad/TypeStack.tsx) ----
 
    This replaced a column of image-beside-text rows. Two things were wrong
    with those: read straight down, every row looked like the one above it;
@@ -5187,7 +5187,7 @@ a.greview-author:hover { text-decoration: underline; }
 }
 
 /* ============================================================
-   Who We Are (pages/About.tsx).
+   Who We Are (pages/about/About.tsx).
 
    Shares the destination pages' shell — photographic hero,
    tinted bands, red CTA — and borrows the career page's habit
@@ -5305,13 +5305,13 @@ a.greview-author:hover { text-decoration: underline; }
 
 /* ---- the pull quote ---- */
 /* ============================================================
-   THE TEAM  (components/StaffGrid.tsx, on /about)
-   and THE DIRECTOR'S MESSAGE  (pages/Director.tsx, /about/director)
+   THE TEAM  (components/about/StaffGrid.tsx, on /about)
+   and THE DIRECTOR'S MESSAGE  (pages/about/Director.tsx, /about/director)
 
    NOTE: the .dir-* block below is PROVISIONAL. It is the conventional
    portrait-beside-statement shape and is honest about the content, but it
    was not drawn from the office's reference image, which never arrived.
-   When it does, this block and pages/Director.tsx are the only two places
+   When it does, this block and pages/about/Director.tsx are the only two places
    that change — the model, the API and the admin screen are settled and
    none of them depends on how this looks.
    ============================================================ */
@@ -5364,7 +5364,7 @@ a.greview-author:hover { text-decoration: underline; }
 /* ---- the director's message ----
    Built from the office's reference: a large uppercase headline across the
    top, the portrait beside a SHORT statement, and the long message running
-   full width beneath. See pages/Director.tsx for why the two pieces of text
+   full width beneath. See pages/about/Director.tsx for why the two pieces of text
    are separate fields. */
 .dir-head { padding-top: clamp(2.5rem, 6vw, 5rem); }
 .dir-head h1 {
@@ -5630,7 +5630,7 @@ a.greview-author:hover { text-decoration: underline; }
 }
 
 /* ============================================================
-   Testimonials & Reviews (pages/Testimonials.tsx).
+   Testimonials & Reviews (pages/about/Testimonials.tsx).
 
    One wall carrying four sources, so the work here is almost
    entirely about legibility of provenance: every card has to
@@ -5981,7 +5981,7 @@ a.rev-score:hover { background: rgba(255, 255, 255, 0.08); }
 }
 
 /* ============================================================
-   University Partners (pages/UniversityPartners.tsx).
+   University Partners (pages/about/UniversityPartners.tsx).
 
    The `unip-` prefix, not `uni-`: the home page's rotating logo
    grid already owns `.uni-*` and the two must not touch.
@@ -6323,7 +6323,7 @@ a.unip-card:focus-visible {
 }
 
 /* ============================================================
-   Gallery (pages/Gallery.tsx).
+   Gallery (pages/about/Gallery.tsx).
 
    The images arrive from the admin at whatever size and shape
    they were shot, in whatever quantity, so nothing here may
@@ -6803,7 +6803,7 @@ a.unip-card:focus-visible {
 }
 
 /* ============================================================
-   Events (pages/Events.tsx).
+   Events (pages/happenings/Events.tsx).
 
    The empty state is the finished design here rather than a
    fallback, so it gets the same care as a full listing would:
@@ -6961,8 +6961,8 @@ a.unip-card:focus-visible {
 }
 
 /* ============================================================
-   Blog listing (pages/Blog.tsx)          .blg-
-   Article page (pages/BlogPost.tsx)      .art-
+   Blog listing (pages/blog/Blog.tsx)          .blg-
+   Article page (pages/blog/BlogPost.tsx)      .art-
    Post editor  (pages/admin/PostEditor)  .ed-
 
    Kept together because they share one thing that matters:
@@ -7669,7 +7669,7 @@ a.unip-card:focus-visible {
 
 /* ============================================================
    Chat dock — the floating control in the bottom-right corner
-   (components/ChatDock.tsx). An abstract mark at rest that
+   (components/layout/ChatDock.tsx). An abstract mark at rest that
    becomes a bot's head, a WhatsApp pill that slides out above
    it, and the assistant panel the circle opens.
    ============================================================ */
@@ -7863,7 +7863,7 @@ a.unip-card:focus-visible {
 }
 
 /* ============================================================
-   The free-counselling offer (components/ConsultPopup.tsx) —
+   The free-counselling offer (components/home/ConsultPopup.tsx) —
    a two-panel dialog over a blurred, frozen page: picture on
    the left, the offer on the right.
    ============================================================ */
@@ -8676,7 +8676,7 @@ a.unip-card:focus-visible {
 
 /* ============================================================
    EVENTS & NEWS — the admin section (pages/admin/Happenings.tsx)
-   and the public news listing (pages/News.tsx).
+   and the public news listing (pages/happenings/News.tsx).
    ============================================================ */
 
 /* ---- the admin forms ---- */
@@ -8985,7 +8985,7 @@ a.unip-card:focus-visible {
 .yta-state strong { color: var(--color-hero-ink); font-weight: 600; }
 
 /* ============================================================
-   The call-back strip (components/CallbackStrip.tsx) — a name,
+   The call-back strip (components/shared/CallbackStrip.tsx) — a name,
    a number, and a button, on pages with no fuller form.
    ============================================================ */
 
@@ -9118,7 +9118,7 @@ a.unip-card:focus-visible {
   .cbs-field input, .cbs-form button { transition: none; }
 }
 
-/* ---- the orbiting mark (components/OrbitMark.tsx) ----
+/* ---- the orbiting mark (components/home/OrbitMark.tsx) ----
    The hero's ring, self-contained and with a photograph in the middle. It
    replaced the consultation form that used to close the steps section.
 
@@ -9187,7 +9187,7 @@ a.unip-card:focus-visible {
 }
 
 /* ============================================================
-   THE BLOG STRIP (components/BlogStrip.tsx) — the latest articles
+   THE BLOG STRIP (components/home/BlogStrip.tsx) — the latest articles
    in a row above the footer on the home page.
    ============================================================ */
 .bstrip { padding: var(--section-y) 0 0; }
@@ -9272,7 +9272,7 @@ a.unip-card:focus-visible {
 }
 
 /* ============================================================
-   "Drop us a line" (components/ContactForm.tsx) — the enquiry
+   "Drop us a line" (components/shared/ContactForm.tsx) — the enquiry
    form as a section, with an illustration beside it. The FIELD
    styling below is shared: the contact and Who We Are pages
    render the same .cfm-form inside their own layouts, so the
@@ -9405,7 +9405,7 @@ a.unip-card:focus-visible {
   .cfm-form input, .cfm-form select, .cfm-form textarea, .cfm-go { transition: none; }
 }
 
-/* ---- the direct details, under the form (pages/About.tsx) ----
+/* ---- the direct details, under the form (pages/about/About.tsx) ----
    This list used to be the narrow column beside the enquiry form. The form
    is now a full-width box above it, so on its own the list would stretch
    the container with a rule under each item — a very wide five-row table of
@@ -9428,8 +9428,8 @@ a.unip-card:focus-visible {
 
 /* ============================================================
    STUDENT RESOURCES — the hub at /resources and the five
-   calculators under it (pages/Resources.tsx,
-   pages/calculators/*, components/CalculatorPage.tsx).
+   calculators under it (pages/resources/Resources.tsx,
+   pages/calculators/*, components/resources/CalculatorPage.tsx).
 
    THE ONE CORNER OF THIS SITE WITH NO PHOTOGRAPHY, and that is
    the whole design. Every other page opens on a full-bleed
@@ -9601,7 +9601,7 @@ a.unip-card:focus-visible {
   outline: 2px solid var(--color-hero-ink); outline-offset: 2px;
 }
 
-/* ---- the marksheet (components/GradeSheet.tsx) ---- */
+/* ---- the marksheet (components/resources/GradeSheet.tsx) ---- */
 .calc-sheet { display: grid; gap: 0.55rem; }
 .calc-sheet-head, .calc-sheet-row {
   display: grid; gap: 0.6rem; align-items: center;
@@ -9843,7 +9843,7 @@ a.unip-card:focus-visible {
   .calc-rail-list a { grid-template-columns: 1fr; }
 }
 
-/* ---- the hub's own grid (pages/Resources.tsx) ----
+/* ---- the hub's own grid (pages/resources/Resources.tsx) ----
    Outlined tiles, no photograph and no icon. Five calculators with five
    invented icons would be five more things to look at than there are ideas
    on the page. */
@@ -9903,10 +9903,8 @@ a.unip-card:focus-visible {
 
 /* ============================================================
    UNIVERSITY PARTNERS — the search row on the wall
-   (pages/UniversityPartners.tsx), one institution's page
-   (pages/UniversityDetail.tsx)      .uni-
-   and the admin panel behind both
-   (pages/admin/UniversitiesPanel.tsx)  .uni-adm-
+   (pages/about/UniversityPartners.tsx), and one institution's own
+   page (pages/about/UniversityDetail.tsx)      .uni-
 
    The wall itself, its chips and its slideshow are the .unip-
    block further up; only what changed is here.
@@ -9946,19 +9944,8 @@ a.unip-card:focus-visible {
 .unip-clear:hover {
   color: var(--color-hero-red); border-color: var(--color-hero-red);
 }
-/* Nothing on the wall yet. Sized like body copy rather than like an error,
-   because it is not one — the section keeps its promises list underneath. */
-.unip-empty {
-  max-width: 60ch; margin-top: 1rem;
-  color: var(--color-muted); line-height: 1.7;
-}
-.unip-empty a {
-  color: var(--color-hero-red);
-  text-decoration: underline; text-underline-offset: 3px;
-}
-
 /* ============================================================
-   ONE INSTITUTION'S PAGE (pages/UniversityDetail.tsx)
+   ONE INSTITUTION'S PAGE (pages/about/UniversityDetail.tsx)
 
    NO HERO PHOTOGRAPH, and that is the constraint the whole
    layout is built around: the office adds partners without a
@@ -10109,68 +10096,3 @@ a.unip-card:focus-visible {
   .uni-links a:hover .uni-link-go, .uni-back:hover svg { transform: none; }
 }
 
-/* ============================================================
-   THE ADMIN PANEL (pages/admin/UniversitiesPanel.tsx)
-
-   Borrows the staff panel's form and list wholesale — .hap-,
-   .ppl- — so the two screens are the same thing to learn.
-   Only the three fields that have no equivalent over there
-   need anything of their own.
-   ============================================================ */
-
-.uni-adm-block { display: grid; gap: 0.6rem; }
-
-/* Twelve months as a wrapping row of toggles. Three letters each, because
-   the full names wrap to three lines on a narrow admin column and the
-   abbreviation is unambiguous. */
-.uni-adm-months { display: flex; flex-wrap: wrap; gap: 0.4rem; }
-.uni-adm-months button {
-  padding: 0.4rem 0.7rem; min-width: 3.4rem;
-  font: inherit; font-size: 0.85rem; font-weight: 600;
-  color: var(--color-muted); background: #fff;
-  border: 1px solid var(--color-border); border-radius: 8px;
-  cursor: pointer;
-  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
-}
-.uni-adm-months button:hover { border-color: var(--color-hero-ink); }
-.uni-adm-months button.is-on {
-  color: #fff;
-  background: var(--color-hero-ink); border-color: var(--color-hero-ink);
-}
-
-/* A link row: label, address, remove. The address takes the slack because
-   it is the long one. */
-.uni-adm-link {
-  display: grid; gap: 0.5rem; align-items: center;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) auto;
-}
-@media (max-width: 700px) {
-  .uni-adm-link { grid-template-columns: minmax(0, 1fr) auto; }
-  .uni-adm-link > :nth-child(2) { grid-column: 1 / -1; order: 1; }
-  .uni-adm-link > :nth-child(3) { order: 2; }
-}
-.uni-adm-none { margin: 0 0 0.25rem; }
-
-/* The logo sits on white and is contained, not cropped — a crest cropped to
-   fill a square is a mangled trademark. Overrides .ppl-thumb, which is a
-   round photograph of a person. */
-.uni-adm-thumb {
-  border-radius: 10px; background: #fff;
-  border: 1px solid var(--color-border);
-}
-.uni-adm-thumb img {
-  width: 100%; height: 100%; object-fit: contain; border-radius: 0;
-  padding: 0.3rem;
-}
-
-.uni-adm-meta {
-  display: block; margin-top: 0.2rem;
-  font-size: 0.8rem; color: var(--color-muted);
-}
-/* Says what is incomplete without shouting about it: a partner with no
-   country still shows on the wall, it is just missing from the filters. */
-.uni-adm-warn {
-  margin-bottom: 1rem; padding: 0.75rem 1rem;
-  background: var(--color-surface); border-left: 3px solid var(--color-hero-red);
-  border-radius: 0 8px 8px 0;
-}

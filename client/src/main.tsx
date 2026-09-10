@@ -4,7 +4,7 @@ import { BrowserRouter } from "react-router-dom";
 import App from "./App";
 import { AuthProvider } from "./context/AuthContext";
 import { LoadingProvider } from "./context/LoadingContext";
-import AppLoading from "./components/AppLoading";
+import AppLoading from "./components/layout/AppLoading";
 import "@fontsource-variable/outfit"; // self-hosted Outfit font (all weights)
 import "./styles.css";
 

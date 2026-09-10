@@ -11,7 +11,7 @@
  * client/public/journey/ and they appear with no code change. Until then
  * each panel renders as a deliberate colour field carrying the same words,
  * so the section is complete and legible either way — see `JourneyPanel` in
- * components/NextSteps.tsx.
+ * components/home/NextSteps.tsx.
  *
  * The panel shows the photograph as a card, cropped to 4:3, riding in a reel
  * that slides one card at a time. Landscape suits it best; these are cards

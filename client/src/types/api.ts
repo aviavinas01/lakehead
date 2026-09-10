@@ -175,40 +175,6 @@ export interface StaffMember {
   updatedAt: string;
 }
 
-/** One extra link on a university's page: prospectus, apply, scholarships. */
-export interface UniversityLink {
-  label: string;
-  url: string;
-}
-
-/**
- * A partner institution — the wall on /university-partners, and a page each
- * at /university-partners/<slug>.
- *
- * These used to be a hard-coded array in data/universities.ts. See the note
- * at the top of server/src/models/University.ts for why they moved.
- *
- * Only `name`, `slug` and `logo` are ever guaranteed. Everything else is
- * filled in as the office gathers it, and every page here is built to leave
- * out what is missing rather than show a gap.
- */
-export interface University {
-  _id: string;
-  name: string;
-  /** Derived from the name by the server. The detail page's address. */
-  slug: string;
-  logo: string;
-  country?: string;
-  city?: string;
-  website?: string;
-  intakes: string[];
-  links: UniversityLink[];
-  published: boolean;
-  order: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
 export interface Album {
   _id: string;
   title: string;

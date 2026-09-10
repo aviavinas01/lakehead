@@ -1,46 +1,46 @@
 import { Routes, Route, Navigate } from "react-router-dom";
-import Layout from "./components/Layout";
-import ScrollManager from "./components/ScrollManager";
-import HeroKnockout from "./components/HeroKnockout";
-import ProtectedRoute from "./components/ProtectedRoute";
+import Layout from "./components/layout/Layout";
+import ScrollManager from "./components/layout/ScrollManager";
+import HeroKnockout from "./components/layout/HeroKnockout";
+import ProtectedRoute from "./components/layout/ProtectedRoute";
 import Home from "./pages/Home";
-import About from "./pages/About";
-import Services from "./pages/Services";
-import ServiceDetail from "./pages/ServiceDetail";
-import TestPreparation from "./pages/TestPreparation";
-import TestDetail from "./pages/TestDetail";
-import VisaGuidance from "./pages/VisaGuidance";
-import CareerCounselling from "./pages/CareerCounselling";
-import StudentAccommodation from "./pages/StudentAccommodation";
-import AdmissionGuidance from "./pages/AdmissionGuidance";
-import StudyAbroad from "./pages/StudyAbroad";
-import StudyInAustralia from "./pages/StudyInAustralia";
-import StudyInCanada from "./pages/StudyInCanada";
-import StudyInUK from "./pages/StudyInUK";
-import StudyInUSA from "./pages/StudyInUSA";
-import StudyInNewZealand from "./pages/StudyInNewZealand";
-import StudyInSouthKorea from "./pages/StudyInSouthKorea";
-import StudyInEurope from "./pages/StudyInEurope";
-import Testimonials from "./pages/Testimonials";
-import UniversityPartners from "./pages/UniversityPartners";
-import UniversityDetail from "./pages/UniversityDetail";
-import Gallery from "./pages/Gallery";
-import Events from "./pages/Events";
-import News from "./pages/News";
-import Blog from "./pages/Blog";
-import BlogPost from "./pages/BlogPost";
-import Director from "./pages/Director";
+import About from "./pages/about/About";
+import Services from "./pages/services/Services";
+import ServiceDetail from "./pages/services/ServiceDetail";
+import TestPreparation from "./pages/services/TestPreparation";
+import TestDetail from "./pages/services/TestDetail";
+import VisaGuidance from "./pages/services/VisaGuidance";
+import CareerCounselling from "./pages/services/CareerCounselling";
+import StudentAccommodation from "./pages/services/StudentAccommodation";
+import AdmissionGuidance from "./pages/services/AdmissionGuidance";
+import StudyAbroad from "./pages/study-abroad/StudyAbroad";
+import StudyInAustralia from "./pages/study-abroad/StudyInAustralia";
+import StudyInCanada from "./pages/study-abroad/StudyInCanada";
+import StudyInUK from "./pages/study-abroad/StudyInUK";
+import StudyInUSA from "./pages/study-abroad/StudyInUSA";
+import StudyInNewZealand from "./pages/study-abroad/StudyInNewZealand";
+import StudyInSouthKorea from "./pages/study-abroad/StudyInSouthKorea";
+import StudyInEurope from "./pages/study-abroad/StudyInEurope";
+import Testimonials from "./pages/about/Testimonials";
+import UniversityPartners from "./pages/about/UniversityPartners";
+import UniversityDetail from "./pages/about/UniversityDetail";
+import Gallery from "./pages/about/Gallery";
+import Events from "./pages/happenings/Events";
+import News from "./pages/happenings/News";
+import Blog from "./pages/blog/Blog";
+import BlogPost from "./pages/blog/BlogPost";
+import Director from "./pages/about/Director";
 import Contact from "./pages/Contact";
-import Resources from "./pages/Resources";
+import Resources from "./pages/resources/Resources";
 /* The five calculators behind /resources. One file each, and one route
    each below rather than a /resources/:slug that dispatches — a calculator
    is a page with its own inputs and its own copy, and a shared route would
    only push the dispatch one level down into a switch. */
-import IeltsBandScore from "./pages/calculators/IeltsBandScore";
-import PteScore from "./pages/calculators/PteScore";
-import NebGpa from "./pages/calculators/NebGpa";
-import SeeGpa from "./pages/calculators/SeeGpa";
-import GpaToPercentage from "./pages/calculators/GpaToPercentage";
+import IeltsBandScore from "./pages/resources/calculators/IeltsBandScore";
+import PteScore from "./pages/resources/calculators/PteScore";
+import NebGpa from "./pages/resources/calculators/NebGpa";
+import SeeGpa from "./pages/resources/calculators/SeeGpa";
+import GpaToPercentage from "./pages/resources/calculators/GpaToPercentage";
 import Login from "./pages/admin/Login";
 import Dashboard from "./pages/admin/Dashboard";
 import Posts from "./pages/admin/Posts";
@@ -49,7 +49,6 @@ import Inquiries from "./pages/admin/Inquiries";
 import Media from "./pages/admin/Media";
 import Happenings from "./pages/admin/Happenings";
 import People from "./pages/admin/People";
-import Universities from "./pages/admin/Universities";
 
 export default function App() {
   return (
@@ -144,7 +143,6 @@ export default function App() {
           {/* One section, two tabs — as with media and events above. */}
           <Route path="/admin/people" element={<People />} />
           <Route path="/admin/people/staff" element={<People />} />
-          <Route path="/admin/universities" element={<Universities />} />
           <Route path="/admin/inquiries" element={<Inquiries />} />
         </Route>
 

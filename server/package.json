@@ -13,7 +13,6 @@
     "typecheck": "tsc --noEmit",
     "seed:admin": "tsx src/config/seedAdmin.ts",
     "seed:sample": "tsx src/config/seedSample.ts",
-    "seed:universities": "tsx src/config/seedUniversities.ts",
     "mail:check": "tsx src/scripts/checkMail.ts"
   },
   "dependencies": {
