@@ -7797,6 +7797,15 @@ a.unip-card:focus-visible {
 .chatdock-head-text { display: flex; flex-direction: column; line-height: 1.25; flex: 1; }
 .chatdock-head-text strong { font-family: var(--font-display); font-size: 1rem; }
 .chatdock-head-text small { font-size: 0.78rem; color: rgba(255, 255, 255, 0.85); }
+/* The dot means the assistant is up, not that a person is at a desk — see
+   the note beside it in ChatDock. Soft green, small, and it does not pulse:
+   a blinking light in the corner of every page is a distraction, not a
+   status. */
+.chatdock-status { display: inline-flex; align-items: center; gap: 0.4rem; }
+.chatdock-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: #38d16a; box-shadow: 0 0 0 2px rgba(56, 209, 106, 0.25);
+}
 .chatdock-close {
   flex: none; display: grid; place-items: center;
   width: 30px; height: 30px; padding: 0;
@@ -7806,12 +7815,139 @@ a.unip-card:focus-visible {
 }
 .chatdock-close:hover { background: rgba(255, 255, 255, 0.2); }
 
-.chatdock-thread { padding: 1rem 0.9rem; background: var(--color-surface); }
+/* ---- the conversation (components/layout/ChatPanel.tsx) ----
+   A fixed height rather than a growing panel: the dock sits over the page,
+   and a box that grows with the conversation would eventually cover it. The
+   thread scrolls inside instead, and the compose box stays where the thumb
+   left it. */
+.chatdock-thread {
+  padding: 1rem 0.9rem; background: var(--color-surface);
+  display: flex; flex-direction: column; gap: 0.8rem;
+  height: min(23rem, 52vh); overflow-y: auto;
+  overscroll-behavior: contain;
+}
 .chatdock-bubble {
   background: var(--color-bg); border: 1px solid var(--color-border);
   border-radius: 14px 14px 14px 4px; padding: 0.7rem 0.85rem;
   font-size: 0.92rem; line-height: 1.55; color: var(--color-text); margin: 0;
 }
+
+/* ---- one turn of the conversation ----
+   A row: the assistant's face, then the bubble and whatever hangs off it.
+   The visitor's messages have no avatar and push to the other side, so the
+   two are told apart by shape and position before a word is read. */
+.chatmsg { display: flex; align-items: flex-end; gap: 0.5rem; }
+.chatmsg-body { display: flex; flex-direction: column; align-items: flex-start; gap: 0.5rem; min-width: 0; }
+.chatmsg-them .chatmsg-body { max-width: calc(100% - 2.4rem); }
+
+/* The face, at the foot of the bubble rather than its top — it sits on the
+   baseline of the conversation the way the tail of the bubble does. */
+.chatmsg-avatar {
+  flex: none; align-self: flex-end;
+  display: grid; place-items: center;
+  width: 30px; height: 30px; border-radius: 50%;
+  background: var(--color-hero-ink); color: #fff;
+  margin-bottom: 0.1rem;
+}
+.chatmsg-avatar svg { width: 19px; height: 19px; }
+
+.chatmsg-us { justify-content: flex-end; }
+.chatmsg-us .chatmsg-body { align-items: flex-end; max-width: 85%; }
+.chatmsg-us .chatdock-bubble {
+  background: var(--color-hero-ink); border-color: var(--color-hero-ink);
+  color: #fff; border-radius: 14px 14px 4px 14px;
+}
+
+/* The time, tucked into the bubble. Floated rather than placed on its own
+   line, so it rides the end of the last line when there is room — which is
+   what keeps a two-word reply two words tall. The clear below contains it. */
+.chatdock-bubble::after { content: ""; display: block; clear: both; }
+.chatmsg-time {
+  float: right;
+  margin: 0.45rem -0.1rem -0.2rem 0.8rem;
+  font-size: 0.66rem; line-height: 1; letter-spacing: 0.01em;
+  color: var(--color-muted);
+  /* Not selectable: dragging across a reply to copy it should give you the
+     answer, not the answer with a stray 14:32 in the middle. */
+  user-select: none;
+}
+.chatmsg-us .chatmsg-time { color: rgba(255, 255, 255, 0.7); }
+
+/* The day, once, above the first message. A centred label rather than a
+   rule, as in every messaging app — it is a marker, not a divider. */
+.chatday {
+  align-self: center; margin: 0.1rem 0 0.2rem;
+  padding: 0.28rem 0.8rem; border-radius: 999px;
+  background: var(--color-bg); border: 1px solid var(--color-border);
+  font-size: 0.7rem; font-weight: 600; letter-spacing: 0.02em;
+  color: var(--color-muted);
+}
+
+/* The "read the full page" link under an answer. Quiet — the answer is the
+   point and this is the footnote. */
+.chatmsg-link {
+  display: inline-flex; align-items: center; gap: 0.45rem;
+  font-size: 0.84rem; font-weight: 700; color: var(--color-hero-red);
+}
+.chatmsg-link svg { transition: transform 0.18s ease; }
+.chatmsg-link:hover svg { transform: translateX(3px); }
+.chatmsg-cta { font-size: 0.85rem; padding: 0.5rem 0.9rem; }
+
+/* Suggestions. Outlined, wrapping, and tappable — they are the main way
+   through the assistant for somebody who does not want to type. */
+.chatchips {
+  list-style: none; display: flex; flex-wrap: wrap; gap: 0.4rem;
+  margin: 0; padding: 0;
+}
+.chatchips button {
+  padding: 0.42rem 0.75rem; border-radius: 999px;
+  font: inherit; font-size: 0.8rem; line-height: 1.35; text-align: left;
+  color: var(--color-hero-ink); background: var(--color-bg);
+  border: 1px solid var(--color-border); cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+.chatchips button:hover:not(:disabled) {
+  border-color: var(--color-hero-ink); background: #eef2f9;
+}
+.chatchips button:disabled { opacity: 0.5; cursor: default; }
+.chatchips button:focus-visible {
+  outline: 2px solid var(--color-hero-ink); outline-offset: 2px;
+}
+
+/* Three dots, breathing. It is the one part of the panel that is not a
+   sentence somebody wrote, so it says "thinking" without words. */
+.chattyping {
+  display: inline-flex; gap: 0.28rem; align-items: center;
+  padding: 0.85rem; min-height: 0;
+}
+/* No time to clear inside the dots. */
+.chattyping::after { content: none; }
+.chattyping span {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--color-muted);
+  animation: chatdot 1.4s cubic-bezier(0.45, 0, 0.35, 1) infinite;
+}
+.chattyping span:nth-child(2) { animation-delay: 0.18s; }
+.chattyping span:nth-child(3) { animation-delay: 0.36s; }
+/* Slower and softer than a typical typing indicator, because it now runs for
+   the best part of two seconds rather than half of one. At the old pace it
+   read as impatient over that long; eased at both ends it reads as thinking.
+   The three dots are staggered by a third of a cycle each, so the movement
+   travels across them rather than pulsing all at once. */
+@keyframes chatdot {
+  0%, 55%, 100% { opacity: 0.28; transform: translateY(0); }
+  27% { opacity: 0.95; transform: translateY(-3.5px); }
+}
+
+/* The way back to the opening questions. A link in all but markup — it is a
+   button because it does something rather than goes somewhere. */
+.chatdock-reset { padding: 0 0.9rem 0.75rem; margin: 0; }
+.chatdock-reset button {
+  font: inherit; font-size: 0.8rem; color: var(--color-muted);
+  background: none; border: none; padding: 0; cursor: pointer;
+  text-decoration: underline; text-underline-offset: 3px;
+}
+.chatdock-reset button:hover { color: var(--color-hero-red); }
 .chatdock-note {
   margin: 0.7rem 0 0.9rem; font-size: 0.82rem; line-height: 1.55;
   color: var(--color-muted);
@@ -7824,12 +7960,34 @@ a.unip-card:focus-visible {
 }
 .chatdock a.chatdock-cta { color: #fff; }
 .chatdock-cta:hover { background: #1fb855; }
-.chatdock-compose { padding: 0.7rem 0.9rem; border-top: 1px solid var(--color-border); }
+.chatdock-compose {
+  display: flex; align-items: center; gap: 0.5rem;
+  padding: 0.7rem 0.9rem; border-top: 1px solid var(--color-border);
+  background: var(--color-bg);
+}
 .chatdock-compose input {
-  width: 100%; padding: 0.6rem 0.85rem; font: inherit; font-size: 0.9rem;
+  flex: 1; min-width: 0;
+  padding: 0.6rem 0.9rem; font: inherit; font-size: 0.9rem;
   border: 1px solid var(--color-border); border-radius: 999px;
-  background: var(--color-surface); color: var(--color-muted);
-  cursor: not-allowed;
+  background: var(--color-surface); color: var(--color-text);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.chatdock-compose input::placeholder { color: var(--color-muted); }
+.chatdock-compose input:focus-visible {
+  outline: none; border-color: var(--color-hero-ink);
+  box-shadow: 0 0 0 3px rgba(23, 39, 92, 0.12);
+}
+.chatdock-compose button {
+  flex: none; display: grid; place-items: center;
+  width: 38px; height: 38px; padding: 0;
+  border: none; border-radius: 50%; cursor: pointer;
+  color: #fff; background: var(--color-hero-ink);
+  transition: background-color 0.15s ease, opacity 0.15s ease;
+}
+.chatdock-compose button:hover:not(:disabled) { background: #0f1d47; }
+.chatdock-compose button:disabled { opacity: 0.35; cursor: default; }
+.chatdock-compose button:focus-visible {
+  outline: 2px solid var(--color-hero-red); outline-offset: 2px;
 }
 
 /* A touch screen has neither hover nor a visible focus ring to open the pill
@@ -7860,6 +8018,10 @@ a.unip-card:focus-visible {
   .chatdock-wa, .chatdock[data-chat="open"] .chatdock-wa { transform: none; }
   .chatdock-btn:hover { background: var(--color-hero-ink); }
   .chatdock-panel { animation: none; }
+  .chattyping span { animation: none; opacity: 0.55; }
+  .chatmsg-link svg, .chatchips button, .chatdock-compose input,
+  .chatdock-compose button { transition: none; }
+  .chatdock-thread { scroll-behavior: auto; }
 }
 
 /* ============================================================

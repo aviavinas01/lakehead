@@ -29,3 +29,23 @@ export const inquiryLimiter = rateLimit({
   legacyHeaders: false,
   message: { message: "Too many submissions. Please try again later." },
 });
+
+/**
+ * The chat assistant.
+ *
+ * Generous compared with the others, because a real conversation is a dozen
+ * questions in a few minutes and throttling that would break the feature it
+ * is meant to protect. It exists to stop somebody scripting the endpoint, not
+ * to ration a student who is curious — and since every reply is a fixed
+ * paragraph looked up in memory, the cost of being wrong here is small.
+ */
+export const assistantLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000,
+  max: 60,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    message:
+      "That is a lot of questions at once. Give it a minute, or message a counsellor on WhatsApp.",
+  },
+});

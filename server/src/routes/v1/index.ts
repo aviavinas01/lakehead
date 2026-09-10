@@ -10,6 +10,7 @@ import tiktokRoutes from "./tiktok.routes.js";
 import eventRoutes from "./event.routes.js";
 import newsRoutes from "./news.routes.js";
 import peopleRoutes from "./people.routes.js";
+import assistantRoutes from "./assistant.routes.js";
 import gateRoutes from "./gate.routes.js";
 
 const v1 = Router();
@@ -35,6 +36,9 @@ v1.use("/news", newsRoutes);
 /* The director's message and the team. Both are ours, both are edited in
    one admin screen, and neither is fetched from anywhere. */
 v1.use("/people", peopleRoutes);
+/* The chat dock in the corner of every public page. Read-only, stores
+   nothing, and answers only from data/faqs.ts — see the routes file. */
+v1.use("/assistant", assistantRoutes);
 v1.use("/gate", gateRoutes);
 
 export default v1;
