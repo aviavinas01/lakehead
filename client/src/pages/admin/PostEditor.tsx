@@ -244,11 +244,17 @@ export default function PostEditor() {
    * Note the path is relative — `/uploads/<file>` — and is saved that way.
    * `mediaSrc` puts the API's origin in front at render time, so moving the
    * API to another host does not break every image ever uploaded.
+   *
+   * FILED INTO "BLOGS", both the cover and anything placed in the body. The
+   * server resolves that key to a real album and creates it the first time,
+   * so the media library stays sorted without anybody choosing an album
+   * while they are in the middle of writing. See services/managedAlbums.
    */
   const upload = async (file: File): Promise<string> => {
     const body = new FormData();
     body.append("file", file);
     body.append("title", file.name);
+    body.append("albumKey", "blogs");
     const { data } = await api.post<{ media: Media }>("/media", body);
     return data.media.url;
   };

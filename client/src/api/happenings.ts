@@ -106,9 +106,23 @@ export const deleteNews = async (id: string): Promise<void> => {
  * news pictures also appear in the media library, which is where somebody
  * looking to delete one would think to look anyway.
  */
-export const uploadImage = async (file: File): Promise<string> => {
+/**
+ * Upload one picture and get back its `/uploads/<file>` path.
+ *
+ * `albumKey` files it into one of the albums the server manages — "team" for
+ * staff and the director, "blogs" for anything written into a post. The
+ * server turns the key into a real album and creates it on first use, so
+ * nothing here needs an album id and the title is written down in one place.
+ * Omit it and the picture is unfiled, which is right for anything the office
+ * will sort by hand.
+ */
+export const uploadImage = async (
+  file: File,
+  albumKey?: "blogs" | "team"
+): Promise<string> => {
   const form = new FormData();
   form.append("file", file);
+  if (albumKey) form.append("albumKey", albumKey);
   const { data } = await api.post<{ media: { url: string } }>("/media", form);
   return data.media.url;
 };

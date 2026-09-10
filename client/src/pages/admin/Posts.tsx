@@ -57,10 +57,18 @@ export default function Posts() {
               </thead>
               <tbody>
                 {posts.map((p) => (
+                  /* `data-label` on every cell is what lets the stylesheet
+                     turn this table into a stack of cards below 760px — the
+                     headers are hidden and each value is labelled by its own
+                     cell. Taken from the markup rather than guessed at with
+                     nth-child, so adding or reordering a column cannot
+                     silently mislabel one. */
                   <tr key={p._id}>
-                    <td>{p.title}</td>
-                    <td><span className={`badge badge-${p.status}`}>{p.status}</span></td>
-                    <td>
+                    <td data-label="Title">{p.title}</td>
+                    <td data-label="Status">
+                      <span className={`badge badge-${p.status}`}>{p.status}</span>
+                    </td>
+                    <td data-label="Appears on">
                       {p.pages?.length ? (
                         <span className="adm-places">
                           {p.pages.map((key) => (
@@ -71,8 +79,10 @@ export default function Posts() {
                         <span className="adm-quiet">Blog only</span>
                       )}
                     </td>
-                    <td>{new Date(p.updatedAt).toLocaleDateString()}</td>
-                    <td>
+                    <td data-label="Updated">
+                      {new Date(p.updatedAt).toLocaleDateString()}
+                    </td>
+                    <td data-label="Actions">
                       <Link to={`/admin/posts/${p._id}/edit`}>Edit</Link>{" "}
                       {user?.role === "admin" && (
                         <button className="link-danger" onClick={() => remove(p._id)}>Delete</button>

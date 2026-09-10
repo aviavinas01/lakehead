@@ -119,7 +119,7 @@ export default function DirectorPanel() {
             value={draft.photo}
             onChange={(photo) => setDraft((d) => ({ ...d, photo }))}
             label="Photograph"
-          />
+          albumKey="team" />
           <p className="adm-quiet ppl-hint hap-wide">
             Shown large on the left, with the short statement beside it. A
             tall portrait works best. A cut-out on a transparent background

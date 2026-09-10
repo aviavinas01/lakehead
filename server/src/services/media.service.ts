@@ -4,11 +4,15 @@ import { Media, type IMedia, type MediaDocument } from "../models/Media.js";
 import { ApiError } from "../utils/ApiError.js";
 import { UPLOADS_DIR, mediaTypeFromMime } from "../middleware/upload.js";
 import type { PaginatedResult, PaginationQuery } from "../types/common.js";
+import { albumFor, isAlbumKey } from "./managedAlbums.js";
 
 interface UploadMeta {
   title?: string;
   caption?: string;
+  /** An album id, chosen explicitly. Wins over `albumKey`. */
   album?: string;
+  /** "blogs" | "team" — resolved to a real album, created if needed. */
+  albumKey?: string;
   order?: number;
 }
 
@@ -44,6 +48,15 @@ export const mediaService = {
     meta: UploadMeta,
     uploadedBy: string
   ): Promise<MediaDocument> {
+    /* An explicit album id wins; otherwise a managed key is resolved to one,
+       creating it on first use. A key that cannot be resolved leaves the
+       picture unfiled rather than failing the upload — see managedAlbums. */
+    let album = meta.album || undefined;
+    if (!album && isAlbumKey(meta.albumKey)) {
+      const resolved = await albumFor(meta.albumKey);
+      if (resolved) album = resolved._id.toString();
+    }
+
     return Media.create({
       type: mediaTypeFromMime(file.mimetype),
       url: `/uploads/${file.filename}`,
@@ -51,7 +64,7 @@ export const mediaService = {
       size: file.size,
       title: meta.title,
       caption: meta.caption,
-      album: meta.album || undefined,
+      album,
       order: meta.order ?? 0,
       uploadedBy,
     });

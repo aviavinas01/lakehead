@@ -19,10 +19,15 @@ export default function ImagePicker({
   value,
   onChange,
   label = "Picture",
+  albumKey,
 }: {
   value: string;
   onChange: (next: string) => void;
   label?: string;
+  /** Files the upload into one of the server's managed albums. Panels that
+      have a natural home for their pictures pass one; the rest do not, and
+      their uploads stay unfiled for somebody to sort by hand. */
+  albumKey?: "blogs" | "team";
 }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -33,7 +38,7 @@ export default function ImagePicker({
     setBusy(true);
     setError("");
     try {
-      onChange(await uploadImage(chosen));
+      onChange(await uploadImage(chosen, albumKey));
     } catch (err) {
       setError(getErrorMessage(err, "That file could not be uploaded"));
     } finally {

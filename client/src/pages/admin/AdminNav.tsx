@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { NavLink, Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
@@ -16,6 +17,12 @@ import { useAuth } from "../../context/AuthContext";
  *
  * `end` on the dashboard link only: without it, "/admin" counts as a prefix
  * of every admin route and every screen would light up the first pill.
+ *
+ * ON A PHONE THE RAIL BECOMES A MENU. Six pills in a row that wraps put
+ * three lines of navigation above every screen and left the current section
+ * hard to find among them. Below the breakpoint the rail collapses behind a
+ * button that names where you are — "Menu · Posts" — so the bar stays one
+ * line and still answers "which section am I in" without being opened.
  */
 
 interface NavItem {
@@ -48,6 +55,32 @@ export default function AdminNav() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const { pathname } = useLocation();
+  const [open, setOpen] = useState(false);
+
+  /* Whichever pill is lit, by the same test the rail uses — so the closed
+     button can name the current section. */
+  const current =
+    LINKS.find((l) =>
+      l.match
+        ? l.match.some((m) => pathname.startsWith(m))
+        : l.end
+          ? pathname === l.to
+          : pathname.startsWith(l.to)
+    ) ?? LINKS[0];
+
+  /* A navigation always closes the menu — otherwise it hangs over the screen
+     it just took you to. */
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
+
+  /* Escape closes it, for a keyboard and for a phone with one attached. */
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open]);
 
   const handleLogout = async () => {
     await logout();
@@ -65,7 +98,29 @@ export default function AdminNav() {
           <img src="/logo.png" alt="" />
         </Link>
 
-        <nav className="adm-pills">
+        {/* Hidden above the breakpoint, where the rail itself is visible.
+            `aria-expanded` and `aria-controls` tie it to the rail so a
+            screen reader is told what it opens and whether it is open. */}
+        <button
+          type="button"
+          className="adm-burger"
+          aria-expanded={open}
+          aria-controls="adm-rail"
+          onClick={() => setOpen((v) => !v)}
+        >
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none"
+            stroke="currentColor" strokeWidth="2" strokeLinecap="round"
+            aria-hidden="true">
+            {open ? (
+              <path d="M6 6l12 12M18 6L6 18" />
+            ) : (
+              <path d="M4 7h16M4 12h16M4 17h16" />
+            )}
+          </svg>
+          <span>{current.label}</span>
+        </button>
+
+        <nav className="adm-pills" id="adm-rail" data-open={open || undefined}>
           {LINKS.map((l) => (
             <NavLink
               key={l.to}

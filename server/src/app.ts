@@ -6,7 +6,7 @@ import { env } from "./config/env.js";
 import { mailService } from "./services/mail.service.js";
 import v1Routes from "./routes/v1/index.js";
 import { errorHandler, notFound } from "./middleware/errorHandler.js";
-import { UPLOADS_DIR } from "./middleware/upload.js";
+import { UPLOADS_DIR, uploadsState } from "./middleware/upload.js";
 import { csrfGuard } from "./middleware/csrf.js";
 import { adminState } from "./config/ensureAdmin.js";
 
@@ -64,6 +64,13 @@ export const createApp = () => {
          scrapes /api/health. "none" here with mail configured in the
          dashboard means the variables did not reach the process. */
       mail: { provider: mailService.provider, configured: mailService.configured },
+      /* WHERE THE PICTURES ACTUALLY ARE. Media records live in Mongo and the
+         bytes live on a disk, and when those two disagree every image on the
+         site 404s while the database looks perfectly healthy. `files: 0`
+         against a database with media in it is a disk that did not persist —
+         check that the service has a disk attached and that its mount path
+         matches `dir` below. Paths and counts only; nothing secret. */
+      uploads: uploadsState(),
       request: {
         origin: req.get("origin") ?? null,
         host: req.get("x-forwarded-host") ?? req.get("host") ?? null,

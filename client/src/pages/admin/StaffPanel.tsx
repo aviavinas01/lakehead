@@ -66,7 +66,12 @@ function Fields({
   return (
     <div className="hap-fields ppl-fields">
       <div className="hap-wide">
-        <ImagePicker value={draft.photo} onChange={set("photo")} label="Photograph" />
+        <ImagePicker
+          value={draft.photo}
+          onChange={set("photo")}
+          label="Photograph"
+          albumKey="team"
+        />
       </div>
       <label>
         <span className="hap-label">Name</span>

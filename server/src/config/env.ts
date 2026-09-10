@@ -5,6 +5,19 @@ dotenv.config();
 
 const envSchema = z.object({
   PORT: z.coerce.number().default(5000),
+  /**
+   * Where uploaded media is written and served from.
+   *
+   * OPTIONAL, and unset is the normal case — it defaults to <server>/uploads,
+   * which is what render.yaml mounts its disk over. It exists because when
+   * that mount is wrong, the symptom is silent: the server writes happily to
+   * an ordinary folder, serves the file for the rest of that container's
+   * life, and loses every byte on the next deploy. Being able to repoint the
+   * directory from the dashboard turns a redeploy-and-hope into one setting.
+   *
+   * /api/health reports the resolved path and whether it is writable.
+   */
+  UPLOADS_DIR: z.string().min(1).optional(),
   MONGO_URI: z.string().min(1, "MONGO_URI is required"),
   JWT_SECRET: z.string().min(32, "JWT_SECRET must be at least 32 characters"),
   JWT_EXPIRES_IN: z.string().default("7d"),

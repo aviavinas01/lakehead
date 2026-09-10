@@ -8547,13 +8547,11 @@ a.unip-card:focus-visible {
 .adm-btn:hover { background: var(--color-hero-red); }
 
 @media (max-width: 900px) {
-  /* The band stacks, and the pills wrap to their own line rather than
-     squeezing the mark and the buttons out of the row. */
+  /* The dashboard's own bands stack. The BAR is handled in the admin-mobile
+     block at the end of this file — the pills used to wrap to a third line
+     here, which is what that block replaced with a menu. */
   .adm-hero { grid-template-columns: 1fr; }
   .adm-split { grid-template-columns: 1fr; }
-  .adm-bar-inner { flex-wrap: wrap; }
-  .adm-pills { order: 3; width: 100%; margin: 0; justify-content: flex-start; }
-  .adm-bar-end { margin-left: auto; }
 }
 
 /* ---- the media section's two tabs ----
@@ -10258,3 +10256,158 @@ a.unip-card:focus-visible {
   .uni-links a:hover .uni-link-go, .uni-back:hover svg { transform: none; }
 }
 
+
+/* ============================================================
+   THE ADMIN ON A PHONE.
+
+   The dashboard was built for a desk and behaved like it: a
+   six-pill rail that wrapped to three lines, a posts table with
+   five columns that forced the page sideways, and an editor
+   split into two fixed columns where the 320px sidebar squeezed
+   the writing area to nothing.
+
+   Everything below is additive and lives behind media queries —
+   nothing here changes the wide layout, which was fine.
+   ============================================================ */
+
+/* ---- the menu button ----
+   Off above the breakpoint, where the rail speaks for itself. It carries the
+   current section's name as well as the icon, so the closed bar still
+   answers "where am I" without being opened. */
+.adm-burger { display: none; }
+
+@media (max-width: 900px) {
+  .adm-burger {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    padding: 0.45rem 0.9rem 0.45rem 0.7rem;
+    font: inherit; font-size: 0.88rem; font-weight: 600;
+    color: var(--color-hero-ink); background: #eef1f6;
+    border: none; border-radius: 999px; cursor: pointer;
+    margin-left: auto;
+  }
+  .adm-burger:focus-visible {
+    outline: 2px solid var(--color-hero-ink); outline-offset: 2px;
+  }
+
+  /* THE RAIL BECOMES A PANEL rather than a wrapping row. Absolutely
+     positioned so opening it does not push the page down — the bar keeps its
+     height whether the menu is open or shut, which is what stops the content
+     underneath jumping as you navigate. */
+  .adm-bar-inner { flex-wrap: nowrap; gap: 0.6rem; }
+  .adm-pills {
+    position: absolute; top: 100%; left: 0; right: 0;
+    display: none;
+    margin: 0; padding: 0.5rem;
+    border-radius: 0; border-bottom: 1px solid var(--color-border);
+    background: var(--color-bg);
+    box-shadow: 0 16px 32px -20px rgba(23, 39, 92, 0.45);
+    flex-direction: column; gap: 0.15rem;
+  }
+  .adm-pills[data-open] { display: flex; }
+  .adm-pills a {
+    padding: 0.75rem 0.9rem; border-radius: 10px;
+    font-size: 0.95rem;
+  }
+  .adm-pills a.is-on { box-shadow: none; background: #eef1f6; }
+  /* The bar is the panel's containing block. */
+  .adm-bar { position: sticky; }
+  .adm-bar-inner { position: relative; }
+  .adm-mark img { height: 34px; }
+  /* The account disc stays; the word "Log out" is the first thing to go
+     when the row gets tight — it is one tap inside the menu's own screen
+     and the disc beside it is the way to the account either way. */
+  .adm-bar-end { gap: 0.35rem; }
+}
+
+@media (max-width: 420px) {
+  .adm-burger span { display: none; }
+  .adm-burger { padding: 0.45rem 0.7rem; }
+  .adm-ghost { font-size: 0.8rem; padding: 0.4rem; }
+}
+
+/* ---- the posts list ----
+   A five-column table does not fit a phone, and the usual fix — letting it
+   scroll sideways — is the wrong one here: the two things you actually do on
+   this screen are read the title and press Edit, and both would be off the
+   edge. So below the breakpoint each row becomes a card, with the headers
+   dropped and each cell labelled by its own `data-label`.
+
+   The labels come from the markup rather than from `nth-child` guesses in
+   CSS, so a column added or reordered cannot silently mislabel a cell. */
+@media (max-width: 760px) {
+  .admin-table thead { display: none; }
+  .admin-table,
+  .admin-table tbody,
+  .admin-table tr,
+  .admin-table td {
+    display: block; width: 100%;
+  }
+  .admin-table tr {
+    padding: 0.9rem 0; border-bottom: 1px solid var(--color-border);
+  }
+  .admin-table tr:last-child { border-bottom: none; }
+  .admin-table td {
+    padding: 0.2rem 0; border: none;
+    display: flex; align-items: baseline; gap: 0.75rem;
+  }
+  /* The label sits to the left of the value at a fixed width, so the values
+     line up down the card instead of stepping in and out. */
+  .admin-table td::before {
+    content: attr(data-label);
+    flex: none; width: 5.5rem;
+    font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--color-muted);
+  }
+  /* The title is the heading of its card, so it loses the label and takes
+     the weight instead. */
+  .admin-table td[data-label="Title"] {
+    display: block; margin-bottom: 0.5rem;
+    font-family: var(--font-display); font-weight: 700; font-size: 1.02rem;
+    color: var(--color-hero-ink);
+  }
+  .admin-table td[data-label="Title"]::before { content: none; }
+  /* Actions become real tap targets on their own row. */
+  .admin-table td[data-label="Actions"] {
+    margin-top: 0.6rem; gap: 1.1rem;
+  }
+  .admin-table td[data-label="Actions"]::before { content: none; }
+  .admin-table td[data-label="Actions"] a,
+  .admin-table td[data-label="Actions"] button {
+    padding: 0.45rem 0; font-size: 0.95rem;
+  }
+}
+
+/* ---- the post editor ----
+   The 1fr/320px split becomes one column, with the sidebar BELOW the
+   writing rather than above it: on a phone the first thing on screen should
+   be the title and the text, not the publish controls. */
+@media (max-width: 900px) {
+  .ed-split { grid-template-columns: 1fr; gap: 1.5rem; }
+  .ed-side { order: 2; }
+  .ed-main { order: 1; }
+  .ed-bar { flex-wrap: wrap; gap: 0.75rem; }
+  .ed-bar-left h1 { font-size: 1.2rem; }
+  .ed-bar-right { width: 100%; }
+  .ed-bar-right button, .ed-bar-right a { flex: 1 1 auto; text-align: center; }
+}
+
+@media (max-width: 620px) {
+  /* The toolbar scrolls rather than wrapping to three rows above a text
+     area that is itself only a few rows tall. */
+  .ed-toolbar {
+    flex-wrap: nowrap; overflow-x: auto; overscroll-behavior-x: contain;
+    padding-bottom: 0.35rem;
+  }
+  .ed-toolbar::-webkit-scrollbar { height: 0; }
+  .ed-toolbar button { flex: none; }
+  .ed-toolbar-gap { display: none; }
+
+  .ed-title { font-size: 1.35rem; }
+  .ed-area { min-height: 40vh; }
+
+  /* The syntax help is reference material, and on a phone it is the least
+     useful thing competing for the screen. Collapsed to a single line of
+     its own rather than a two-column definition list. */
+  .ed-help { grid-template-columns: 1fr; gap: 0.35rem; }
+  .ed-help dt { min-width: 0; }
+}
