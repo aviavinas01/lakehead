@@ -36,7 +36,15 @@ export const POST_PAGES = [
   { key: "study-in-australia", label: "Study in Australia", group: "Destinations" },
   { key: "study-in-new-zealand", label: "Study in New Zealand", group: "Destinations" },
   { key: "study-in-south-korea", label: "Study in South Korea", group: "Destinations" },
-  { key: "study-in-japan", label: "Study in Japan", group: "Destinations" },
+  /* RETIRED, NOT DELETED. The Japan guide is gone, but posts placed on it
+     are still in the database and the server still accepts the key (see
+     POST_PAGES in server/src/models/Post.ts, where removing it would make
+     every such post fail validation the next time anybody saved it).
+     Keeping the entry means `postPageLabel` still has a readable name for
+     it; `retired` is what takes it out of the editor's checkbox list, so
+     nothing new can be placed there. Delete both entries together once no
+     post carries the key. */
+  { key: "study-in-japan", label: "Study in Japan", group: "Destinations", retired: true },
   { key: "study-in-europe", label: "Study in Europe", group: "Destinations" },
   { key: "test-preparation", label: "Test preparation", group: "Services" },
   { key: "visa-guidance", label: "Visa guidance", group: "Services" },
@@ -47,6 +55,13 @@ export const POST_PAGES = [
 ] as const;
 
 export type PostPage = (typeof POST_PAGES)[number]["key"];
+
+/**
+ * The placements an editor may still choose — everything above that has not
+ * been retired. The full list stays available for reading old posts back;
+ * this is the one the "Appears on" panel offers.
+ */
+export const LIVE_POST_PAGES = POST_PAGES.filter((p) => !("retired" in p));
 
 /** The editor's label for a page key, falling back to the key itself. */
 export const postPageLabel = (key: string): string =>
@@ -154,6 +169,40 @@ export interface StaffMember {
   /** One line in their own words. Optional, and cards are built to sit
       correctly without it. */
   quote?: string;
+  published: boolean;
+  order: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** One extra link on a university's page: prospectus, apply, scholarships. */
+export interface UniversityLink {
+  label: string;
+  url: string;
+}
+
+/**
+ * A partner institution — the wall on /university-partners, and a page each
+ * at /university-partners/<slug>.
+ *
+ * These used to be a hard-coded array in data/universities.ts. See the note
+ * at the top of server/src/models/University.ts for why they moved.
+ *
+ * Only `name`, `slug` and `logo` are ever guaranteed. Everything else is
+ * filled in as the office gathers it, and every page here is built to leave
+ * out what is missing rather than show a gap.
+ */
+export interface University {
+  _id: string;
+  name: string;
+  /** Derived from the name by the server. The detail page's address. */
+  slug: string;
+  logo: string;
+  country?: string;
+  city?: string;
+  website?: string;
+  intakes: string[];
+  links: UniversityLink[];
   published: boolean;
   order: number;
   createdAt: string;

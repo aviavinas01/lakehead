@@ -197,18 +197,6 @@ const FlagSouthKorea = () => (
   </svg>
 );
 
-const FlagJapan = () => (
-  <svg viewBox="0 0 32 32" aria-hidden="true">
-    <clipPath id="flag-jp">
-      <circle cx="16" cy="16" r="16" />
-    </clipPath>
-    <g clipPath="url(#flag-jp)">
-      <rect width="32" height="32" fill="#fff" />
-      <circle cx="16" cy="16" r="8.2" fill="#bc002d" />
-    </g>
-  </svg>
-);
-
 /**
  * The European emblem — twelve gold stars in a ring on blue.
  *
@@ -278,32 +266,67 @@ interface OrbitEntry {
  * hero and not to the other, or the same flag at two different angles — and
  * the whole point of the mark is that it is recognisably the same object.
  */
-export const ORBIT_ENTRIES: OrbitEntry[] = [
-  /* The eight destinations, evenly spaced at 45 degrees and running roughly
-     west to east from the top — the same order, and the same eight, as the
-     map on the "Get Ready To Begin" band. Even spacing rather than the
-     hand-picked angles this list used to carry: seven flags chosen for
-     looks could sit wherever they balanced, but eight that mean something
-     should not look as though one of them was squeezed in.
+/* The destinations, in the order they run round the ring: roughly west to
+   east from the top, matching the map on the "Get Ready To Begin" band.
 
-     All the same size, for the same reason. The old list shrank two of the
-     seven to break up the ring; doing that here would be saying one
-     destination matters less than another. */
-  { angle: -90, kind: "flag", node: <FlagUS />, to: "/study-in-usa", label: "Study in the USA" },
-  { angle: -45, kind: "flag", node: <FlagCanada />, to: "/study-in-canada", label: "Study in Canada" },
-  { angle: 0, kind: "flag", node: <FlagUK />, to: "/study-in-uk", label: "Study in the UK" },
-  { angle: 45, kind: "flag", node: <FlagEU />, to: "/study-in-europe", label: "Study in Europe" },
-  { angle: 90, kind: "flag", node: <FlagSouthKorea />, to: "/study-in-south-korea", label: "Study in South Korea" },
-  { angle: 135, kind: "flag", node: <FlagJapan />, to: "/study-in-japan", label: "Study in Japan" },
-  { angle: 180, kind: "flag", node: <FlagAustralia />, to: "/study-in-australia", label: "Study in Australia" },
-  { angle: -135, kind: "flag", node: <FlagNewZealand />, to: "/study-in-new-zealand", label: "Study in New Zealand" },
-  /* Between the flags, not on them — the midpoints of four of the eight
-     gaps, so the ring reads as travel between places rather than as a row
-     of badges. */
-  { angle: -112.5, kind: "plane" },
-  { angle: -22.5, kind: "plane" },
-  { angle: 67.5, kind: "plane" },
-  { angle: 157.5, kind: "plane" },
+   ORDER IS ALL THIS LIST CARRIES — the angles are worked out below rather
+   than written beside each flag. That was a nicety until Japan came off the
+   site, at which point it was not: a hand-written ring of eight at 45
+   degrees leaves a 90-degree hole the moment one of them goes, and the hole
+   is on the home page. Add or remove a destination here and the circle
+   re-spaces itself, in both places that draw it.
+
+   All the same size, deliberately. An earlier version shrank two badges to
+   break the ring up; doing that here would be saying one destination
+   matters less than another. */
+const DESTINATIONS: { node: ReactNode; to: string; label: string }[] = [
+  { node: <FlagUS />, to: "/study-in-usa", label: "Study in the USA" },
+  { node: <FlagCanada />, to: "/study-in-canada", label: "Study in Canada" },
+  { node: <FlagUK />, to: "/study-in-uk", label: "Study in the UK" },
+  { node: <FlagEU />, to: "/study-in-europe", label: "Study in Europe" },
+  { node: <FlagSouthKorea />, to: "/study-in-south-korea", label: "Study in South Korea" },
+  { node: <FlagAustralia />, to: "/study-in-australia", label: "Study in Australia" },
+  { node: <FlagNewZealand />, to: "/study-in-new-zealand", label: "Study in New Zealand" },
+];
+
+/* The first flag sits straight up; everything else follows from it. */
+const FIRST_ANGLE = -90;
+const STEP = 360 / DESTINATIONS.length;
+/* Rounded, because these end up as a CSS custom property on every badge and
+   51.42857142857143deg is noise in the inspector. Three places is finer
+   than a pixel at this radius. */
+const at = (turns: number) =>
+  Math.round((FIRST_ANGLE + turns * STEP) * 1000) / 1000;
+
+/**
+ * The badges and their angles, exported so the ring is defined once.
+ *
+ * OrbitMark draws the same circle in the steps section. Duplicating this
+ * list would mean the two rings quietly drifting apart — a flag added to the
+ * hero and not to the other, or the same flag at two different angles — and
+ * the whole point of the mark is that it is recognisably the same object.
+ */
+export const ORBIT_ENTRIES: OrbitEntry[] = [
+  ...DESTINATIONS.map(
+    (d, i): OrbitEntry => ({
+      angle: at(i),
+      kind: "flag",
+      node: d.node,
+      to: d.to,
+      label: d.label,
+    })
+  ),
+  /* A plane in the middle of every gap, so the ring reads as travel between
+     places rather than as a row of badges.
+
+     EVERY GAP, where it used to be every other one, and the count is what
+     forced that. Eight flags could take planes in alternate gaps and still
+     come back round to where they started. Seven cannot: three planes in
+     seven gaps leaves one stretch with two bare gaps side by side, which
+     reads as something missing rather than as a rhythm. Filling all of them
+     keeps it flag-plane-flag-plane the whole way round, which is what the
+     arrangement was for. */
+  ...DESTINATIONS.map((_, i): OrbitEntry => ({ angle: at(i + 0.5), kind: "plane" })),
 ];
 
 export default function HeroOrbit({

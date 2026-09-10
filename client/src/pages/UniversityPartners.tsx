@@ -1,16 +1,17 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { PlaneIcon } from "../components/HeroOrbit";
-import { Check, Arrow, Shot } from "../components/destinationBits";
+import { Arrow, Shot } from "../components/destinationBits";
 import HelpVideo from "../components/HelpVideo";
+import { mediaSrc } from "../api/media";
+import { fetchUniversities } from "../api/universities";
 import {
-  UNIVERSITIES,
   DESTINATIONS,
   countByCountry,
   countriesWithPartners,
-  type University,
 } from "../data/universities";
 import CallbackStrip from "../components/CallbackStrip";
+import type { University } from "../types/api";
 
 /**
  * University Partners — /university-partners.
@@ -29,11 +30,18 @@ import CallbackStrip from "../components/CallbackStrip";
  * using any of them stops the timer for good — once you have taken hold of
  * it, it is yours.
  *
+ * THE PARTNERS COME FROM THE DATABASE, edited at /admin/universities. They
+ * used to be a hard-coded array in data/universities.ts; see the note at the
+ * top of server/src/models/University.ts for why they moved. What is still
+ * hard-coded is the destination photography, which nobody edits and which
+ * the home page shares.
+ *
  * COUNTS ARE DERIVED, NEVER ASSERTED. The per-country tallies come from the
- * `country` field in data/universities.ts. Those fields are unset today
- * (the logos arrived without names), so the counts render as nothing rather
- * than as a confident zero, and they appear on their own as the data is
- * filled in. Nothing on this page claims a number we have not been given.
+ * `country` field on each record. A partner with none set is counted nowhere,
+ * so a tally is only ever as large as the records that actually name a
+ * place — the page shows nothing rather than a confident zero, and the
+ * numbers appear on their own as the field gets filled in. Nothing on this
+ * page claims a number we have not been given.
  *
  * PHOTOGRAPHY. The country photographs already exist and are the same ones
  * the home page's globe uses. /universities/hero.jpg does not exist yet;
@@ -43,23 +51,24 @@ import CallbackStrip from "../components/CallbackStrip";
 /** How long a slide holds before the next one, in ms. */
 const SLIDE_MS = 6000;
 
+/**
+ * The four things a partnership actually is.
+ *
+ * HEADINGS ONLY, and the paragraph under each is gone rather than hidden.
+ * Four columns of explanation beside the logo wall was the longest read on
+ * the page and it sat between a student and the thing they came for. What
+ * survives is the claim itself — which is the part somebody scanning takes
+ * in anyway — and the last one still names the commission, because that is
+ * the sentence this section exists to not leave off the page.
+ *
+ * A plain list of strings, not objects with one field each: the shape should
+ * say what the data is.
+ */
 const WHAT_IT_MEANS = [
-  {
-    title: "Applications go direct",
-    text: "A partner institution takes our applications through their own channel rather than a public form. That does not make an offer more likely — nothing does but your file — but it does mean somebody reads it who can pick up the phone if a document is unclear.",
-  },
-  {
-    title: "Decisions come back faster",
-    text: "Weeks rather than months, in most cases, because there is a named admissions contact at the other end instead of a queue. It matters most when you are chasing an intake deadline.",
-  },
-  {
-    title: "We know what they actually want",
-    text: "Which grades they will flex on and which they will not, how they read a Nepali transcript, what a strong statement looks like to them. That is what a partnership is worth — it is knowledge, not a discount.",
-  },
-  {
-    title: "And what a partnership is not",
-    text: "It is not a reason to send you somewhere. Every institution on this page pays a commission, which is exactly why we tell you that here rather than hoping you never ask: our shortlist is built from your profile, and the partner list is checked afterwards, not first.",
-  },
+  "Applications go direct",
+  "Decisions come back faster",
+  "We know what they actually want",
+  "And what a partnership is not",
 ];
 
 /**
@@ -67,51 +76,46 @@ const WHAT_IT_MEANS = [
  *
  * A LOGO WALL RATHER THAN A CARD WITH A CAPTION. Institutions are recognised
  * by their crest, not read off a list — the mark IS the name, and setting it
- * twice makes the grid busier without making it clearer. It also survives
- * the awkward truth that these are all still called "University 1": a wall
- * of marks reads correctly today, where a wall of placeholder captions
- * reads as unfinished.
+ * twice makes the grid busier without making it clearer.
+ *
+ * THE CARD OPENS THE UNIVERSITY'S PAGE ON THIS SITE, not its website. It
+ * used to go straight out to the institution, which sent a student who was
+ * still deciding off to a prospectus written for a domestic audience and
+ * ended our part in the conversation. Every partner now has a page of its
+ * own — where it is, when it takes students, what is worth reading, and how
+ * to ask us about it — and the institution's own site is a link ON that
+ * page rather than instead of it. See pages/UniversityDetail.
  *
  * THE NAME IS NOT LOST, it has just stopped being decoration. It is the
  * image's alt text, so a screen reader announces the institution rather than
  * skipping an unlabelled picture; it is the `title`, so a pointer can ask;
  * and it is what the search box matches on. If the file is missing the name
- * is what the card shows instead, so a typo degrades to a legible card
- * rather than a broken image.
+ * is what the card shows instead, so a broken path degrades to a legible
+ * card rather than a broken image.
  */
 function Logo({ uni }: { uni: University }) {
   const [broken, setBroken] = useState(false);
 
-  const mark = broken ? (
-    <span className="unip-logo-fallback">{uni.name}</span>
-  ) : (
-    <img
-      src={uni.logo}
-      /* Named, not decorative: this is the only thing on the card, so an
-         empty alt would leave a screen reader with an empty card. */
-      alt={uni.name}
-      loading="lazy"
-      decoding="async"
-      onError={() => setBroken(true)}
-    />
-  );
-
-  /* Linked only when there is somewhere to go. A card that looks clickable
-     and is not is worse than one that never suggested it. */
-  return uni.url ? (
-    <a
+  return (
+    <Link
       className="unip-card"
-      href={uni.url}
-      target="_blank"
-      rel="noopener noreferrer"
+      to={`/university-partners/${uni.slug}`}
       title={uni.name}
     >
-      {mark}
-    </a>
-  ) : (
-    <div className="unip-card" title={uni.name}>
-      {mark}
-    </div>
+      {broken ? (
+        <span className="unip-logo-fallback">{uni.name}</span>
+      ) : (
+        <img
+          src={mediaSrc(uni.logo)}
+          /* Named, not decorative: this is the only thing on the card, so an
+             empty alt would leave a screen reader with an empty card. */
+          alt={uni.name}
+          loading="lazy"
+          decoding="async"
+          onError={() => setBroken(true)}
+        />
+      )}
+    </Link>
   );
 }
 
@@ -123,7 +127,14 @@ export default function UniversityPartners() {
   const [paused, setPaused] = useState(false);
   const [onScreen, setOnScreen] = useState(false);
   const [country, setCountry] = useState<string>("all");
+  /* What is typed, which filters live. The search button below submits the
+     form — it does not gate the filtering, it just gives a phone keyboard
+     something to close on and a mouse something to press. */
   const [query, setQuery] = useState("");
+  /* null while the request is in flight, [] once it has answered with
+     nothing — two different things, and the page says something different
+     for each. */
+  const [unis, setUnis] = useState<University[] | null>(null);
 
   const stage = useRef<HTMLDivElement>(null);
 
@@ -132,6 +143,20 @@ export default function UniversityPartners() {
     document.title = "University Partners | Lakehead Education";
     return () => {
       document.title = previous;
+    };
+  }, []);
+
+  /* The wall. A failure reads as "nothing here yet" rather than as an error
+     banner: the empty state below is useful and an apology is not, and the
+     rest of this page — the slideshow, what a partnership means — is worth
+     reading whether or not the list arrived. */
+  useEffect(() => {
+    let off = false;
+    fetchUniversities()
+      .then((list) => !off && setUnis(list))
+      .catch(() => !off && setUnis([]));
+    return () => {
+      off = true;
     };
   }, []);
 
@@ -167,12 +192,17 @@ export default function UniversityPartners() {
     return () => window.clearInterval(id);
   }, [taken, paused, onScreen, total]);
 
-  const counts = useMemo(() => countByCountry(), []);
-  const countries = useMemo(() => countriesWithPartners(), []);
+  /* Empty until the list lands, so the chips and counts appear with the
+     wall rather than before it. */
+  const all = useMemo(() => unis ?? [], [unis]);
+  const counts = useMemo(() => countByCountry(all), [all]);
+  const countries = useMemo(() => countriesWithPartners(all), [all]);
 
+  /* Name, city and country all match, so "Melbourne" and "Australia" find
+     things as readily as an institution's name does. */
   const shown = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return UNIVERSITIES.filter(
+    return all.filter(
       (u) =>
         (country === "all" || u.country === country) &&
         (q === "" ||
@@ -180,7 +210,20 @@ export default function UniversityPartners() {
           u.city?.toLowerCase().includes(q) ||
           u.country?.toLowerCase().includes(q))
     );
-  }, [country, query]);
+  }, [all, country, query]);
+
+  /* A filter is on, which is what tells the empty state whether to offer to
+     clear one — "no partners yet" and "nothing matched that" are different
+     messages and only one of them has a way out. */
+  const filtered = country !== "all" || query.trim() !== "";
+
+  /* The button and the Enter key do the same thing: nothing to the results,
+     which are already live, and dismiss the keyboard on a phone. Submitting
+     must not reload the page. */
+  const onSearch = (e: FormEvent) => {
+    e.preventDefault();
+    (document.activeElement as HTMLElement | null)?.blur();
+  };
 
   const current = DESTINATIONS[slide];
 
@@ -313,42 +356,30 @@ export default function UniversityPartners() {
         </div>
       </section>
 
-      {/* ---- what a partnership means ---- */}
+      {/* ---- what a partnership means ----
+          Full width now that the callout has moved out from beside it: four
+          headings read as one row across the page, where in a 1.15fr column
+          they were two stacked pairs. */}
       <section className="dpage-section">
-        <div className="container dpage-split">
-          <div>
-            <h2 className="dpage-title unip-h2">
-              What a partnership <span className="h-accent">actually buys you</span>
-            </h2>
-            <p className="dpage-section-lead">
-              The word gets used loosely in this industry, so here is exactly
-              what it means when we say it — including the part most
-              consultancies leave off the page.
-            </p>
-            <div className="unip-means">
-              {WHAT_IT_MEANS.map((m, i) => (
-                <div className="unip-mean" key={m.title}>
-                  <span className="unip-mean-n" aria-hidden="true">
-                    {String(i + 1).padStart(2, "0")}
-                  </span>
-                  <h3>{m.title}</h3>
-                  <p>{m.text}</p>
-                </div>
-              ))}
-            </div>
+        <div className="container">
+          <h2 className="dpage-title unip-h2">
+            What a partnership <span className="h-accent">actually buys you</span>
+          </h2>
+          <p className="dpage-section-lead">
+            The word gets used loosely in this industry, so here is exactly
+            what it means when we say it — including the part most
+            consultancies leave off the page.
+          </p>
+          <div className="unip-means">
+            {WHAT_IT_MEANS.map((title, i) => (
+              <div className="unip-mean" key={title}>
+                <span className="unip-mean-n" aria-hidden="true">
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <h3>{title}</h3>
+              </div>
+            ))}
           </div>
-          <aside className="dpage-callout">
-            <h3>Not on the list?</h3>
-            <p>
-              We apply to non-partner institutions constantly — the agreement
-              is a convenience, not a boundary. If you have a university in
-              mind, bring it and we will tell you honestly what your chances
-              look like.
-            </p>
-            <Link className="dpage-callout-btn" to="/contact">
-              Ask about it <Arrow />
-            </Link>
-          </aside>
         </div>
       </section>
 
@@ -363,23 +394,49 @@ export default function UniversityPartners() {
             if the university you are after is not here, ask anyway.
           </p>
 
-          <div className="unip-tools">
-            <label className="unip-search">
-              <span className="unip-search-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
-                  strokeWidth="2" strokeLinecap="round" aria-hidden="true">
-                  <circle cx="11" cy="11" r="7" />
-                  <path d="M20 20l-3.5-3.5" />
-                </svg>
-              </span>
-              <input
-                type="search"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search institutions"
-                aria-label="Search partner institutions"
-              />
-            </label>
+          {/* A FORM, so the search has a real submit — the button below and
+              the Enter key both fire it. The results do not wait for either:
+              they filter as you type, which is the right behaviour for a
+              list this size and is what the button would otherwise be
+              pretending to cause. What submitting actually does is dismiss a
+              phone keyboard, which is worth a button on its own. */}
+          <form className="unip-tools" onSubmit={onSearch} role="search">
+            <div className="unip-searchrow">
+              <label className="unip-search">
+                <span className="unip-search-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
+                    strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+                    <circle cx="11" cy="11" r="7" />
+                    <path d="M20 20l-3.5-3.5" />
+                  </svg>
+                </span>
+                <input
+                  type="search"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Search by name, city or country"
+                  aria-label="Search partner institutions"
+                />
+              </label>
+              <button type="submit" className="unip-searchgo">
+                Search
+              </button>
+              {/* Only while something is actually filtered — a permanent
+                  "Clear" beside an untouched form is a control that does
+                  nothing, every time you look at it. */}
+              {filtered ? (
+                <button
+                  type="button"
+                  className="unip-clear"
+                  onClick={() => {
+                    setQuery("");
+                    setCountry("all");
+                  }}
+                >
+                  Clear
+                </button>
+              ) : null}
+            </div>
 
             {/* Only offered once at least one partner carries a country —
                 a filter row with a single "Everywhere" chip is furniture. */}
@@ -391,7 +448,7 @@ export default function UniversityPartners() {
                   onClick={() => setCountry("all")}
                   aria-pressed={country === "all"}
                 >
-                  Everywhere <span>{UNIVERSITIES.length}</span>
+                  Everywhere <span>{all.length}</span>
                 </button>
                 {countries.map((c) => (
                   <button
@@ -406,44 +463,77 @@ export default function UniversityPartners() {
                 ))}
               </div>
             ) : null}
-          </div>
+          </form>
 
-          <p className="unip-count" aria-live="polite">
-            {shown.length === 0
-              ? "No institution matches that search."
-              : `Showing ${shown.length} of ${UNIVERSITIES.length}`}
-          </p>
+          {/* THREE STATES, NOT TWO. Still loading, genuinely empty, and
+              "your filter matched nothing" are different situations and only
+              the last one has a way out of it. Announcing the count politely
+              is what tells a screen-reader user that pressing a chip did
+              anything at all. */}
+          {unis === null ? (
+            <p className="unip-count">Loading the list…</p>
+          ) : (
+            <p className="unip-count" aria-live="polite">
+              {all.length === 0
+                ? "The partner list is being put together."
+                : shown.length === 0
+                  ? "No institution matches that search."
+                  : `Showing ${shown.length} of ${all.length}`}
+            </p>
+          )}
 
-          <div className="unip-grid">
-            {shown.map((u) => (
-              <Logo uni={u} key={u.id} />
-            ))}
-          </div>
+          {shown.length > 0 ? (
+            <div className="unip-grid">
+              {shown.map((u) => (
+                <Logo uni={u} key={u._id} />
+              ))}
+            </div>
+          ) : null}
 
-          {shown.length === 0 ? (
+          {unis !== null && shown.length === 0 && filtered ? (
             <button
               type="button"
               className="unip-reset"
-              onClick={() => { setQuery(""); setCountry("all"); }}
+              onClick={() => {
+                setQuery("");
+                setCountry("all");
+              }}
             >
               Clear the search <Arrow />
             </button>
           ) : null}
 
-          <ul className="dpage-checks unip-promises">
-            <li>
-              <span aria-hidden="true"><Check /></span>
-              We will apply to any institution you ask about, partner or not
-            </li>
-            <li>
-              <span aria-hidden="true"><Check /></span>
-              Your shortlist is built from your profile before the partner list is opened
-            </li>
-            <li>
-              <span aria-hidden="true"><Check /></span>
-              Nothing is submitted anywhere without your sign-off
-            </li>
-          </ul>
+          {/* Nothing at all yet — the one thing worth saying in place of a
+              wall of marks, which is that the list is not the boundary. */}
+          {unis !== null && all.length === 0 ? (
+            <p className="unip-empty">
+              We hold direct agreements across every destination on this page.
+              The full list is being added — in the meantime,{" "}
+              <Link to="/contact">ask us about any university</Link> you have
+              in mind and we will tell you where we stand with it.
+            </p>
+          ) : null}
+
+          {/* NOT ON THE LIST? — directly under the wall, which is where the
+              question actually occurs to somebody. It used to sit in a
+              sidebar beside "what a partnership buys you", two sections
+              above the logos, so it answered a question nobody had been
+              given yet. It is the same card; only its position moved.
+
+              Centred and capped rather than run full width: at the
+              container's width a navy panel this short reads as a banner. */}
+          <aside className="dpage-callout unip-ask">
+            <h3>Not on the list?</h3>
+            <p>
+              We apply to non-partner institutions constantly — the agreement
+              is a convenience, not a boundary. If you have a university in
+              mind, bring it and we will tell you honestly what your chances
+              look like.
+            </p>
+            <Link className="dpage-callout-btn" to="/contact">
+              Ask about it <Arrow />
+            </Link>
+          </aside>
         </div>
       </section>
 

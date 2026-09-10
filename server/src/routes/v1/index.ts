@@ -10,6 +10,7 @@ import tiktokRoutes from "./tiktok.routes.js";
 import eventRoutes from "./event.routes.js";
 import newsRoutes from "./news.routes.js";
 import peopleRoutes from "./people.routes.js";
+import universityRoutes from "./university.routes.js";
 import gateRoutes from "./gate.routes.js";
 
 const v1 = Router();
@@ -35,6 +36,10 @@ v1.use("/news", newsRoutes);
 /* The director's message and the team. Both are ours, both are edited in
    one admin screen, and neither is fetched from anywhere. */
 v1.use("/people", peopleRoutes);
+/* The partner institutions. These used to be a hard-coded list in the
+   client; they are a collection the office edits now — see the note at the
+   top of models/University.ts. */
+v1.use("/universities", universityRoutes);
 v1.use("/gate", gateRoutes);
 
 export default v1;

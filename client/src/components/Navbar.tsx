@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { NavLink, Link, useLocation } from "react-router-dom";
 import { SERVICES } from "../data/services";
 import { TESTS } from "../data/tests";
+import { CALCULATORS, calculatorPath } from "../data/calculators";
 
 interface NavItem {
   label: string;
@@ -43,7 +44,6 @@ const links: NavItem[] = [
         { label: "Study in Australia", to: "/study-in-australia" },
         { label: "Study in Canada", to: "/study-in-canada" },
         { label: "Study in New Zealand", to: "/study-in-new-zealand" },
-        { label: "Study in Japan", to: "/study-in-japan" },
         { label: "Study in Europe", to: "/study-in-europe" },
       ],
     },
@@ -98,15 +98,33 @@ const links: NavItem[] = [
   { label: "Events", to: "/events" },
   {
     label: "Resources",
-    to: "/blog",
+    /* Points at /resources, not /blog. This item promised a section and
+       delivered the blog for as long as it existed, and its own panel then
+       listed "Useful Documents" pointing at the blog a second time. There is
+       a real page behind it now. */
+    to: "/resources",
     menu: {
       title: "Student",
       titleAccent: "Resources",
-      lead: "Guides, documents, and updates to help you prepare with confidence.",
+      lead: "Calculators that answer the questions we are asked most often, and the guides, documents and updates behind them.",
       links: [
+        {
+          label: "Calculators",
+          to: "/resources",
+          /* The second level, as under Test Preparation — five calculators
+             flat in this list would crowd out everything else in the panel.
+             Read from data/calculators.ts, so adding one appears here named
+             and routed with no edit to this file. */
+          children: [
+            { label: "All resources", to: "/resources" },
+            ...CALCULATORS.map((c) => ({
+              label: c.name,
+              to: calculatorPath(c.slug),
+            })),
+          ],
+        },
         { label: "Blog & Articles", to: "/blog" },
         { label: "News", to: "/news" },
-        { label: "Useful Documents", to: "/blog" },
         /* Events had an entry here as well as its own top-level nav item.
            One route, one way in — the top-level link is the one that stays. */
       ],
@@ -116,6 +134,43 @@ const links: NavItem[] = [
 
 /** Nav label → id-safe slug, for wiring aria-controls to the panel. */
 const slug = (label: string) => label.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+
+/**
+ * WHICH PATHS A NAV ITEM COVERS — its own address, plus every address in its
+ * panel, plus every address in the second level under that.
+ *
+ * This exists because `NavLink`'s own `isActive` only knows about the item's
+ * `to`. "Student Services" lights up on /services/visa-guidance because that
+ * path happens to sit under /services, but "Study Abroad" never lit up on
+ * /study-in-canada — the destination guides live at the top level, so as far
+ * as the router was concerned they had nothing to do with the item that
+ * lists them. Seven guides, and none of them underlined the nav item you
+ * used to get there.
+ *
+ * DERIVED FROM THE PANEL RATHER THAN HAND-LISTED. The alternative was a
+ * `match: string[]` on each item — which is what the admin bar does, and is
+ * fine there because it covers two aliases of one screen. Here it would be a
+ * second copy of the destination list, kept in step by hand, and the failure
+ * mode is silent: add a country, forget the match list, and the underline is
+ * missing on exactly one page. The panel already says which pages belong to
+ * the section. That IS the answer, so it is the thing that gets asked.
+ */
+const sectionPaths = (item: NavItem): string[] => [
+  item.to,
+  ...(item.menu?.links.flatMap((l) => [
+    l.to,
+    ...(l.children?.map((c) => c.to) ?? []),
+  ]) ?? []),
+];
+
+/* A path is inside a section if it IS one of those addresses or sits under
+   one — so /blog/a-post lights "Resources" the way /blog does. Exact-or-
+   descendant rather than a bare `startsWith`, which would have /services
+   claim a hypothetical /services-something-else. */
+const covers = (item: NavItem, pathname: string): boolean =>
+  sectionPaths(item).some(
+    (path) => pathname === path || pathname.startsWith(`${path}/`)
+  );
 
 export default function Navbar() {
   const { pathname } = useLocation();
@@ -412,7 +467,12 @@ export default function Navbar() {
                   aria-controls={
                     item.menu ? `menu-${slug(item.label)}` : undefined
                   }
-                  className={({ isActive }) => (isActive ? "active" : "")}
+                  /* `isActive` alone underlines only the item whose own
+                     address you are at; `covers` adds the pages listed in
+                     its panel. See sectionPaths above. */
+                  className={({ isActive }) =>
+                    isActive || covers(item, pathname) ? "active" : ""
+                  }
                 >
                   {item.label}
                 </NavLink>

@@ -38,6 +38,10 @@ const LINKS: NavItem[] = [
     label: "Events & news",
     match: ["/admin/events", "/admin/news"],
   },
+  /* Its own pill rather than a tab under something else: partners are a
+     content type the office edits on its own schedule, not a second view of
+     media or of events. */
+  { to: "/admin/universities", label: "Universities" },
   { to: "/admin/inquiries", label: "Inquiries" },
 ];
 

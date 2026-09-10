@@ -10,7 +10,7 @@ import {
   autoExcerpt,
   SYNTAX_HELP,
 } from "../../lib/richText";
-import { POST_PAGES } from "../../types/api";
+import { LIVE_POST_PAGES, POST_PAGES } from "../../types/api";
 import type { Media, Post, PostPage, PostStatus } from "../../types/api";
 
 /**
@@ -69,9 +69,12 @@ const initial: EditorForm = {
 /* The checkbox list, split into its two headings. Derived from POST_PAGES
    rather than written out again, so adding a destination there is the only
    edit adding a destination needs. */
-const PAGE_GROUPS = [...new Set(POST_PAGES.map((p) => p.group))].map((group) => ({
+/* LIVE_POST_PAGES, not POST_PAGES: a retired placement stays in the full
+   list so old posts still read back with a proper name, but must not be
+   offered as somewhere new work can be put. See types/api.ts. */
+const PAGE_GROUPS = [...new Set(LIVE_POST_PAGES.map((p) => p.group))].map((group) => ({
   group,
-  pages: POST_PAGES.filter((p) => p.group === group),
+  pages: LIVE_POST_PAGES.filter((p) => p.group === group),
 }));
 
 /** What the toolbar buttons do to the selection. */

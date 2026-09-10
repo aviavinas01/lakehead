@@ -12,16 +12,22 @@ import type { Guide } from "./types";
  * visas and post-study work are decided nationally and have to be checked
  * country by country.
  *
- * NO FIGURES ANYWHERE IN HERE, for the same reason as the Japan guide and
- * one more: a tuition or visa number that is true in one European country is
- * actively misleading about the next one. Anything with a shelf life belongs
- * in a `req` or `table` block with a review date and a source, added per
- * country once somebody has the current position in front of them.
+ * NO FIGURES ANYWHERE IN HERE, and for two reasons. The first is the one
+ * every guide on this site follows: a fee, a threshold or a processing time
+ * goes stale on somebody else's schedule, not ours. The second belongs to
+ * this page alone — a tuition or visa number that is true in one European
+ * country is actively misleading about the next one. Anything with a shelf
+ * life belongs in a `req` or `table` block with a review date and a source,
+ * added per country once somebody has the current position in front of them.
  */
 export const EUROPE_GUIDE: Guide = {
   page: "study-in-europe",
   name: "Study in Europe",
-  hero: "/europe.jpg",
+  /* GERMANY STANDS IN FOR THE CONTINENT. A region has no single skyline,
+     and this is the European destination most of our students mean when
+     they say "Europe". The card on /study-abroad points at the same file —
+     change the two together, or the grid and the guide disagree. */
+  hero: "/germany.jpg",
   head: ["One continent. ", { text: "Thirty systems.", as: "accent" }],
   lead:
     "Europe is the only destination on this list that is not a country. That is its great advantage and the thing students most often get wrong — the degrees are comparable across borders, and almost nothing else is.",

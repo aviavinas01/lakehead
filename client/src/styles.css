@@ -6126,25 +6126,56 @@ a.rev-score:hover { background: rgba(255, 255, 255, 0.08); }
   .unip-dots button.is-on { background: #fff; }
 }
 
-/* ---- what a partnership buys you ---- */
+/* ---- what a partnership buys you ----
+   FOUR ACROSS, HEADINGS ONLY. This was two columns of number-heading-
+   paragraph in a 1.15fr column beside a callout; the paragraphs are gone
+   (see the note on WHAT_IT_MEANS) and the callout has moved down to the
+   wall, so the four claims now run as one row the width of the page.
+
+   The rule over each one is the whole treatment — no card, no panel, no
+   background. With the body text gone there is very little ink in this
+   section and boxing it would have added more furniture than content. */
 .unip-means {
   margin-top: 2.25rem;
-  display: grid; grid-template-columns: repeat(2, 1fr); gap: 2rem 2.25rem;
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem 2.25rem;
 }
-.unip-mean { padding-top: 1.1rem; border-top: 2px solid var(--color-border); }
+.unip-mean {
+  padding-top: 1.1rem; border-top: 2px solid var(--color-border);
+  transition: border-top-color 0.25s ease;
+}
 .unip-mean:hover { border-top-color: var(--color-hero-red); }
-.unip-mean { transition: border-top-color 0.25s ease; }
 .unip-mean-n {
   display: block; font-family: var(--font-display); font-weight: 800;
   font-size: 2rem; line-height: 1; letter-spacing: 0;
   color: transparent; -webkit-text-stroke: 1.5px var(--color-hero-red);
   margin-bottom: 0.5rem;
 }
+/* No bottom margin now that nothing follows it — the heading IS the item,
+   and the old 0.45rem was spacing for a paragraph that no longer exists. */
 .unip-mean h3 {
   color: var(--color-hero-ink); font-size: 1.08rem;
-  line-height: 1.3; margin-bottom: 0.45rem;
+  line-height: 1.3; margin-bottom: 0;
+  text-wrap: balance;
 }
-.unip-mean p { color: var(--color-muted); font-size: 0.94rem; margin: 0; }
+
+/* Two up before one up: four headings squeezed into a phone's width break
+   to one word a line, and a single column of four is a lot of scrolling for
+   four short claims. */
+@media (max-width: 1024px) {
+  .unip-means { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 480px) {
+  .unip-means { grid-template-columns: 1fr; gap: 1.5rem; }
+}
+
+/* ---- "not on the list?", under the wall ----
+   Centred and capped: the container is wide, and a navy panel holding three
+   lines and a button reads as a banner across the full width of it. The top
+   margin separates it from the grid above without needing a section of its
+   own — it belongs to the list, which is why it sits inside it. */
+.unip-ask {
+  max-width: 46rem; margin: clamp(2.5rem, 5vw, 3.5rem) auto 0;
+}
 
 /* ---- tools ---- */
 .unip-tools {
@@ -6202,16 +6233,41 @@ a.rev-score:hover { background: rgba(255, 255, 255, 0.08); }
 .unip-grid {
   display: grid; gap: clamp(0.9rem, 1.8vw, 1.6rem);
   grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  /* START, NOT STRETCH, and this one line is load-bearing.
+
+     A grid item defaults to stretching to its row's height, and a stretched
+     item's height is decided by the row rather than by its own
+     `aspect-ratio` — which made the card's height indefinite, which made the
+     `max-height: <percentage>` on the logo inside it resolve to `auto`,
+     which let the logo size itself from its own intrinsic height, which grew
+     the row. The 2:1 cards were rendering at about 4:3, with the height cap
+     doing nothing at all.
+
+     `start` lets each card take the height its aspect-ratio asks for. They
+     are all the same width, so they all come out the same height anyway —
+     the difference is that the height is now definite, and percentages
+     inside it mean something. */
+  align-items: start;
 }
 
-/* 2:1, which is the reference's proportion and also the shape that suits
-   the most logos: wordmarks are wide, crests are square, and a landscape box
-   holds both without either being cropped or stranded. `aspect-ratio` rather
-   than a fixed height so the cards stay in proportion at every column count. */
+/* A LANDSCAPE BOX, because wordmarks are wide and crests are square and one
+   shape has to hold both without cropping either. `aspect-ratio` rather than
+   a fixed height, so the cards stay in proportion at every column count.
+
+   9:5 rather than the 2:1 it was. On a 2:1 card a square crest is limited by
+   the height — it can only ever be as tall as the card minus its padding —
+   so the widest box is also the one that renders round marks smallest.
+   Trading a little width for height lifts every crest on the wall and costs
+   the wordmarks nothing, since they were never height-bound.
+
+   The padding IS the logo's margin — see the note on the image below. It is
+   deliberately tight: it is the only inset now, where there used to be a
+   percentage cap on top of it, and two insets doing one job is what made the
+   marks look stranded in the middle of their cards. */
 .unip-card {
   display: grid; place-items: center;
-  aspect-ratio: 2 / 1;
-  padding: clamp(1.1rem, 2.4vw, 1.9rem);
+  aspect-ratio: 9 / 5;
+  padding: clamp(0.7rem, 1.4vw, 1.1rem);
   background: #fff;
   border: 1px solid var(--color-border); border-radius: 12px;
   color: inherit;
@@ -6227,12 +6283,25 @@ a.unip-card:focus-visible {
   outline: 2px solid var(--color-hero-ink); outline-offset: 2px;
 }
 
-/* `contain`, never `cover`: cropping somebody's crest is worse than white
-   space around it. Capped well inside the card so marks of very different
-   proportions still sit on a common optical baseline instead of one
-   wordmark running edge to edge beside a small round seal. */
+/* THE LOGO FILLS THE CARD'S PADDING BOX, and the padding is what keeps it
+   off the border. It used to be capped at 82% x 68% ON TOP of that padding,
+   which is two insets doing one job — and the height half of it silently did
+   nothing anyway (see the note on `align-items` above).
+
+   `contain`, never `cover`: cropping somebody's crest is worse than white
+   space around it. A wide wordmark now meets the left and right padding and
+   a square crest meets the top and bottom, which is what makes marks of very
+   different proportions read as the same size.
+
+   THIS ALSO DEPENDS ON THE FILES. The ten seeded logos were 410x330 canvases
+   with the mark occupying 17-46% of the area — the rest was white baked into
+   the picture, so the browser was faithfully scaling a mostly-empty image and
+   no CSS could have made the mark bigger. They have been trimmed to their
+   ink plus a 4% margin (originals in client/originals/universities). A logo
+   uploaded through the admin with its own white border will look small here
+   for exactly the same reason, and wants cropping before it goes up. */
 .unip-card img {
-  max-width: 82%; max-height: 68%;
+  width: 100%; height: 100%;
   object-fit: contain;
 }
 
@@ -6242,11 +6311,6 @@ a.unip-card:focus-visible {
   font-family: var(--font-display); font-weight: 700;
   font-size: 0.95rem; line-height: 1.3; text-align: center;
   color: var(--color-hero-ink);
-}
-
-.unip-promises {
-  margin: 2.5rem 0 0; padding-top: 1.75rem;
-  border-top: 1px solid var(--color-border);
 }
 
 @media (max-width: 860px) {
@@ -7084,19 +7148,6 @@ a.unip-card:focus-visible {
    The article page
    ============================================================ */
 
-/* Sits under the sticky header and fills as the BODY is read — not the
-   document, which would be full while the reader is still in "keep
-   reading". Driven straight through a ref on an rAF. */
-.art-progress {
-  position: sticky; top: var(--navbar-h, 86px); z-index: 40;
-  height: 3px; background: transparent;
-}
-.art-progress span {
-  display: block; height: 100%; width: 100%;
-  background: var(--color-hero-red);
-  transform: scaleX(0); transform-origin: left;
-}
-
 .art-head { padding: clamp(2.5rem, 5vw, 4rem) 0 clamp(1.5rem, 3vw, 2.5rem); }
 .art-head-inner { max-width: 100%; }
 .art-crumb {
@@ -7140,6 +7191,53 @@ a.unip-card:focus-visible {
   height: clamp(260px, 42vh, 520px); overflow: hidden;
 }
 .art-cover img { width: 100%; height: 100%; object-fit: cover; }
+
+/* ---- ONE MEASURE, CENTRED IN THE PAGE ----
+   The article's text column is capped at 68 characters, which is the right
+   thing for reading and was the wrong thing for the layout: the cap alone
+   pins the column to the LEFT edge of a container that is about 1490px on a
+   wide screen, so the words sat in the left 620px with 870px of nothing
+   beside them. Read at a laptop it looked like the page had failed to load
+   a sidebar.
+
+   Every block of the article now shares one measure and centres on it — the
+   headline, the standfirst, the meta line, the prose, the tags and the
+   share row — so the whole piece reads as a single column down the middle
+   of the page instead of a column and an empty half.
+
+   THE TEXT INSIDE STAYS LEFT-ALIGNED. It is the COLUMN that is centred, not
+   the words in it; centred body copy gives every line a different starting
+   point and is markedly harder to read.
+
+   SCOPED TO `.art`, and that matters. `.art-prose` is shared with the
+   director's message and with the editor's live preview (see the note at
+   the top of this block). The director's page sets its own wider measure
+   and sits in its own layout, and the preview is a narrow pane where a
+   centring rule would do nothing useful — neither should move because the
+   blog did. */
+.art {
+  /* The prose measure, and the single number to change if it ever moves. */
+  --art-measure: 68ch;
+}
+.art .art-prose,
+.art .art-tags,
+.art .art-share {
+  max-width: var(--art-measure);
+  margin-inline: auto;
+}
+/* The header's inner box carries `.container` as well, so it already has
+   1.5rem of padding down each side. Adding that to the cap is what makes
+   its CONTENT box exactly --art-measure — without it the headline column
+   would come out 3rem narrower than the prose below and the two would not
+   line up, which is a more obvious fault than the one being fixed. */
+.art .art-head-inner {
+  max-width: calc(var(--art-measure) + 3rem);
+  margin-inline: auto;
+}
+/* The cover photograph is deliberately NOT in the column: it is a sibling
+   of the header's inner box and runs the full width of the page, which is
+   the one thing on an article that should. Listed here only so the next
+   person does not "fix" it. */
 
 /* ---- the prose ----
    The measure is set in `ch`, so the column holds about the same number of
@@ -9327,3 +9425,752 @@ a.unip-card:focus-visible {
    would be underlining words rather than dividing anything. */
 .who-direct .who-contact-list li { padding-bottom: 0; border-bottom: none; }
 .who-direct .dpage-fineprint { max-width: 52ch; }
+
+/* ============================================================
+   STUDENT RESOURCES — the hub at /resources and the five
+   calculators under it (pages/Resources.tsx,
+   pages/calculators/*, components/CalculatorPage.tsx).
+
+   THE ONE CORNER OF THIS SITE WITH NO PHOTOGRAPHY, and that is
+   the whole design. Every other page opens on a full-bleed
+   picture with the navbar floating over it. Somebody who has
+   landed on a calculator arrived with a question, usually from
+   a search result, often on a phone, and a 70vh photograph
+   between them and the input box is a toll on the way to the
+   only thing they came for.
+
+   So the type does the work the pictures do elsewhere: a very
+   large headline on white, a hairline under it, and then the
+   tool. Everything here is hairlines, white and one tint —
+   nothing has a shadow, nothing has a gradient, and the only
+   saturated colour on the page is the accent on the headline
+   and the figure in the answer panel.
+
+   Scoped under .calc so none of it can reach the rest of the
+   site, the same containment rule the .dpage block follows.
+   ============================================================ */
+
+.calc { color: var(--color-text); }
+
+/* ---- the headline block ----
+   Generous above and below, and closed with the same hairline the ruled
+   pages use. The bar above it is solid white on these pages — there is no
+   hero for it to go see-through over — so this simply starts under it. */
+.calc-head {
+  padding: clamp(2.75rem, 6vw, 5rem) 0 clamp(2rem, 4vw, 3.25rem);
+  border-bottom: 1px solid rgba(23, 39, 92, 0.09);
+}
+.calc-crumb {
+  margin-bottom: 1.1rem;
+  font-size: 0.76rem; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.16em;
+  color: var(--color-muted);
+}
+.calc-crumb a { color: var(--color-muted); }
+.calc-crumb a:hover { color: var(--color-hero-red); }
+
+/* THE BIGGEST TYPE ON THE SITE, deliberately. It runs to 5.5rem where
+   .dpage-title stops at 3, because on a page with no photograph the
+   headline is the only thing carrying the top of the screen. The negative
+   tracking is what keeps it from reading as shouting at that size, and the
+   tight leading is what keeps a two-line heading a single block rather than
+   two stripes. */
+.calc-h1 {
+  color: var(--color-hero-ink);
+  font-size: clamp(2.6rem, 8vw, 5.5rem);
+  line-height: 1.02; letter-spacing: -0.04em;
+  margin-bottom: 1.25rem; max-width: 15ch;
+}
+.calc-lead {
+  max-width: 58ch; color: var(--color-muted);
+  font-size: clamp(1rem, 1.5vw, 1.15rem); line-height: 1.7;
+}
+
+/* ---- section headings below the fold ----
+   Small, set in capitals, and nothing like the h1. There is one headline on
+   these pages and these are labels on the parts underneath it. */
+.calc-sub {
+  font-size: 0.8rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.16em;
+  color: var(--color-muted); margin-bottom: 1.75rem;
+}
+
+.calc-main { padding: clamp(2.25rem, 5vw, 3.5rem) 0; }
+
+/* ---- the tool: inputs beside the answer ----
+   The answer column is narrower than the inputs and sticks to the top of
+   the viewport as the sheet grows. On the GPA pages that matters: a
+   twelve-subject marksheet is taller than the screen, and an answer that
+   scrolls off the top means editing the bottom row blind. */
+.calc-lay {
+  display: grid; gap: clamp(2rem, 4vw, 3.25rem);
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+  align-items: start;
+}
+@media (max-width: 900px) {
+  /* Stacked, ANSWER FIRST. On a phone the result is what you came for and
+     the inputs are how you get it — putting the panel under a twelve-row
+     sheet means every edit is followed by a scroll to find out what it did.
+     Above the breakpoint the two sit side by side and the order is moot. */
+  .calc-lay { grid-template-columns: 1fr; }
+  .calc-lay > .calc-result { order: -1; }
+}
+
+.calc-inputs { display: grid; gap: 1.5rem; }
+
+/* Fieldsets carry a browser border and padding by default, and the reset at
+   the top of this file zeroes margin and padding but not the border. */
+.calc-fields { border: 0; padding: 0; margin: 0; min-width: 0; }
+.calc-legend {
+  display: block; padding: 0; margin-bottom: 1.1rem;
+  font-family: var(--font-display); font-weight: 700; font-size: 1.05rem;
+  color: var(--color-hero-ink);
+}
+.calc-legend span {
+  display: block; margin-top: 0.3rem;
+  font-family: var(--font-body); font-weight: 400; font-size: 0.88rem;
+  color: var(--color-muted);
+}
+
+/* Two up on the IELTS page's four skills, one up once there is no room. */
+.calc-row-grid {
+  display: grid; gap: 1.1rem 1.25rem;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+}
+
+.calc-field { display: grid; gap: 0.4rem; min-width: 0; }
+.calc-field-label {
+  font-weight: 600; font-size: 0.92rem; color: var(--color-hero-ink);
+}
+.calc-field-hint {
+  font-size: 0.84rem; line-height: 1.55; color: var(--color-muted);
+}
+
+/* ---- controls ----
+   One border, one radius, one focus ring, on every input on all five pages.
+   `font: inherit` is the important line: a bare <select> takes the system
+   font on every platform and it is the one element that would break the
+   page's type. */
+.calc-input, .calc-select {
+  width: 100%; padding: 0.7rem 0.85rem;
+  font: inherit; font-size: 0.98rem; color: var(--color-text);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border); border-radius: 8px;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+.calc-select {
+  /* The native arrow, kept — a hand-drawn one means also hiding the real
+     one, which is `appearance: none`, which on some platforms takes the
+     whole control's affordance with it. */
+  cursor: pointer;
+}
+.calc-input:focus-visible, .calc-select:focus-visible {
+  outline: none;
+  border-color: var(--color-hero-ink);
+  box-shadow: 0 0 0 3px rgba(23, 39, 92, 0.12);
+}
+/* Chrome and Safari draw spinners on number inputs that sit over the text
+   at these widths and change the value on a stray scroll. The credit-hours
+   box is the one place it would actually bite. */
+.calc-input[type="number"] { appearance: textfield; -moz-appearance: textfield; }
+.calc-input[type="number"]::-webkit-outer-spin-button,
+.calc-input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none; margin: 0;
+}
+
+/* ---- the direction switch ----
+   Two states, both worth seeing before choosing, which is why it is a pair
+   of buttons and not a select. `aria-pressed` carries the state; the class
+   only paints it. */
+.calc-toggle {
+  display: inline-flex; padding: 3px; gap: 3px;
+  border: 1px solid var(--color-border); border-radius: 999px;
+  background: var(--color-surface);
+}
+.calc-toggle button {
+  padding: 0.5rem 1.1rem; border: 0; border-radius: 999px;
+  font: inherit; font-size: 0.9rem; font-weight: 600;
+  color: var(--color-muted); background: transparent; cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+.calc-toggle button:hover { color: var(--color-hero-ink); }
+.calc-toggle button.is-on {
+  color: #fff; background: var(--color-hero-ink);
+}
+.calc-toggle button:focus-visible {
+  outline: 2px solid var(--color-hero-ink); outline-offset: 2px;
+}
+
+/* ---- the marksheet (components/GradeSheet.tsx) ---- */
+.calc-sheet { display: grid; gap: 0.55rem; }
+.calc-sheet-head, .calc-sheet-row {
+  display: grid; gap: 0.6rem; align-items: center;
+  grid-template-columns: minmax(0, 1fr) 7.5rem 6.5rem 2.25rem;
+}
+.calc-sheet-head {
+  font-size: 0.76rem; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.1em;
+  color: var(--color-muted);
+  padding-bottom: 0.2rem;
+}
+/* The remove control: a cross, quiet until the row is hovered. It is
+   disabled rather than hidden on the last row, so the column keeps its
+   width and the rows above do not shift as the sheet empties. */
+.calc-row-drop {
+  display: grid; place-items: center;
+  width: 2.25rem; height: 2.25rem; padding: 0;
+  color: var(--color-muted); background: transparent;
+  border: 1px solid transparent; border-radius: 8px; cursor: pointer;
+  transition: color 0.18s ease, background-color 0.18s ease;
+}
+.calc-sheet-row:hover .calc-row-drop { color: var(--color-text); }
+.calc-row-drop:hover:not(:disabled) {
+  color: var(--color-danger); background: rgba(192, 57, 43, 0.08);
+}
+.calc-row-drop:disabled { opacity: 0.25; cursor: not-allowed; }
+.calc-row-drop:focus-visible {
+  outline: 2px solid var(--color-hero-ink); outline-offset: 1px;
+}
+
+.calc-sheet-hint { margin-top: 0.35rem; max-width: 60ch; }
+.calc-sheet-actions {
+  display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center;
+}
+
+/* Add is the primary of the two and still only an outline — a filled button
+   here would be the heaviest thing on a page whose answer is meant to be. */
+.calc-add, .calc-reset {
+  padding: 0.55rem 1.1rem;
+  font: inherit; font-size: 0.9rem; font-weight: 600;
+  border-radius: 8px; cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+.calc-add {
+  color: var(--color-hero-ink); background: transparent;
+  border: 1px solid rgba(23, 39, 92, 0.28);
+}
+.calc-add:hover { background: rgba(23, 39, 92, 0.06); }
+.calc-reset {
+  color: var(--color-muted); background: transparent; border: 1px solid transparent;
+}
+.calc-reset:hover { color: var(--color-hero-red); }
+.calc-add:focus-visible, .calc-reset:focus-visible {
+  outline: 2px solid var(--color-hero-ink); outline-offset: 2px;
+}
+
+/* On a narrow screen four columns will not fit and shrinking them makes the
+   credit box too small to read. The subject takes its own line and the other
+   three share the next one, so the row still reads as one subject. The
+   column headings go with it — they label a layout that no longer exists. */
+@media (max-width: 620px) {
+  .calc-sheet-head { display: none; }
+  .calc-sheet-row {
+    grid-template-columns: minmax(0, 1fr) 6rem 2.25rem;
+    row-gap: 0.45rem;
+    padding-bottom: 0.8rem;
+    border-bottom: 1px solid var(--color-border);
+  }
+  .calc-sheet-row > :first-child { grid-column: 1 / -1; }
+  .calc-sheet-row:last-child { border-bottom: 0; }
+}
+
+/* ---- the answer ----
+   The one tinted panel on the page, and the only saturated figure. It
+   sticks below the bar as the inputs scroll past it. */
+.calc-result {
+  position: sticky; top: calc(var(--navbar-h, 86px) + 1.5rem);
+  padding: clamp(1.5rem, 3vw, 2.25rem);
+  background: #f4f7fb;
+  border: 1px solid rgba(23, 39, 92, 0.09); border-radius: 14px;
+}
+.calc-result.is-empty {
+  background: transparent;
+  border-style: dashed; border-color: var(--color-border);
+}
+/* <output> is inline by default, which collapses the whole panel. */
+.calc-result-inner { display: block; }
+.calc-result-value {
+  display: block;
+  font-family: var(--font-display); font-weight: 800;
+  font-size: clamp(2.75rem, 6.5vw, 4.5rem);
+  line-height: 1; letter-spacing: -0.045em;
+  color: var(--color-hero-red);
+}
+.calc-result-caption {
+  display: block; margin-top: 0.85rem;
+  font-size: 0.78rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.14em;
+  color: var(--color-hero-ink);
+}
+.calc-result-note {
+  display: block; margin-top: 0.9rem;
+  padding-top: 0.9rem; border-top: 1px solid rgba(23, 39, 92, 0.1);
+  font-size: 0.9rem; line-height: 1.65; color: var(--color-muted);
+}
+.calc-result-note code, .calc-result-note strong { color: var(--color-hero-ink); }
+.calc-result-note code {
+  font-size: 0.95em; letter-spacing: 0.01em;
+}
+/* The waiting state says what to do rather than showing a figure nobody has
+   asked for yet. A calculator opening on a confident 0.00 looks broken —
+   and on the GPA pages a zero is also a real and alarming answer. */
+.calc-result-wait {
+  font-size: 0.95rem; line-height: 1.6; color: var(--color-muted);
+  max-width: 30ch;
+}
+
+/* ---- the working ----
+   Every calculator shows one. See the note at the top of lib/grading.ts for
+   why that is not optional on this site. */
+.calc-method {
+  padding: clamp(2.5rem, 5vw, 4rem) 0;
+  border-top: 1px solid rgba(23, 39, 92, 0.09);
+  background: #fbfcfe;
+}
+.calc-method-body { max-width: 68ch; }
+.calc-method-body > p { margin-bottom: 1.1rem; }
+.calc-method-body strong { color: var(--color-hero-ink); }
+
+/* The formula, set as the one display line in the section — a rule down its
+   left edge rather than a box, which at this width would read as a callout
+   competing with the answer panel above it. */
+.calc-formula {
+  margin: 1.5rem 0; padding: 0.9rem 0 0.9rem 1.25rem;
+  border-left: 3px solid var(--color-hero-red);
+  font-family: var(--font-display); font-size: 1.1rem; font-weight: 600;
+  color: var(--color-hero-ink);
+}
+
+/* Worked examples: the input in code, the answer in bold. */
+.calc-worked { margin: 0 0 1.2rem; padding-left: 1.1rem; }
+.calc-worked li { margin-bottom: 0.5rem; color: var(--color-muted); }
+.calc-worked code, .calc-method-body code {
+  padding: 0.1rem 0.35rem;
+  font-size: 0.92em;
+  background: rgba(23, 39, 92, 0.06); border-radius: 4px;
+  color: var(--color-hero-ink);
+}
+.calc-worked strong { color: var(--color-hero-red); }
+
+/* A cross-reference to another calculator, set apart from the explanation
+   it follows without being a box of its own. */
+.calc-aside-note {
+  margin-top: 1.6rem; padding-top: 1.1rem;
+  border-top: 1px solid rgba(23, 39, 92, 0.1);
+  font-size: 0.92rem; color: var(--color-muted);
+}
+.calc-aside-note a, .calc-method-body a, .calc-fine a {
+  color: var(--color-hero-red);
+  text-decoration: underline; text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+}
+
+/* ---- the tables: the concordance, and the grade scale ----
+   Scrolls inside its own box rather than widening the page. Both tables are
+   narrow, but the grade scale has a "80 to below 90%" column that does not
+   compress. */
+.calc-table-wrap { margin: 1.5rem 0; overflow-x: auto; }
+.calc-table {
+  width: 100%; border-collapse: collapse;
+  font-size: 0.92rem; font-variant-numeric: tabular-nums;
+}
+.calc-table caption {
+  text-align: left; padding-bottom: 0.7rem;
+  font-size: 0.76rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.13em;
+  color: var(--color-muted);
+}
+.calc-table th, .calc-table td {
+  padding: 0.5rem 1rem 0.5rem 0;
+  text-align: left; border-bottom: 1px solid var(--color-border);
+}
+.calc-table th {
+  font-weight: 700; color: var(--color-hero-ink);
+  border-bottom-color: rgba(23, 39, 92, 0.22);
+}
+.calc-table td { color: var(--color-muted); }
+.calc-table td:first-child { color: var(--color-hero-ink); font-weight: 600; }
+
+/* ---- the small print, on every one of these pages ---- */
+.calc-fine {
+  padding: clamp(2rem, 4vw, 2.75rem) 0;
+  border-top: 1px solid rgba(23, 39, 92, 0.09);
+}
+.calc-fine p {
+  max-width: 72ch; font-size: 0.9rem; line-height: 1.7;
+  color: var(--color-muted);
+}
+
+/* ---- the rail of the other calculators ----
+   A list of rules rather than a row of cards. Four cards of two lines each
+   at the foot of a page is a second grid competing with the one on the hub;
+   a list says "there are more of these" without restating the hub. */
+.calc-rail {
+  padding: clamp(2.5rem, 5vw, 4rem) 0;
+  border-top: 1px solid rgba(23, 39, 92, 0.09);
+  background: #fbfcfe;
+}
+.calc-rail-list { list-style: none; }
+.calc-rail-list li { border-top: 1px solid var(--color-border); }
+.calc-rail-list li:last-child { border-bottom: 1px solid var(--color-border); }
+.calc-rail-list a {
+  display: grid; gap: 0.15rem 1.5rem; align-items: center;
+  grid-template-columns: minmax(0, 1fr) auto;
+  padding: 1.15rem 0.25rem;
+  transition: padding-left 0.22s ease, background-color 0.22s ease;
+}
+.calc-rail-list a:hover {
+  padding-left: 0.85rem; background: rgba(23, 39, 92, 0.03);
+}
+.calc-rail-name {
+  font-family: var(--font-display); font-weight: 700; font-size: 1.05rem;
+  color: var(--color-hero-ink);
+}
+.calc-rail-blurb {
+  grid-column: 1; font-size: 0.9rem; line-height: 1.55;
+  color: var(--color-muted);
+}
+.calc-rail-go {
+  grid-row: 1 / span 2; grid-column: 2;
+  color: var(--color-hero-red);
+  transition: transform 0.22s ease;
+}
+.calc-rail-list a:hover .calc-rail-go { transform: translateX(5px); }
+@media (max-width: 560px) {
+  /* The arrow costs a third of the width at this size and says nothing the
+     row does not already say by being a link. */
+  .calc-rail-go { display: none; }
+  .calc-rail-list a { grid-template-columns: 1fr; }
+}
+
+/* ---- the hub's own grid (pages/Resources.tsx) ----
+   Outlined tiles, no photograph and no icon. Five calculators with five
+   invented icons would be five more things to look at than there are ideas
+   on the page. */
+.rsx-grid {
+  list-style: none;
+  display: grid; gap: 1.25rem;
+  grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
+}
+.rsx-card {
+  display: flex; flex-direction: column; height: 100%;
+  padding: 1.6rem 1.5rem 1.35rem;
+  border: 1px solid var(--color-border); border-radius: 14px;
+  background: var(--color-bg);
+  transition: border-color 0.22s ease, transform 0.22s ease,
+              background-color 0.22s ease;
+}
+.rsx-card:hover {
+  border-color: rgba(23, 39, 92, 0.3); background: #fbfcfe;
+  transform: translateY(-2px);
+}
+.rsx-card h3 {
+  font-size: 1.15rem; color: var(--color-hero-ink);
+  margin-bottom: 0.55rem; letter-spacing: -0.02em;
+}
+.rsx-card p {
+  flex: 1; margin-bottom: 1.1rem;
+  font-size: 0.92rem; line-height: 1.6; color: var(--color-muted);
+}
+.rsx-card-go {
+  display: inline-flex; align-items: center; gap: 0.6rem;
+  font-size: 0.76rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.13em;
+  color: var(--color-hero-red);
+}
+.rsx-card-go svg { transition: transform 0.22s ease; }
+.rsx-card:hover .rsx-card-go svg { transform: translateX(5px); }
+
+/* Nothing on these pages moves for anyone who has asked for that. */
+@media (prefers-reduced-motion: reduce) {
+  .calc-input, .calc-select, .calc-toggle button, .calc-add, .calc-reset,
+  .calc-row-drop, .calc-rail-list a, .calc-rail-go, .rsx-card,
+  .rsx-card-go svg {
+    transition: none;
+  }
+  .rsx-card:hover { transform: none; }
+  .calc-rail-list a:hover { padding-left: 0.25rem; }
+  .calc-rail-list a:hover .calc-rail-go { transform: none; }
+  .rsx-card:hover .rsx-card-go svg { transform: none; }
+}
+
+/* The sticky answer panel needs a viewport tall enough to be worth sticking
+   to. Below this it simply sits in the flow — which, since the panel is
+   ordered above the inputs on a narrow screen, is where it belongs anyway. */
+@media (max-height: 620px), (max-width: 900px) {
+  .calc-result { position: static; }
+}
+
+/* ============================================================
+   UNIVERSITY PARTNERS — the search row on the wall
+   (pages/UniversityPartners.tsx), one institution's page
+   (pages/UniversityDetail.tsx)      .uni-
+   and the admin panel behind both
+   (pages/admin/UniversitiesPanel.tsx)  .uni-adm-
+
+   The wall itself, its chips and its slideshow are the .unip-
+   block further up; only what changed is here.
+   ============================================================ */
+
+/* ---- the search row ----
+   The box, its submit and the clear, on one line. The chip row sits under
+   it and is unchanged. `.unip-tools` is a <form> now rather than a <div>,
+   which changes nothing about how it lays out but does mean Enter works. */
+.unip-searchrow {
+  display: flex; flex-wrap: wrap; align-items: stretch; gap: 0.6rem;
+}
+.unip-searchrow .unip-search { flex: 1 1 18rem; margin: 0; }
+/* Filled, because it is the one control in the row that acts. It is
+   deliberately quiet all the same — the results are already live, so this is
+   a confirmation rather than the thing that produces them. */
+.unip-searchgo {
+  flex: none; padding: 0 1.4rem;
+  font: inherit; font-size: 0.92rem; font-weight: 700;
+  color: #fff; background: var(--color-hero-ink);
+  border: 1px solid var(--color-hero-ink); border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+.unip-searchgo:hover { background: #0f1d47; }
+.unip-searchgo:focus-visible {
+  outline: 2px solid var(--color-hero-red); outline-offset: 2px;
+}
+.unip-clear {
+  flex: none; padding: 0 1rem;
+  font: inherit; font-size: 0.9rem; font-weight: 600;
+  color: var(--color-muted); background: transparent;
+  border: 1px solid var(--color-border); border-radius: 10px;
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+.unip-clear:hover {
+  color: var(--color-hero-red); border-color: var(--color-hero-red);
+}
+/* Nothing on the wall yet. Sized like body copy rather than like an error,
+   because it is not one — the section keeps its promises list underneath. */
+.unip-empty {
+  max-width: 60ch; margin-top: 1rem;
+  color: var(--color-muted); line-height: 1.7;
+}
+.unip-empty a {
+  color: var(--color-hero-red);
+  text-decoration: underline; text-underline-offset: 3px;
+}
+
+/* ============================================================
+   ONE INSTITUTION'S PAGE (pages/UniversityDetail.tsx)
+
+   NO HERO PHOTOGRAPH, and that is the constraint the whole
+   layout is built around: the office adds partners without a
+   designer in the room, and the only image any record is
+   guaranteed is a logo on a white ground. A page that opened
+   on a full-bleed picture would need one supplied per partner
+   and would look broken the moment somebody added the eleventh
+   without one.
+
+   So the mark carries the top of the page beside the name, and
+   everything below it is type. Every block renders only if it
+   has something in it — see the note in the component.
+   ============================================================ */
+
+.uni { color: var(--color-text); }
+
+.uni-head {
+  padding: clamp(2.5rem, 5vw, 4rem) 0 clamp(2rem, 4vw, 3rem);
+  border-bottom: 1px solid rgba(23, 39, 92, 0.09);
+}
+.uni-crumb {
+  margin-bottom: 1.5rem;
+  font-size: 0.76rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.16em;
+}
+.uni-crumb a { color: var(--color-muted); }
+.uni-crumb a:hover { color: var(--color-hero-red); }
+
+.uni-id {
+  display: flex; align-items: center; gap: clamp(1.25rem, 3vw, 2.25rem);
+  flex-wrap: wrap;
+}
+/* The crest keeps its own white card, exactly as on the wall — a logo
+   reproduced on a tinted ground is somebody's brand guideline broken, and
+   these are other people's marks. */
+.uni-mark {
+  flex: none;
+  display: grid; place-items: center;
+  width: clamp(96px, 14vw, 132px); height: clamp(96px, 14vw, 132px);
+  padding: 0.9rem;
+  background: #fff;
+  border: 1px solid var(--color-border); border-radius: 16px;
+}
+.uni-mark img { max-width: 100%; max-height: 100%; object-fit: contain; }
+
+.uni-head h1 {
+  color: var(--color-hero-ink);
+  font-size: clamp(1.9rem, 4.5vw, 3.25rem);
+  line-height: 1.05; letter-spacing: -0.04em;
+  margin-bottom: 0.35rem; max-width: 18ch;
+  text-wrap: balance;
+}
+.uni-place {
+  color: var(--color-muted); font-size: 1.02rem;
+}
+.uni-head-actions {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 1.75rem;
+  margin-top: clamp(1.5rem, 3vw, 2.25rem);
+}
+
+/* ---- the facts rail ----
+   A definition list rather than a table: these are three or four labelled
+   values, and a table would draw a grid around a paragraph's worth of
+   content. Auto-fit, so a record with only a location does not leave two
+   empty columns beside it. */
+.uni-facts-section { padding-block: clamp(2rem, 4vw, 3rem); }
+.uni-facts {
+  display: grid; gap: 1.75rem 2.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+}
+.uni-fact dt {
+  font-size: 0.74rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.15em;
+  color: var(--color-muted); margin-bottom: 0.55rem;
+}
+.uni-fact dd {
+  margin: 0; color: var(--color-hero-ink); font-size: 1.05rem;
+}
+.uni-fact dd a {
+  color: var(--color-hero-red);
+  text-decoration: underline; text-underline-offset: 3px;
+  overflow-wrap: anywhere;
+}
+/* Months as quiet pills. Deliberately not the navy of the filter chips on
+   the wall — these are facts, not controls, and anything that looks
+   pressable here would be a lie. */
+.uni-intakes {
+  list-style: none; display: flex; flex-wrap: wrap; gap: 0.45rem;
+}
+.uni-intakes li {
+  padding: 0.3rem 0.75rem; border-radius: 999px;
+  background: var(--color-surface); border: 1px solid var(--color-border);
+  font-size: 0.88rem; font-weight: 600; color: var(--color-hero-ink);
+}
+
+.uni-h2 { max-width: 24ch; }
+
+/* ---- the links the university supplied ---- */
+.uni-links {
+  list-style: none;
+  display: grid; gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+}
+.uni-links a {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 1rem; padding: 1.05rem 1.25rem;
+  background: #fff;
+  border: 1px solid var(--color-border); border-radius: 12px;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+.uni-links a:hover {
+  border-color: rgba(23, 39, 92, 0.3); transform: translateY(-2px);
+}
+.uni-link-label {
+  font-family: var(--font-display); font-weight: 700;
+  color: var(--color-hero-ink);
+}
+.uni-link-go { flex: none; color: var(--color-hero-red); transition: transform 0.2s ease; }
+.uni-links a:hover .uni-link-go { transform: translateX(4px); }
+
+.uni-partnership .uni-back { margin-top: 2rem; }
+.uni-back {
+  display: inline-flex; align-items: center; gap: 0.8rem;
+  font-size: 0.78rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.14em;
+  color: var(--color-hero-red);
+}
+.uni-back svg { transition: transform 0.2s ease; }
+.uni-back:hover svg { transform: translateX(5px); }
+
+/* Loading, and the "no such university" page. Both hold the page open so
+   the footer does not ride up under the navbar on an otherwise empty view. */
+.uni-missing {
+  padding: clamp(4rem, 12vh, 8rem) 1.5rem;
+  min-height: 42vh;
+}
+.uni-missing h1 {
+  color: var(--color-hero-ink);
+  font-size: clamp(1.8rem, 4vw, 2.75rem); letter-spacing: -0.03em;
+  margin-bottom: 0.85rem;
+}
+.uni-missing p { color: var(--color-muted); max-width: 52ch; margin-bottom: 1.75rem; }
+
+@media (prefers-reduced-motion: reduce) {
+  .uni-links a, .uni-link-go, .uni-back svg,
+  .unip-searchgo, .unip-clear { transition: none; }
+  .uni-links a:hover { transform: none; }
+  .uni-links a:hover .uni-link-go, .uni-back:hover svg { transform: none; }
+}
+
+/* ============================================================
+   THE ADMIN PANEL (pages/admin/UniversitiesPanel.tsx)
+
+   Borrows the staff panel's form and list wholesale — .hap-,
+   .ppl- — so the two screens are the same thing to learn.
+   Only the three fields that have no equivalent over there
+   need anything of their own.
+   ============================================================ */
+
+.uni-adm-block { display: grid; gap: 0.6rem; }
+
+/* Twelve months as a wrapping row of toggles. Three letters each, because
+   the full names wrap to three lines on a narrow admin column and the
+   abbreviation is unambiguous. */
+.uni-adm-months { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.uni-adm-months button {
+  padding: 0.4rem 0.7rem; min-width: 3.4rem;
+  font: inherit; font-size: 0.85rem; font-weight: 600;
+  color: var(--color-muted); background: #fff;
+  border: 1px solid var(--color-border); border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.uni-adm-months button:hover { border-color: var(--color-hero-ink); }
+.uni-adm-months button.is-on {
+  color: #fff;
+  background: var(--color-hero-ink); border-color: var(--color-hero-ink);
+}
+
+/* A link row: label, address, remove. The address takes the slack because
+   it is the long one. */
+.uni-adm-link {
+  display: grid; gap: 0.5rem; align-items: center;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) auto;
+}
+@media (max-width: 700px) {
+  .uni-adm-link { grid-template-columns: minmax(0, 1fr) auto; }
+  .uni-adm-link > :nth-child(2) { grid-column: 1 / -1; order: 1; }
+  .uni-adm-link > :nth-child(3) { order: 2; }
+}
+.uni-adm-none { margin: 0 0 0.25rem; }
+
+/* The logo sits on white and is contained, not cropped — a crest cropped to
+   fill a square is a mangled trademark. Overrides .ppl-thumb, which is a
+   round photograph of a person. */
+.uni-adm-thumb {
+  border-radius: 10px; background: #fff;
+  border: 1px solid var(--color-border);
+}
+.uni-adm-thumb img {
+  width: 100%; height: 100%; object-fit: contain; border-radius: 0;
+  padding: 0.3rem;
+}
+
+.uni-adm-meta {
+  display: block; margin-top: 0.2rem;
+  font-size: 0.8rem; color: var(--color-muted);
+}
+/* Says what is incomplete without shouting about it: a partner with no
+   country still shows on the wall, it is just missing from the filters. */
+.uni-adm-warn {
+  margin-bottom: 1rem; padding: 0.75rem 1rem;
+  background: var(--color-surface); border-left: 3px solid var(--color-hero-red);
+  border-radius: 0 8px 8px 0;
+}

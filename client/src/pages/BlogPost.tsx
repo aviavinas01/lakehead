@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import api, { getErrorMessage } from "../api/client";
 import { mediaSrc } from "../api/media";
@@ -16,9 +16,9 @@ import HelpVideo from "../components/HelpVideo";
  *
  * WHAT AN ARTICLE PAGE OWES A READER, in the order it is provided here:
  * whether this is worth their time (the reading estimate, before the first
- * paragraph); where they are in it (the progress bar under the header); a
- * measure they can actually read (the column is capped in `ch`, not in
- * pixels, so it holds ~68 characters at every size); a way to pass it on
+ * paragraph); a measure they can actually read (the column is capped in
+ * `ch`, not in pixels, so it holds ~68 characters at every size); a way to
+ * pass it on
  * (share, including a copy-link that confirms it worked); and somewhere to
  * go at the end (related posts, chosen by shared tag).
  *
@@ -110,8 +110,6 @@ export default function BlogPost() {
   const [related, setRelated] = useState<PostSummary[]>([]);
   const [error, setError] = useState("");
 
-  const bar = useRef<HTMLSpanElement>(null);
-  const body = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!slug) return;
@@ -169,39 +167,6 @@ export default function BlogPost() {
     };
   }, [post]);
 
-  /* Reading progress across the article body only — measuring the whole
-     document would have the bar full while the reader is still in the
-     related posts, and half-full before the first paragraph. Written
-     straight to the node on an rAF so scrolling never re-renders. */
-  useEffect(() => {
-    if (!post) return;
-    let frame = 0;
-
-    const apply = () => {
-      frame = 0;
-      const el = body.current;
-      const node = bar.current;
-      if (!el || !node) return;
-      const rect = el.getBoundingClientRect();
-      const scrollable = rect.height - window.innerHeight;
-      const done = scrollable > 0 ? -rect.top / scrollable : rect.top <= 0 ? 1 : 0;
-      node.style.transform = `scaleX(${Math.min(1, Math.max(0, done))})`;
-    };
-
-    const onScroll = () => {
-      if (!frame) frame = window.requestAnimationFrame(apply);
-    };
-
-    apply();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll, { passive: true });
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
-      if (frame) window.cancelAnimationFrame(frame);
-    };
-  }, [post]);
-
   const rendered = useMemo(
     () => (post ? renderArticle(post.content) : null),
     [post]
@@ -232,10 +197,6 @@ export default function BlogPost() {
 
   return (
     <article className="dpage dpage-ruled art">
-      <div className="art-progress" aria-hidden="true">
-        <span ref={bar} />
-      </div>
-
       <header className={`art-head${cover ? " has-cover" : ""}`}>
         {cover ? (
           <div className="art-cover">
@@ -264,7 +225,7 @@ export default function BlogPost() {
         </div>
       </header>
 
-      <div className="container art-body" ref={body}>
+      <div className="container art-body">
         <div className="art-prose">{rendered}</div>
 
         {post.tags?.length ? (

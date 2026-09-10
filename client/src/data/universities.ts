@@ -1,65 +1,24 @@
-/**
- * The partner institutions, and the destinations they sit in.
- *
- * Read by two places: the rotating logo grid on the home page
- * (components/UniversityPartners.tsx) and the partners page
- * (pages/UniversityPartners.tsx). Keeping one list means adding a partner is
- * one line, in one file, and both appear.
- *
- * TO ADD A PARTNER: drop the logo into client/public/universities/ and add
- * an entry below. Only `id`, `name` and `logo` are required — every other
- * field is optional and the page simply leaves out what is missing, so a
- * partner can go up the moment the logo arrives and be filled in later. A
- * logo file that does not exist falls back to the institution's name rather
- * than a broken image.
- *
- * NAMES ARE STILL PLACEHOLDERS. The ten logos below were supplied without
- * names attached, so they carry "University 1"…"University 10". Replace each
- * `name` with the real institution, and set `country` while you are there —
- * the country filter, the counts on the destination slides and the "six
- * countries" figure are all derived from that field, so they light up on
- * their own as it gets filled in. Nothing here asserts a country we have not
- * been told, which is why those counts read as zero today rather than wrong.
- */
-
-export interface University {
-  id: string;
-  name: string;
-  /** Path under client/public. */
-  logo: string;
-  /** Must match a `name` in DESTINATIONS to be counted and filtered. */
-  country?: string;
-  city?: string;
-  /** The institution's own site. */
-  url?: string;
-  /** "Undergraduate", "Master's", "Pathway", "Research" … */
-  levels?: string[];
-  /** One line about why this partnership is useful to a student. */
-  note?: string;
-}
-
-export const UNIVERSITIES: University[] = [
-  { id: "uni-1", name: "University 1", logo: "/universities/uni-1.jpeg" },
-  { id: "uni-2", name: "University 2", logo: "/universities/uni-2.jpeg" },
-  { id: "uni-3", name: "University 3", logo: "/universities/uni-3.jpeg" },
-  { id: "uni-4", name: "University 4", logo: "/universities/uni-4.jpeg" },
-  { id: "uni-5", name: "University 5", logo: "/universities/uni-5.jpeg" },
-  { id: "uni-6", name: "University 6", logo: "/universities/uni-6.jpeg" },
-  { id: "uni-7", name: "University 7", logo: "/universities/uni-7.jpeg" },
-  { id: "uni-8", name: "University 8", logo: "/universities/uni-8.jpeg" },
-  { id: "uni-9", name: "University 9", logo: "/universities/uni-9.jpeg" },
-  { id: "uni-10", name: "University 10", logo: "/universities/uni-10.jpeg" },
-];
+import type { University } from "../types/api";
 
 /**
- * The destinations the slideshow runs through.
+ * The destinations the partner slideshow runs through, and the two helpers
+ * that count partners across them.
  *
- * Photographs and blurbs are the ones the globe on the home page already
- * uses (components/Destinations.tsx), deliberately — the same country should
- * not be described two different ways on two pages. Order is the order the
- * slides run in; longitude order is what the globe uses and it reads well
- * here too, west to east.
+ * ------------------------------------------------------------------
+ * THE PARTNER LIST ITSELF IS NO LONGER HERE. It used to be: ten hard-coded
+ * entries that a developer edited and a deploy published. Partners are added
+ * several times a year by the office, so they are a collection now, managed
+ * in the admin at /admin/universities and fetched from /universities. See
+ * server/src/models/University.ts.
+ *
+ * WHAT STAYS IS THE PHOTOGRAPHY. A destination slide is a picture, a blurb
+ * and a link to that country's guide — none of which the office edits, all
+ * of which are shared with the globe on the home page, and none of which
+ * belong in a database keyed to individual institutions. The two are joined
+ * by the `country` field on each university matching a `name` below.
+ * ------------------------------------------------------------------
  */
+
 export interface PartnerDestination {
   name: string;
   /** Photograph under client/public. */
@@ -112,16 +71,31 @@ export const DESTINATIONS: PartnerDestination[] = [
   },
 ];
 
-/** How many partners we hold in each destination. Derived, never asserted. */
-export function countByCountry(): Record<string, number> {
-  return UNIVERSITIES.reduce<Record<string, number>>((acc, u) => {
+/**
+ * How many partners we hold in each destination.
+ *
+ * DERIVED, NEVER ASSERTED, and that rule is why this takes the list rather
+ * than reading a global. A partner with no `country` set contributes to no
+ * count at all, so a tally is only ever as big as the records that actually
+ * name a place — the page shows nothing rather than a confident zero, and
+ * the numbers appear on their own as the field gets filled in.
+ */
+export function countByCountry(
+  universities: University[]
+): Record<string, number> {
+  return universities.reduce<Record<string, number>>((acc, u) => {
     if (u.country) acc[u.country] = (acc[u.country] ?? 0) + 1;
     return acc;
   }, {});
 }
 
-/** Only the countries that actually have a partner attached to them. */
-export function countriesWithPartners(): string[] {
-  const counts = countByCountry();
+/**
+ * Only the destinations that actually have a partner attached.
+ *
+ * In DESTINATIONS order rather than alphabetically, so the filter chips run
+ * in the same sequence as the slides above them.
+ */
+export function countriesWithPartners(universities: University[]): string[] {
+  const counts = countByCountry(universities);
   return DESTINATIONS.map((d) => d.name).filter((n) => counts[n] > 0);
 }

@@ -51,10 +51,13 @@ const DESTINATIONS = [
   { name: "Australia", to: "/study-in-australia", image: "/australia.jpg", blurb: "Strong post-study work rights in every state." },
   { name: "New Zealand", to: "/study-in-new-zealand", image: "/newzealand.jpg", blurb: "Small classes by law, and up to three years of work rights after." },
   { name: "South Korea", to: "/study-in-south-korea", image: "/southkorea.jpg", blurb: "Technology, research, and a growing number of English-taught programmes." },
-  /* Both are drawn by `Shot`, which renders a tinted panel rather than a
-     broken image while /japan.jpg and /europe.jpg are still to be supplied. */
-  { name: "Japan", to: "/study-in-japan", image: "/japan.jpg", blurb: "Deep research culture, a real scholarship route, and more English-taught degrees than most expect." },
-  { name: "Europe", to: "/study-in-europe", image: "/europe.jpg", blurb: "Comparable degrees across thirty systems — and tuition that ranges from nothing to a great deal." },
+  /* EUROPE IS A REGION, so there is no one skyline that stands for it the
+     way Sydney stands for Australia. Germany is the stand-in: it is the
+     European destination most students arriving on this page actually mean,
+     and it is the one photograph we hold. Swap it for a /europe.jpg the day
+     somebody supplies one — the guide's own hero reads from the same file,
+     so the two want changing together. */
+  { name: "Europe", to: "/study-in-europe", image: "/germany.jpg", blurb: "Comparable degrees across thirty systems — and tuition that ranges from nothing to a great deal." },
 ];
 
 const SUPPORT = [

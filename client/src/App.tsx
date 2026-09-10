@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import Layout from "./components/Layout";
 import ScrollManager from "./components/ScrollManager";
 import HeroKnockout from "./components/HeroKnockout";
@@ -20,10 +20,10 @@ import StudyInUK from "./pages/StudyInUK";
 import StudyInUSA from "./pages/StudyInUSA";
 import StudyInNewZealand from "./pages/StudyInNewZealand";
 import StudyInSouthKorea from "./pages/StudyInSouthKorea";
-import StudyInJapan from "./pages/StudyInJapan";
 import StudyInEurope from "./pages/StudyInEurope";
 import Testimonials from "./pages/Testimonials";
 import UniversityPartners from "./pages/UniversityPartners";
+import UniversityDetail from "./pages/UniversityDetail";
 import Gallery from "./pages/Gallery";
 import Events from "./pages/Events";
 import News from "./pages/News";
@@ -31,6 +31,16 @@ import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
 import Director from "./pages/Director";
 import Contact from "./pages/Contact";
+import Resources from "./pages/Resources";
+/* The five calculators behind /resources. One file each, and one route
+   each below rather than a /resources/:slug that dispatches — a calculator
+   is a page with its own inputs and its own copy, and a shared route would
+   only push the dispatch one level down into a switch. */
+import IeltsBandScore from "./pages/calculators/IeltsBandScore";
+import PteScore from "./pages/calculators/PteScore";
+import NebGpa from "./pages/calculators/NebGpa";
+import SeeGpa from "./pages/calculators/SeeGpa";
+import GpaToPercentage from "./pages/calculators/GpaToPercentage";
 import Login from "./pages/admin/Login";
 import Dashboard from "./pages/admin/Dashboard";
 import Posts from "./pages/admin/Posts";
@@ -39,6 +49,7 @@ import Inquiries from "./pages/admin/Inquiries";
 import Media from "./pages/admin/Media";
 import Happenings from "./pages/admin/Happenings";
 import People from "./pages/admin/People";
+import Universities from "./pages/admin/Universities";
 
 export default function App() {
   return (
@@ -68,19 +79,52 @@ export default function App() {
           <Route path="/study-in-usa" element={<StudyInUSA />} />
           <Route path="/study-in-new-zealand" element={<StudyInNewZealand />} />
           <Route path="/study-in-south-korea" element={<StudyInSouthKorea />} />
-          <Route path="/study-in-japan" element={<StudyInJapan />} />
           <Route path="/study-in-europe" element={<StudyInEurope />} />
           {/* The director's message sits under /about because it is part of
               the about cluster, not a section of its own. */}
           <Route path="/about/director" element={<Director />} />
           <Route path="/testimonials" element={<Testimonials />} />
           <Route path="/university-partners" element={<UniversityPartners />} />
+          {/* One page per partner, behind its logo on the wall above.
+              The slug is built from the name by the server — see
+              universityService.freeSlug for why it is readable rather
+              than suffixed the way a post's is. */}
+          <Route
+            path="/university-partners/:slug"
+            element={<UniversityDetail />}
+          />
           <Route path="/gallery" element={<Gallery />} />
           <Route path="/events" element={<Events />} />
           <Route path="/news" element={<News />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/blog/:slug" element={<BlogPost />} />
           <Route path="/contact" element={<Contact />} />
+          {/* Student resources. The hub is what the navbar's "Resources"
+              item finally points at; the five below are the calculators,
+              named in data/calculators.ts and routed here. Keep the two in
+              step — an entry there with no route is a dead link in the
+              navbar, on the hub and on the other four pages at once. */}
+          <Route path="/resources" element={<Resources />} />
+          <Route
+            path="/resources/ielts-band-score-calculator"
+            element={<IeltsBandScore />}
+          />
+          <Route
+            path="/resources/pte-score-calculator"
+            element={<PteScore />}
+          />
+          <Route
+            path="/resources/neb-to-gpa-calculator"
+            element={<NebGpa />}
+          />
+          <Route
+            path="/resources/see-to-gpa-calculator"
+            element={<SeeGpa />}
+          />
+          <Route
+            path="/resources/gpa-to-percentage-calculator"
+            element={<GpaToPercentage />}
+          />
         </Route>
 
         <Route path="/admin/login" element={<Login />} />
@@ -100,9 +144,22 @@ export default function App() {
           {/* One section, two tabs — as with media and events above. */}
           <Route path="/admin/people" element={<People />} />
           <Route path="/admin/people/staff" element={<People />} />
+          <Route path="/admin/universities" element={<Universities />} />
           <Route path="/admin/inquiries" element={<Inquiries />} />
         </Route>
 
+
+        {/* GONE, BUT NOT DEAD. /study-in-japan was a live page with a guide
+            behind it, so it is in search results, in whatever anybody
+            bookmarked and quite possibly in print. The catch-all below
+            renders outside the layout — no navigation, no footer, nothing to
+            click — which is a poor thing to hand somebody following an old
+            link, so this sends them to the destinations hub instead.
+            `replace` keeps the dead address out of the back button. */}
+        <Route
+          path="/study-in-japan"
+          element={<Navigate to="/study-abroad" replace />}
+        />
 
         <Route
           path="*"
