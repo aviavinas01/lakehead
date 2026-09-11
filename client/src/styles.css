@@ -2116,7 +2116,7 @@ a.greview-author:hover { text-decoration: underline; }
 /* ---- the admin screen (pages/admin/TikTokClips.tsx) ----
    The public shelves are Filmstrip now (.vt-*), shared with the YouTube
    stories — the standalone .ttk-* row this file used to carry went with
-   components/TikTokRow.tsx. */
+   pages/admin/TikTokClips.tsx, which is the screen this styles. */
 .tta-add { display: flex; gap: 0.75rem; margin: 1.5rem 0 1rem; flex-wrap: wrap; }
 .tta-add input {
   flex: 1 1 26rem; padding: 0.7rem 0.9rem;
@@ -8791,7 +8791,6 @@ a.unip-card:focus-visible {
 .alog-go:disabled { opacity: 0.6; cursor: not-allowed; }
 
 .alog-error { margin: 0; text-align: center; font-size: 0.85rem; color: var(--color-danger); }
-.alog-hint { margin: 0; text-align: center; font-size: 0.78rem; color: var(--color-muted); }
 /* Said BEFORE anything is typed, and about the door rather than about
    anything the reader got wrong — hence the neutral tint, not the danger
    colour. See Login.tsx. */
@@ -10445,4 +10444,278 @@ a.unip-card:focus-visible {
      its own rather than a two-column definition list. */
   .ed-help { grid-template-columns: 1fr; gap: 0.35rem; }
   .ed-help dt { min-width: 0; }
+}
+
+/* ============================================================
+   THE CRASH PAGE (components/layout/ErrorBoundary.tsx).
+
+   Seen only when a render error has taken the application down,
+   which means it must depend on as little as possible: no
+   navbar, no footer, no fetched anything. Tokens and one layout,
+   so it renders correctly even though everything around it has
+   just failed.
+   ============================================================ */
+.crashed {
+  min-height: 100vh;
+  display: grid; place-items: center;
+  background: var(--color-bg); color: var(--color-text);
+  padding: 2rem 0;
+}
+.crashed-inner { max-width: 52ch; }
+.crashed-eyebrow {
+  margin-bottom: 1rem;
+  font-size: 0.76rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.16em;
+  color: var(--color-hero-red);
+}
+.crashed h1 {
+  color: var(--color-hero-ink);
+  font-size: clamp(1.9rem, 5vw, 3rem);
+  line-height: 1.1; letter-spacing: -0.03em;
+  margin-bottom: 1.1rem;
+}
+.crashed-lead {
+  color: var(--color-muted); font-size: 1.05rem; line-height: 1.7;
+  margin-bottom: 2rem;
+}
+.crashed-actions {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 1.75rem;
+}
+.crashed-actions .btn-outline { cursor: pointer; font: inherit; font-size: 0.95rem; }
+.crashed-link {
+  font-size: 0.9rem; font-weight: 600; color: var(--color-hero-ink);
+  text-decoration: underline; text-underline-offset: 4px;
+}
+.crashed-link:hover { color: var(--color-hero-red); }
+
+/* ============================================================
+   DARK MODE — THE ADMIN ONLY.
+
+   Everything in this block is behind
+   `html[data-admin-theme="dark"]`, and that attribute is put on
+   <html> by a layout route that wraps only the admin routes —
+   so it exists while an admin page is mounted and is removed the
+   instant one is not. See context/AdminTheme.tsx. The public
+   site cannot reach any of this, and nothing above this block
+   was changed to make it work: every rule here is additive.
+
+   THE TOKENS DO MOST OF THE WORK. The admin stylesheet uses
+   var(--token) in 342 places and a hardcoded colour in 62, so
+   redefining the neutrals below flips almost everything. What
+   is left is the handful of rules that painted a light colour
+   directly, and they are overridden one by one underneath.
+
+   --color-hero-ink IS FLIPPED TO A LIGHT COLOUR. It is the
+   admin's heading and body ink, used as text far more often
+   than as a background — so flipping it fixes forty rules and
+   breaks four, and those four are re-stated explicitly below
+   against --adm-accent. The other way round would mean editing
+   every heading rule in the file.
+   ============================================================ */
+
+html[data-admin-theme="dark"] {
+  /* Not black: a very dark blue-grey, so the navy brand colours still read
+     as belonging to the same family rather than floating on a void. */
+  --color-bg: #12151c;
+  --color-surface: #1a1e27;
+  --color-text: #e4e7ef;
+  --color-muted: #98a0b3;
+  --color-border: #2a303d;
+
+  /* Now a light ink. The navy it used to be lives on as --adm-accent. */
+  --color-hero-ink: #e8ecf6;
+
+  /* Lifted off the light-mode values: the brand red and the status colours
+     are chosen to carry on white and go muddy on a dark ground. */
+  --color-hero-red: #ff7a4d;
+  --color-danger: #ff6b5e;
+  --color-success: #4cc38a;
+
+  /* The navy, kept for the few places it was a background. */
+  --adm-accent: #22305c;
+  --adm-accent-hover: #2c3d72;
+  /* One raised surface for cards and bars, so panels separate from the page
+     without a border doing all the work. */
+  --adm-raised: #1e232e;
+}
+
+/* ---- the four rules that used the navy as a GROUND ----
+   Re-stated rather than left to the flipped token, which would have made
+   them a light background with white text on it. */
+html[data-admin-theme="dark"] .adm-btn,
+html[data-admin-theme="dark"] .adm-who,
+html[data-admin-theme="dark"] .adm-main .tta-add button,
+html[data-admin-theme="dark"] .hap-form-actions button,
+html[data-admin-theme="dark"] .hap-actions button,
+html[data-admin-theme="dark"] .hap-image-buttons button,
+html[data-admin-theme="dark"] .yta-row button {
+  background: var(--adm-accent);
+  color: #fff;
+}
+html[data-admin-theme="dark"] .adm-btn:hover,
+html[data-admin-theme="dark"] .adm-who:hover {
+  background: var(--adm-accent-hover);
+}
+
+/* The dashboard's hero band keeps its own deeper ground so it still reads as
+   a band rather than merging into the page behind it. */
+html[data-admin-theme="dark"] .adm-hero {
+  background: linear-gradient(135deg, #1b2647 0%, #141a2c 100%);
+}
+
+/* ---- page and chrome ---- */
+html[data-admin-theme="dark"] body { background: var(--color-bg); }
+html[data-admin-theme="dark"] .adm { background: var(--color-bg); }
+html[data-admin-theme="dark"] .adm-bar {
+  background: rgba(18, 21, 28, 0.88);
+  border-bottom-color: var(--color-border);
+}
+html[data-admin-theme="dark"] .adm-pills { background: var(--adm-raised); }
+html[data-admin-theme="dark"] .adm-pills a.is-on {
+  background: var(--color-surface);
+  box-shadow: none;
+}
+html[data-admin-theme="dark"] .adm-ghost:hover { background: var(--adm-raised); }
+html[data-admin-theme="dark"] .adm-card { background: var(--adm-raised); }
+
+/* The logo is a red PNG with transparency. On a dark ground it keeps its
+   colour, which is correct — the mark is the mark — but it gains the same
+   soft halo the public navbar gives it over photographs. */
+html[data-admin-theme="dark"] .adm-mark img {
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.5));
+}
+
+/* ---- the tinted status colours ----
+   Light pastels behind dark text in light mode; here the same idea inverted,
+   so a badge still reads at a glance without shouting. */
+html[data-admin-theme="dark"] .adm-oldest,
+html[data-admin-theme="dark"] .adm-main .badge-new {
+  background: rgba(255, 122, 77, 0.16);
+  color: #ffb59a;
+}
+html[data-admin-theme="dark"] .adm-oldest-clear,
+html[data-admin-theme="dark"] .adm-main .badge-closed,
+html[data-admin-theme="dark"] .yta-done {
+  background: rgba(76, 195, 138, 0.16);
+  color: #7fd6ab;
+}
+html[data-admin-theme="dark"] .adm-main .badge-contacted {
+  background: rgba(232, 236, 246, 0.1);
+  color: var(--color-text);
+}
+html[data-admin-theme="dark"] .badge-published,
+html[data-admin-theme="dark"] .badge-contacted {
+  background: rgba(76, 195, 138, 0.16);
+  color: #7fd6ab;
+}
+html[data-admin-theme="dark"] .badge-draft,
+html[data-admin-theme="dark"] .badge-new {
+  background: rgba(240, 190, 90, 0.16);
+  color: #e8c37a;
+}
+html[data-admin-theme="dark"] .badge-closed {
+  background: rgba(232, 236, 246, 0.08);
+  color: var(--color-muted);
+}
+
+/* ---- tables and rows ---- */
+html[data-admin-theme="dark"] .adm-main .admin-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+html[data-admin-theme="dark"] .adm-main .inquiry-card > p:not([class]) {
+  background: var(--color-surface);
+}
+
+/* ---- form controls ----
+   Inputs inherit the tokens for their border, but their background is the
+   browser's default white until told otherwise. */
+html[data-admin-theme="dark"] input,
+html[data-admin-theme="dark"] select,
+html[data-admin-theme="dark"] textarea {
+  background: var(--color-surface);
+  color: var(--color-text);
+  border-color: var(--color-border);
+}
+html[data-admin-theme="dark"] input::placeholder,
+html[data-admin-theme="dark"] textarea::placeholder {
+  color: var(--color-muted);
+}
+/* Native widgets — the date picker's icon, the select arrow — are drawn by
+   the browser and stay black on a dark field without this. */
+html[data-admin-theme="dark"] input,
+html[data-admin-theme="dark"] select,
+html[data-admin-theme="dark"] textarea {
+  color-scheme: dark;
+}
+
+/* ---- the sign-in page ---- */
+html[data-admin-theme="dark"] .alog { background: var(--color-bg); }
+html[data-admin-theme="dark"] .alog-panel { background: var(--adm-raised); }
+
+/* ---- the editor ---- */
+html[data-admin-theme="dark"] .ed { background: var(--color-bg); }
+html[data-admin-theme="dark"] .ed-toolbar button:hover:not(:disabled) {
+  background: var(--color-surface);
+}
+
+/* THE PREVIEW PANE STAYS LIGHT, deliberately and alone.
+   It renders the article with the PUBLIC site's styles because its entire
+   purpose is to show what a reader will get — and the public site has no
+   dark mode. Darkening it would make it a faithful preview of a page that
+   does not exist. Pinned to explicit values rather than left to the tokens,
+   which are dark by the time they reach here.
+
+   `color-scheme: light` is reset too, or the browser would draw any control
+   inside the preview for a dark ground. */
+html[data-admin-theme="dark"] .ed-preview {
+  color-scheme: light;
+  background: #ffffff;
+  border-radius: 12px;
+  /* Framed, so it reads as "this is the page" rather than as a patch the
+     theme failed to cover. */
+  box-shadow: 0 0 0 1px var(--color-border);
+}
+html[data-admin-theme="dark"] .ed-preview,
+html[data-admin-theme="dark"] .ed-preview * {
+  --color-text: #26262e;
+  --color-muted: #71717a;
+  --color-bg: #ffffff;
+  --color-surface: #f5f5f6;
+  --color-border: #e4e4e7;
+  --color-hero-ink: #17275c;
+  --color-hero-red: #b93815;
+}
+
+/* ---- the theme toggle itself ---- */
+.adm-theme {
+  display: inline-grid; place-items: center;
+  width: 34px; height: 34px; padding: 0;
+  border: none; border-radius: 50%;
+  background: transparent; color: var(--color-muted);
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+.adm-theme:hover { background: #eef1f6; color: var(--color-hero-ink); }
+html[data-admin-theme="dark"] .adm-theme:hover { background: var(--adm-raised); }
+.adm-theme:focus-visible {
+  outline: 2px solid var(--color-hero-red); outline-offset: 2px;
+}
+/* On the sign-in page there is no bar to sit in, so it takes the top-right
+   corner OF THE FORM PANEL rather than of the page — the film fills the
+   right-hand column, and a control pinned to the page corner would sit on
+   top of it. `.alog-panel` is already positioned, so this needs nothing
+   added to it.
+
+   Below 900px the film is hidden and the panel is the whole screen, so the
+   same rule puts it in the screen's top-right, clear of the brand mark which
+   sits top-left. */
+.alog-theme {
+  position: absolute;
+  top: calc(1.25rem + env(safe-area-inset-top));
+  right: 1.25rem;
+  z-index: 5;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .adm-theme { transition: none; }
 }

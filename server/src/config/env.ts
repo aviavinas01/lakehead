@@ -18,9 +18,38 @@ const envSchema = z.object({
    * /api/health reports the resolved path and whether it is writable.
    */
   UPLOADS_DIR: z.string().min(1).optional(),
+  /**
+   * Cloudinary, for uploaded media.
+   *
+   * ALL THREE OR NONE. With them set, uploads go to Cloudinary and are
+   * CDN-served; with them unset the server writes to UPLOADS_DIR exactly as
+   * it always has. Half-configured is treated as unconfigured rather than as
+   * an error — see usingCloudinary in services/storage.service — so a
+   * partially-filled dashboard degrades to the local disk instead of
+   * refusing every upload.
+   */
+  CLOUDINARY_CLOUD_NAME: z.string().min(1).optional(),
+  CLOUDINARY_API_KEY: z.string().min(1).optional(),
+  CLOUDINARY_API_SECRET: z.string().min(1).optional(),
   MONGO_URI: z.string().min(1, "MONGO_URI is required"),
   JWT_SECRET: z.string().min(32, "JWT_SECRET must be at least 32 characters"),
   JWT_EXPIRES_IN: z.string().default("7d"),
+  /**
+   * A separate secret for the footer gate's short-lived pass.
+   *
+   * OPTIONAL, falling back to JWT_SECRET so nothing breaks if it is unset —
+   * which is how it shipped, and is still safe: a gate pass carries no `id`,
+   * so `protect` looks up `User.findById(undefined)`, finds nothing, and
+   * refuses. There is no escalation path either way.
+   *
+   * Setting it is defence in depth. Two tokens signed with one key means one
+   * leaked key is two compromises, and the gate token is the one handed out
+   * to anybody who types a code into a public page. Set it and the two
+   * become independent.
+   *
+   * Changing it invalidates outstanding passes, which live ten minutes.
+   */
+  GATE_SECRET: z.string().min(32).optional(),
   CLIENT_URL: z.string().url(),
   ADMIN_EMAIL: z.string().email(),
   ADMIN_PASSWORD: z.string().min(8),

@@ -2,6 +2,10 @@ import { createHash, timingSafeEqual } from "node:crypto";
 import type { CookieOptions, RequestHandler } from "express";
 import jwt from "jsonwebtoken";
 import { env, isProd } from "../config/env.js";
+
+/* GATE_SECRET when set, JWT_SECRET otherwise — see the note on that
+   variable. Read once: it cannot change while the process is running. */
+const PASS_SECRET = env.GATE_SECRET ?? env.JWT_SECRET;
 import { ApiError, newRef } from "../utils/ApiError.js";
 
 /**
@@ -61,7 +65,7 @@ export const codeMatches = (code: unknown): boolean =>
 
 /** Issue a pass. */
 export const grantPass = (res: import("express").Response): void => {
-  const token = jwt.sign({ gate: true }, env.JWT_SECRET, {
+  const token = jwt.sign({ gate: true }, PASS_SECRET, {
     expiresIn: Math.floor(PASS_MS / 1000),
   });
   res.cookie(COOKIE, token, passOptions);
@@ -94,7 +98,7 @@ export const requirePass: RequestHandler = (req, _res, next) => {
     return next(ApiError.unauthorized("Invalid email or password", ref));
   }
   try {
-    jwt.verify(token, env.JWT_SECRET);
+    jwt.verify(token, PASS_SECRET);
     next();
   } catch {
     const ref = newRef();

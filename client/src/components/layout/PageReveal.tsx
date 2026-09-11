@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { whenElement } from "../../lib/whenElement";
 import { useLocation } from "react-router-dom";
 import { armReveals } from "../../lib/reveal";
 
@@ -30,11 +31,19 @@ import { armReveals } from "../../lib/reveal";
 export default function PageReveal() {
   const { pathname } = useLocation();
 
-  useEffect(() => {
-    const root = document.querySelector<HTMLElement>(".dpage-ruled");
-    if (!root) return;
-    return armReveals(root, ".dpage-title, .dpage-section-lead");
-  }, [pathname]);
+  /* WAITS FOR THE PAGE rather than asking once. Route-level code splitting
+     means that on the first visit to a lazily-loaded route this effect runs
+     while the Suspense fallback is still on screen — the query would find
+     nothing and the reveal would silently never happen again on exactly the
+     pages that have one. When the element is already there, whenElement runs
+     synchronously and this behaves exactly as it did before. */
+  useEffect(
+    () =>
+      whenElement<HTMLElement>(".dpage-ruled", (root) =>
+        armReveals(root, ".dpage-title, .dpage-section-lead")
+      ),
+    [pathname]
+  );
 
   return null;
 }

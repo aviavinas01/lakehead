@@ -3,6 +3,11 @@ import fs from "node:fs";
 import { fileURLToPath } from "node:url";
 import multer from "multer";
 import { ApiError } from "../utils/ApiError.js";
+import {
+  ACCEPTED_MIMES,
+  extensionFor,
+  kindFor,
+} from "../utils/fileSignature.js";
 import { env } from "../config/env.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -60,32 +65,55 @@ export function uploadsState(): {
   return { dir: UPLOADS_DIR, exists, writable, files };
 }
 
-const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
-const VIDEO_TYPES = ["video/mp4", "video/webm", "video/quicktime"];
-
 const MAX_FILE_SIZE = 200 * 1024 * 1024; // 200 MB (videos)
 
-const storage = multer.diskStorage({
+/**
+ * WHICH STORAGE MULTER USES, decided by whether Cloudinary is configured.
+ *
+ * Memory when it is — the buffer is streamed straight up and never touches
+ * this container's filesystem, which is the whole point of moving off the
+ * disk. The 200MB cap below then bounds memory rather than bounding disk, so
+ * it is worth knowing that a large video upload is briefly held in RAM.
+ *
+ * Disk when it is not, exactly as before. Read lazily rather than imported
+ * from storage.service, because that module imports UPLOADS_DIR from this one
+ * and a static import would be a cycle.
+ */
+const cloudinaryConfigured = Boolean(
+  env.CLOUDINARY_CLOUD_NAME && env.CLOUDINARY_API_KEY && env.CLOUDINARY_API_SECRET
+);
+
+const diskStorage = multer.diskStorage({
   destination: (_req, _file, cb) => cb(null, UPLOADS_DIR),
   filename: (_req, file, cb) => {
-    const ext = path.extname(file.originalname).toLowerCase();
+    /* THE EXTENSION IS DERIVED, NOT ACCEPTED. Taking it from the original
+       filename is what let `evil.html` — declared as `image/png` — be stored
+       as a .html file and served as HTML from this origin. It now comes from
+       the type table, so a stored file can only ever carry one of the seven
+       extensions we serve. See utils/fileSignature. */
+    const ext = extensionFor(file.mimetype);
     const base = path
-      .basename(file.originalname, ext)
+      .basename(file.originalname, path.extname(file.originalname))
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .slice(0, 60);
-    cb(null, `${Date.now().toString(36)}-${base}${ext}`);
+    cb(null, `${Date.now().toString(36)}-${base || "file"}${ext}`);
   },
 });
 
 export const upload = multer({
-  storage,
+  storage: cloudinaryConfigured ? multer.memoryStorage() : diskStorage,
   limits: { fileSize: MAX_FILE_SIZE },
+  /* A first pass on the DECLARED type, which is only a claim — the multipart
+     Content-Type is written by the client. It is worth doing anyway because
+     it refuses an obviously wrong upload before a byte is written. The bytes
+     themselves are checked in storage.service, once there is a file to look
+     at. */
   fileFilter: (_req, file, cb) => {
-    if ([...IMAGE_TYPES, ...VIDEO_TYPES].includes(file.mimetype)) return cb(null, true);
+    if (ACCEPTED_MIMES.includes(file.mimetype)) return cb(null, true);
     cb(ApiError.badRequest(`Unsupported file type: ${file.mimetype}`));
   },
 });
 
 export const mediaTypeFromMime = (mimeType: string): "image" | "video" =>
-  VIDEO_TYPES.includes(mimeType) ? "video" : "image";
+  kindFor(mimeType);

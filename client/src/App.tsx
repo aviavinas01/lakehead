@@ -1,8 +1,11 @@
+import { Suspense, lazy } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import Layout from "./components/layout/Layout";
 import ScrollManager from "./components/layout/ScrollManager";
+import Loader from "./components/shared/Loader";
 import HeroKnockout from "./components/layout/HeroKnockout";
 import ProtectedRoute from "./components/layout/ProtectedRoute";
+import AdminTheme from "./context/AdminTheme";
 import Home from "./pages/Home";
 import About from "./pages/about/About";
 import Services from "./pages/services/Services";
@@ -13,14 +16,6 @@ import VisaGuidance from "./pages/services/VisaGuidance";
 import CareerCounselling from "./pages/services/CareerCounselling";
 import StudentAccommodation from "./pages/services/StudentAccommodation";
 import AdmissionGuidance from "./pages/services/AdmissionGuidance";
-import StudyAbroad from "./pages/study-abroad/StudyAbroad";
-import StudyInAustralia from "./pages/study-abroad/StudyInAustralia";
-import StudyInCanada from "./pages/study-abroad/StudyInCanada";
-import StudyInUK from "./pages/study-abroad/StudyInUK";
-import StudyInUSA from "./pages/study-abroad/StudyInUSA";
-import StudyInNewZealand from "./pages/study-abroad/StudyInNewZealand";
-import StudyInSouthKorea from "./pages/study-abroad/StudyInSouthKorea";
-import StudyInEurope from "./pages/study-abroad/StudyInEurope";
 import Testimonials from "./pages/about/Testimonials";
 import UniversityPartners from "./pages/about/UniversityPartners";
 import UniversityDetail from "./pages/about/UniversityDetail";
@@ -31,24 +26,53 @@ import Blog from "./pages/blog/Blog";
 import BlogPost from "./pages/blog/BlogPost";
 import Director from "./pages/about/Director";
 import Contact from "./pages/Contact";
-import Resources from "./pages/resources/Resources";
 /* The five calculators behind /resources. One file each, and one route
    each below rather than a /resources/:slug that dispatches — a calculator
    is a page with its own inputs and its own copy, and a shared route would
    only push the dispatch one level down into a switch. */
-import IeltsBandScore from "./pages/resources/calculators/IeltsBandScore";
-import PteScore from "./pages/resources/calculators/PteScore";
-import NebGpa from "./pages/resources/calculators/NebGpa";
-import SeeGpa from "./pages/resources/calculators/SeeGpa";
-import GpaToPercentage from "./pages/resources/calculators/GpaToPercentage";
-import Login from "./pages/admin/Login";
-import Dashboard from "./pages/admin/Dashboard";
-import Posts from "./pages/admin/Posts";
-import PostEditor from "./pages/admin/PostEditor";
-import Inquiries from "./pages/admin/Inquiries";
-import Media from "./pages/admin/Media";
-import Happenings from "./pages/admin/Happenings";
-import People from "./pages/admin/People";
+
+/**
+ * ROUTES THAT MOST VISITORS NEVER OPEN, fetched when they are.
+ *
+ * Three groups, and together roughly 40% of the source: the admin dashboard,
+ * the seven destination guides, and the calculators. Before this they were
+ * all in the single entry bundle, so somebody reading the home page on a
+ * phone downloaded the post editor and the media library to do it.
+ *
+ * WHAT THIS COST ELSEWHERE. Two effects reach into the DOM on navigation —
+ * PageReveal for `.dpage-ruled` and HeroKnockout for `.dpage-hero`, the
+ * latter on exactly these destination routes. Both asked once, which was
+ * safe only while every route was already mounted; with a chunk still in
+ * flight they would have found nothing and quietly stopped working. Both now
+ * wait — see lib/whenElement, which runs synchronously when the element is
+ * already there, so nothing about the unsplit routes changed.
+ *
+ * ScrollManager needed nothing: its restore already retries across frames
+ * for the same reason, because a page is often shorter on arrival than it is
+ * a moment later.
+ */
+const StudyAbroad = lazy(() => import("./pages/study-abroad/StudyAbroad"));
+const StudyInAustralia = lazy(() => import("./pages/study-abroad/StudyInAustralia"));
+const StudyInCanada = lazy(() => import("./pages/study-abroad/StudyInCanada"));
+const StudyInUK = lazy(() => import("./pages/study-abroad/StudyInUK"));
+const StudyInUSA = lazy(() => import("./pages/study-abroad/StudyInUSA"));
+const StudyInNewZealand = lazy(() => import("./pages/study-abroad/StudyInNewZealand"));
+const StudyInSouthKorea = lazy(() => import("./pages/study-abroad/StudyInSouthKorea"));
+const StudyInEurope = lazy(() => import("./pages/study-abroad/StudyInEurope"));
+const Resources = lazy(() => import("./pages/resources/Resources"));
+const IeltsBandScore = lazy(() => import("./pages/resources/calculators/IeltsBandScore"));
+const PteScore = lazy(() => import("./pages/resources/calculators/PteScore"));
+const NebGpa = lazy(() => import("./pages/resources/calculators/NebGpa"));
+const SeeGpa = lazy(() => import("./pages/resources/calculators/SeeGpa"));
+const GpaToPercentage = lazy(() => import("./pages/resources/calculators/GpaToPercentage"));
+const Login = lazy(() => import("./pages/admin/Login"));
+const Dashboard = lazy(() => import("./pages/admin/Dashboard"));
+const Posts = lazy(() => import("./pages/admin/Posts"));
+const PostEditor = lazy(() => import("./pages/admin/PostEditor"));
+const Inquiries = lazy(() => import("./pages/admin/Inquiries"));
+const Media = lazy(() => import("./pages/admin/Media"));
+const Happenings = lazy(() => import("./pages/admin/Happenings"));
+const People = lazy(() => import("./pages/admin/People"));
 
 export default function App() {
   return (
@@ -57,6 +81,22 @@ export default function App() {
       <ScrollManager />
       {/* Cuts the hero headline out of the hero photo on study-abroad pages */}
       <HeroKnockout />
+      {/* THE BOUNDARY FOR EVERY LAZY ROUTE, and one boundary rather than one
+          per route: a route's chunk is fetched once and cached, so what this
+          shows is a brief first-visit state, not a recurring one. Placed
+          outside <Routes> so a chunk arriving does not remount the layout —
+          the navbar, footer and chat dock stay put while a page loads.
+
+          The fallback is the site's own loading mark in the same centred
+          block the blog uses, so a page arriving looks like the rest of the
+          site rather than like a different application. */}
+      <Suspense
+        fallback={
+          <div className="loader-block">
+            <Loader />
+          </div>
+        }
+      >
       <Routes>
         <Route element={<Layout />}>
           <Route path="/" element={<Home />} />
@@ -126,6 +166,13 @@ export default function App() {
           />
         </Route>
 
+        {/* A LAYOUT ROUTE AROUND THE WHOLE ADMIN, and nothing else, so the
+            light/dark attribute it puts on <html> exists only while an admin
+            page is mounted and is removed the moment one is not. That is what
+            keeps the public site out of it entirely — see context/AdminTheme.
+            The sign-in page is inside it too, so the theme applies before
+            anybody has signed in. */}
+        <Route element={<AdminTheme />}>
         <Route path="/admin/login" element={<Login />} />
         <Route element={<ProtectedRoute />}>
           <Route path="/admin" element={<Dashboard />} />
@@ -144,6 +191,7 @@ export default function App() {
           <Route path="/admin/people" element={<People />} />
           <Route path="/admin/people/staff" element={<People />} />
           <Route path="/admin/inquiries" element={<Inquiries />} />
+        </Route>
         </Route>
 
 
@@ -168,6 +216,7 @@ export default function App() {
           }
         />
       </Routes>
+      </Suspense>
     </>
   );
 }

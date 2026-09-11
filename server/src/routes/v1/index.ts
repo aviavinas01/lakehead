@@ -11,6 +11,7 @@ import eventRoutes from "./event.routes.js";
 import newsRoutes from "./news.routes.js";
 import peopleRoutes from "./people.routes.js";
 import assistantRoutes from "./assistant.routes.js";
+import clientErrorRoutes from "./clientError.routes.js";
 import gateRoutes from "./gate.routes.js";
 
 const v1 = Router();
@@ -39,6 +40,9 @@ v1.use("/people", peopleRoutes);
 /* The chat dock in the corner of every public page. Read-only, stores
    nothing, and answers only from data/faqs.ts — see the routes file. */
 v1.use("/assistant", assistantRoutes);
+/* Where the browser says it crashed. Logs only, never stores — see the
+   controller. */
+v1.use("/client-errors", clientErrorRoutes);
 v1.use("/gate", gateRoutes);
 
 export default v1;

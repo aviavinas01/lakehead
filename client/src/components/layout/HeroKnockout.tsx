@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { whenElement } from "../../lib/whenElement";
 import { useLocation } from "react-router-dom";
 import { ZOOM } from "../../lib/parallax";
 
@@ -59,16 +60,21 @@ const APPLIES_TO = /^\/study-(abroad|in-)/;
 export default function HeroKnockout() {
   const { pathname } = useLocation();
 
+  /* WAITS FOR THE HERO rather than asking once — the destination pages this
+     applies to are lazily loaded, so on a first visit this effect runs while
+     the Suspense fallback is on screen and a single query would find nothing.
+     When the hero is already mounted, whenElement runs synchronously and the
+     behaviour is identical to before. */
   useEffect(() => {
     if (!APPLIES_TO.test(pathname)) return;
 
-    const hero = document.querySelector<HTMLElement>(".dpage-hero");
-    const heading = hero?.querySelector<HTMLElement>("h1");
-    const img = hero?.querySelector<HTMLImageElement>(".dpage-hero-bg img");
+    return whenElement<HTMLElement>(".dpage-hero", (hero) => {
+    const heading = hero.querySelector<HTMLElement>("h1");
+    const img = hero.querySelector<HTMLImageElement>(".dpage-hero-bg img");
     /* No photo, no knockout. Pages whose image has not been supplied yet
        render a flat panel, and cutting white text out of a flat panel would
        simply delete the headline. */
-    if (!hero || !heading || !img) return;
+    if (!heading || !img) return;
 
     const clear = () => {
       heading.classList.remove("is-knockout");
@@ -162,6 +168,7 @@ export default function HeroKnockout() {
       ro.disconnect();
       clear();
     };
+    });
   }, [pathname]);
 
   return null;

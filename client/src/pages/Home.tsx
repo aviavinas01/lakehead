@@ -50,6 +50,60 @@ const HELP_CARDS: {
 
 
 /** Student testimonials — add more entries here and the row becomes scrollable. */
+/**
+ * Whether this visitor should be sent the hero film at all.
+ *
+ * ------------------------------------------------------------------
+ * THE FILM IS THE HEAVIEST THING ON THE SITE. It autoplays and loops, which
+ * overrides `preload="metadata"` — the browser fetches the whole file to
+ * play it, and keeps fetching it. On a desk that is a background; on a phone
+ * on mobile data in Kathmandu it is the entire page budget several times
+ * over, spent on decoration, before a word of the page has been read.
+ *
+ * So it is asked for rather than assumed. Three refusals, any one of which
+ * falls back to the poster photograph — which is the same first frame, so
+ * the hero still looks like the hero:
+ *
+ *   NARROW SCREENS. A phone shows a fraction of the frame anyway, cropped to
+ *   a tall box. It is paying full price for a picture it mostly cannot see.
+ *
+ *   DATA SAVER. `saveData` is the visitor explicitly asking sites not to do
+ *   this. Ignoring it is rude and, in a country where mobile data is bought
+ *   in packets, expensive for them.
+ *
+ *   SLOW CONNECTIONS. On 2G or 3G the film would not finish buffering before
+ *   most people had left, so it costs them the bandwidth and shows them
+ *   nothing.
+ *
+ * `prefers-reduced-motion` is checked separately at the call site and was
+ * always honoured — this adds the cost side of the same question.
+ *
+ * THE API IS NOT UNIVERSAL. `navigator.connection` is absent in Safari and
+ * Firefox, so the checks below are written to fall through to "yes" when
+ * they cannot tell. A visitor we know nothing about gets the film; only a
+ * visitor whose browser tells us it would hurt does not.
+ * ------------------------------------------------------------------
+ */
+function affordsVideo(): boolean {
+  if (typeof window === "undefined") return false;
+
+  /* Below this the film is cropped so hard it stops being the shot that was
+     framed, quite apart from what it costs to fetch. */
+  if (window.matchMedia("(max-width: 900px)").matches) return false;
+
+  const conn = (
+    navigator as Navigator & {
+      connection?: { saveData?: boolean; effectiveType?: string };
+    }
+  ).connection;
+  if (!conn) return true;
+
+  if (conn.saveData === true) return false;
+  if (conn.effectiveType && /(^|-)(2g|3g)$/.test(conn.effectiveType)) return false;
+
+  return true;
+}
+
 export default function Home() {
   const [heroImage, setHeroImage] = useState<string>();
   const helpGrid = useRef<HTMLDivElement>(null);
@@ -73,7 +127,7 @@ export default function Home() {
   const reduced =
     typeof window !== "undefined" &&
     window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const showVideo = !videoBroken && !reduced;
+  const showVideo = !videoBroken && !reduced && affordsVideo();
   const showPhoto = heroImage && !imageBroken;
 
   /* The three "how we help" cards settle in from their own side the first

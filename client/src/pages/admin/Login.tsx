@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import AdminThemeToggle from "../../components/layout/AdminThemeToggle";
 import { getErrorMessage } from "../../api/client";
 import { clearPassMark, passLeft } from "../../lib/gatePass";
 
@@ -73,11 +74,18 @@ export default function Login() {
     }
   };
 
-  const minutes = Math.ceil(left / 60_000);
-
   return (
     <div className="alog">
       <section className="alog-panel">
+        {/* INSIDE THE PANEL, not the page. The film occupies the right-hand
+            column, so a toggle pinned to the page's top-right corner would
+            sit on top of it. Anchored to the panel it lands at the top right
+            of the form's own side, just left of the film — and below the
+            breakpoint, where the film is hidden, it is simply the top right
+            of the screen. The panel is already `position: relative`.
+
+            The sign-in page has no admin bar, so this is its only control. */}
+        <AdminThemeToggle className="adm-theme alog-theme" />
         {/* The mark doubles as the way out, for anyone who arrived here by
             accident or whose pass has expired and needs the footer again. */}
         <Link to="/" className="alog-brand" aria-label="Lakehead Education">
@@ -124,11 +132,6 @@ export default function Login() {
           </button>
 
           {error ? <p className="alog-error" role="alert">{error}</p> : null}
-          {left > 0 && !error ? (
-            <p className="alog-hint">
-              {minutes}
-            </p>
-          ) : null}
         </form>
       </section>
 

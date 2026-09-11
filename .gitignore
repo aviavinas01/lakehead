@@ -3,6 +3,7 @@ node_modules/
 
 # Environment — contains secrets, never commit
 .env
+.emv.example
 .env.local
 
 # Builds

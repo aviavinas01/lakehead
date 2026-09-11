@@ -17,7 +17,13 @@ services:
     startCommand: npm start
     healthCheckPath: /api/health
     disk:
-      # Uploaded media lives here and nowhere else — it is not in git.
+      # THE FALLBACK, not the primary store any more. With the CLOUDINARY_*
+      # variables below set, uploads go to Cloudinary and this disk holds only
+      # files uploaded before that change. With them unset, this is where
+      # everything lands — and if this mount is ever wrong the symptom is
+      # silent: the server writes happily to an ordinary folder and loses
+      # every byte on the next deploy. GET /api/health reports the resolved
+      # path and the file count.
       name: uploads
       mountPath: /opt/render/project/src/server/uploads
       sizeGB: 5
@@ -41,6 +47,13 @@ services:
         sync: false
       - key: ADMIN_PASSWORD   # treat as the live credential it is
         sync: false
+      # A separate signing key for the footer gate's 10-minute pass.
+      # OPTIONAL — unset, it falls back to JWT_SECRET, which is how it
+      # shipped and is still safe (a gate token carries no user id, so it
+      # cannot authenticate anything). Setting it means one leaked key is one
+      # compromise rather than two. 32+ characters.
+      - key: GATE_SECRET
+        sync: false
       # The code for the hidden door in the site footer. REQUIRED — the
       # server exits at boot without it, which is deliberate: a missing code
       # would otherwise mean an unguarded sign-in page. 12+ characters.
@@ -57,6 +70,17 @@ services:
       # The separate playlist behind the Study Abroad testimonial row.
       # Unset, that row renders nothing — it never borrows the channel feed.
       - key: YOUTUBE_TESTIMONIALS_PLAYLIST_ID
+        sync: false
+      # Cloudinary, for uploaded media. ALL THREE OR NONE — half-set is
+      # treated as unset and the server falls back to the disk below.
+      # Setting these is what stops uploads being lost on a redeploy; see
+      # server/src/services/storage.service.ts for why the disk was not
+      # enough on its own.
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
         sync: false
       - key: GOOGLE_MAPS_API_KEY
         sync: false

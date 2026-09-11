@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { NavLink, Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import AdminThemeToggle from "../../components/layout/AdminThemeToggle";
 
 /**
  * The admin bar: the mark on the left, a pill rail in the middle, identity
@@ -156,6 +157,7 @@ export default function AdminNav() {
           >
             {initial(user?.name)}
           </Link>
+          <AdminThemeToggle />
           <button className="adm-ghost" onClick={handleLogout}>
             Log out
           </button>

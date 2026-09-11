@@ -156,7 +156,17 @@ function Lightbox({
 
       <figure className="gal-lb-figure">
         {/* Keyed on the image so a new one fades in rather than swapping */}
-        <img key={image.id} src={image.src} alt={image.title ?? ""} />
+        <img
+                  key={image.id}
+                  src={image.src}
+                  alt={image.title ?? ""}
+                  /* A grid of dozens: everything below the fold waits
+                     until it is scrolled to. The other bare <img> tags
+                     on the site are logos and article heroes, which are
+                     above the fold and correctly eager. */
+                  loading="lazy"
+                  decoding="async"
+                />
         {image.title || image.caption || image.album ? (
           <figcaption>
             {image.title ? <strong>{image.title}</strong> : null}

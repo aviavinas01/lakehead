@@ -1,10 +1,9 @@
-import path from "node:path";
-import fs from "node:fs/promises";
 import { Media, type IMedia, type MediaDocument } from "../models/Media.js";
 import { ApiError } from "../utils/ApiError.js";
-import { UPLOADS_DIR, mediaTypeFromMime } from "../middleware/upload.js";
+import { mediaTypeFromMime } from "../middleware/upload.js";
 import type { PaginatedResult, PaginationQuery } from "../types/common.js";
 import { albumFor, isAlbumKey } from "./managedAlbums.js";
+import { store, discard } from "./storage.service.js";
 
 interface UploadMeta {
   title?: string;
@@ -57,9 +56,16 @@ export const mediaService = {
       if (resolved) album = resolved._id.toString();
     }
 
+    /* Cloudinary or the local disk, depending on configuration — see
+       services/storage.service. Either way what comes back is a url the
+       client can render and, for Cloudinary, the handle needed to delete it
+       again later. */
+    const stored = await store(file);
+
     return Media.create({
       type: mediaTypeFromMime(file.mimetype),
-      url: `/uploads/${file.filename}`,
+      url: stored.url,
+      publicId: stored.publicId,
       mimeType: file.mimetype,
       size: file.size,
       title: meta.title,
@@ -88,23 +94,22 @@ export const mediaService = {
   async replaceFile(id: string, file: Express.Multer.File): Promise<MediaDocument> {
     const media = await this.getById(id);
     const oldUrl = media.url;
+    const oldPublicId = media.publicId;
 
+    const stored = await store(file);
     media.type = mediaTypeFromMime(file.mimetype);
-    media.url = `/uploads/${file.filename}`;
+    media.url = stored.url;
+    media.set("publicId", stored.publicId ?? null);
     media.mimeType = file.mimetype;
     media.size = file.size;
     await media.save();
 
-    /* basename() and a join into UPLOADS_DIR, so a url that has been
-       tampered with in the database cannot walk this unlink out of the
-       uploads folder. */
-    const old = path.basename(oldUrl);
-    if (old && old !== path.basename(media.url)) {
-      await fs.unlink(path.join(UPLOADS_DIR, old)).catch(() => {
-        /* Already gone, or never on disk. The record is correct either way,
-           and a stale file is a housekeeping problem, not a broken page. */
-      });
-    }
+    /* Discarded only once the record points at the new file, and never in a
+       way that can throw — see discard() in storage.service. The guard is
+       for the case where the backend handed back the same address, which a
+       disk write can do if the filename collides. */
+    if (oldUrl !== media.url) await discard(oldUrl, oldPublicId);
+
     return media;
   },
 
@@ -124,9 +129,10 @@ export const mediaService = {
   async remove(id: string): Promise<void> {
     const media = await Media.findByIdAndDelete(id);
     if (!media) throw ApiError.notFound("Media not found");
-    const filename = path.basename(media.url);
-    await fs.unlink(path.join(UPLOADS_DIR, filename)).catch(() => {
-      /* file already gone — DB record removed is what matters */
-    });
+    /* The record going is what matters; the bytes are best-effort. See the
+       note on discard() — it never throws, so a file that has already gone
+       cannot leave a deleted record half-deleted. */
+    await discard(media.url, media.publicId);
   },
+
 };
