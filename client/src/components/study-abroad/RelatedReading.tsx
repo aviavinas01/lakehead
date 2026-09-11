@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import api from "../../api/client";
 import { mediaSrc } from "../../api/media";
 import { Arrow } from "../shared/destinationBits";
+import { RelatedReadingSkeleton } from "../shared/Skeletons";
 import type { Paginated, PostPage, PostSummary } from "../../types/api";
 
 /**
@@ -75,7 +76,12 @@ function Card({ post }: { post: PostSummary }) {
 }
 
 export default function RelatedReading({ page, exclude }: Props) {
-  const [posts, setPosts] = useState<PostSummary[]>([]);
+  /* `null` while in flight, an array once answered — it used to start as
+     `[]`, which made "still loading" and "nothing to show" the same value.
+     It is reset to `null` on every page change below, so navigating between
+     guides draws the placeholder again rather than leaving the previous
+     guide's articles sitting under the new one's heading. */
+  const [posts, setPosts] = useState<PostSummary[] | null>(null);
   /* Whether what we are showing was actually placed on this page, or is the
      newest-articles fallback. It changes the heading and the footer link,
      and it is the one thing about this block a reader can be misled by. */
@@ -83,7 +89,7 @@ export default function RelatedReading({ page, exclude }: Props) {
 
   useEffect(() => {
     let cancelled = false;
-    setPosts([]);
+    setPosts(null);
     setPlaced(true);
 
     const trim = (items: PostSummary[]) =>
@@ -113,7 +119,10 @@ export default function RelatedReading({ page, exclude }: Props) {
         setPosts(trim(res.data.items));
       })
       .catch(() => {
-        /* No block. The guide is unaffected. */
+        /* No block. The guide is unaffected — but the empty array has to be
+           SET, or a failed request would leave the placeholder shimmering
+           at a rail that is never coming. */
+        if (!cancelled) setPosts([]);
       });
 
     return () => {
@@ -121,18 +130,23 @@ export default function RelatedReading({ page, exclude }: Props) {
     };
   }, [page, exclude]);
 
-  if (posts.length === 0) return null;
+  /* Answered, and there is nothing to show. No rail, exactly as before. */
+  if (posts !== null && posts.length === 0) return null;
 
   return (
     <section className="rr" aria-labelledby={`rr-h-${page}`}>
       <h2 className="rr-tag" id={`rr-h-${page}`}>
         {placed ? "Blog & news" : "From the blog"}
       </h2>
-      <ul className="rr-list">
-        {posts.map((p) => (
-          <Card post={p} key={p._id} />
-        ))}
-      </ul>
+      {posts === null ? (
+        <RelatedReadingSkeleton />
+      ) : (
+        <ul className="rr-list">
+          {posts.map((p) => (
+            <Card post={p} key={p._id} />
+          ))}
+        </ul>
+      )}
       <Link className="rr-all" to={placed ? `/blog?on=${page}` : "/blog"}>
         {placed ? "All articles on this" : "All articles"} <Arrow />
       </Link>

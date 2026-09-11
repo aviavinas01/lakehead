@@ -12,6 +12,15 @@ import type { Director, StaffMember } from "../types/api";
  * upload as everything else in the admin (api/happenings), and a second
  * function doing the identical POST to /media would be two places to change
  * when the media route moves.
+ *
+ * THE PUBLIC READS ARE `quiet`; THE ADMIN ONES ARE NOT. `fetchDirector` and
+ * `fetchStaff` feed pages that now draw their own skeleton while they wait,
+ * and the global spinner veil on top of a skeleton is two loading
+ * indicators for one wait — so those two opt out of it. Their `...Admin`
+ * counterparts keep the veil, because the dashboard has no skeleton and a
+ * blank table with no explanation is worse than an overlay. The split works
+ * only because each public fetcher has exactly one caller and it is a
+ * public page; check that before making a third one quiet.
  */
 
 export type DirectorInput = Pick<
@@ -30,7 +39,8 @@ export type StaffInput = Partial<
  * getPublishedDirector in the service. The page renders a placeholder.
  */
 export const fetchDirector = async (): Promise<Director | null> =>
-  (await api.get<{ director: Director | null }>("/people/director")).data.director;
+  (await api.get<{ director: Director | null }>("/people/director", { quiet: true }))
+    .data.director;
 
 /** The record as the admin sees it, published or not. */
 export const fetchDirectorAdmin = async (): Promise<Director | null> =>
@@ -42,7 +52,7 @@ export const saveDirector = async (input: DirectorInput): Promise<Director> =>
   (await api.put<{ director: Director }>("/people/director", input)).data.director;
 
 export const fetchStaff = async (): Promise<StaffMember[]> =>
-  (await api.get<{ staff: StaffMember[] }>("/people/staff")).data.staff;
+  (await api.get<{ staff: StaffMember[] }>("/people/staff", { quiet: true })).data.staff;
 
 export const fetchAllStaff = async (): Promise<StaffMember[]> =>
   (await api.get<{ staff: StaffMember[] }>("/people/staff/admin")).data.staff;

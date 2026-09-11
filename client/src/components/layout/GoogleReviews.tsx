@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { fetchGoogleRating } from "../../api/googleRating";
+import { GoogleReviewsSkeleton } from "../shared/Skeletons";
 import type { GoogleRating } from "../../types/api";
 
 /**
@@ -59,9 +60,18 @@ export default function GoogleReviews() {
     };
   }, []);
 
-  /* Nothing to show is nothing to render — no heading, no empty band */
-  if (!google || google.reviews.length === 0) return null;
+  /* Checked before anything else, so the suppressed page never draws a
+     placeholder for a band it is not going to show. */
   if (pathname === SUPPRESSED_ON) return null;
+
+  /* Answered, and there are no reviews — nothing to show is nothing to
+     render, no heading and no empty band. Unchanged. */
+  if (google && google.reviews.length === 0) return null;
+
+  /* Still waiting. The one request behind this is shared and cached for the
+     life of the page (see api/googleRating), so this is drawn at most once
+     per full page load and never again on navigation. */
+  const waiting = !google;
 
   return (
     <section className="greviews">
@@ -74,19 +84,41 @@ export default function GoogleReviews() {
             </p>
             <h2 className="greviews-title">What our students say on Google</h2>
           </div>
-          <div className="greviews-score">
-            <strong>{google.rating.toFixed(1)}</strong>
-            <div>
-              <StarRow score={google.rating} />
-              <span className="greviews-count">
-                {google.total > 0
-                  ? `${google.total.toLocaleString()} reviews`
-                  : "Google rating"}
-              </span>
+          {/* The score is a number and a star row, and there is no honest
+              placeholder for either — a greyed-out "4.9" is a claim, and
+              stars drawn at a guess are worse. So while waiting it is two
+              plain bars, and the real figures replace them once Google has
+              actually said what they are. */}
+          {waiting ? (
+            <div className="greviews-score" aria-hidden="true">
+              <span className="skel" style={{ width: "2.5ch", height: "2rem" }} />
+              <div>
+                <span
+                  className="skel skel-line"
+                  style={{ width: "6.5rem", display: "block" }}
+                />
+                <span
+                  className="skel skel-pill"
+                  style={{ marginTop: "0.35rem", display: "block" }}
+                />
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="greviews-score">
+              <strong>{google.rating.toFixed(1)}</strong>
+              <div>
+                <StarRow score={google.rating} />
+                <span className="greviews-count">
+                  {google.total > 0
+                    ? `${google.total.toLocaleString()} reviews`
+                    : "Google rating"}
+                </span>
+              </div>
+            </div>
+          )}
         </div>
 
+        {waiting ? <GoogleReviewsSkeleton /> : (
         <div className="greviews-grid">
           {google.reviews.map((r) => (
             <article className="greview" key={r.id}>
@@ -126,8 +158,9 @@ export default function GoogleReviews() {
             </article>
           ))}
         </div>
+        )}
 
-        {google.url && (
+        {google?.url && (
           <a
             className="greviews-all"
             href={google.url}

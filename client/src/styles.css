@@ -9038,7 +9038,6 @@ a.unip-card:focus-visible {
 
 /* ---- the public news listing ---- */
 .news-section { padding: clamp(2rem, 5vw, 3.5rem) 0 clamp(3rem, 7vw, 5rem); }
-.news-quiet { color: var(--color-muted); }
 
 .news-empty { max-width: 46rem; }
 .news-empty h2 {
@@ -10718,4 +10717,177 @@ html[data-admin-theme="dark"] .adm-theme:hover { background: var(--adm-raised); 
 
 @media (prefers-reduced-motion: reduce) {
   .adm-theme { transition: none; }
+}
+
+/* ============================================================
+   SKELETONS — the shape of the answer, while the answer loads.
+
+   WHAT THIS REPLACES, and why it is not simply "nicer". Every
+   surface below used to render NOTHING until its fetch came
+   back, with a full-screen spinner veil over the top. So the
+   reader got a dark overlay, then a blank, then the whole page
+   arriving at once and shoving the footer down. A skeleton
+   removes all three: the page keeps its shape, the shape is
+   the real one, and nothing jumps when the data lands.
+
+   THE SHAPES REUSE THE REAL CARD CLASSES. A skeleton card
+   carries `.blg-card` as well as `.blg-card-skel`, so its
+   border, radius, padding and grid placement are the ones the
+   real card will have — not a second set of numbers that has
+   to be kept in step with the first and silently will not be.
+   Only the CONTENTS are replaced. That is what makes the swap
+   land without a reflow, and it is why this block sits at the
+   end of the stylesheet: every rule here has to be able to
+   override the card rules above it.
+
+   NOTHING HERE IS ANNOUNCED AS CONTENT. The blocks are inert
+   decoration — see Skeletons.tsx for the one live region that
+   speaks for all of them.
+   ============================================================ */
+
+:root {
+  /* The card tint the site already uses for an empty image well, so a
+     skeleton reads as the same family as `.blg-card-shot` and friends
+     rather than as a grey imported from somewhere else. */
+  --skel-base: #eceef2;
+  /* The sweep. White at low alpha rather than a solid, so it works over
+     any base without being mixed by hand for each one. */
+  --skel-sheen: rgba(255, 255, 255, 0.75);
+  --skel-speed: 1.4s;
+}
+
+/* THE ONE VISUAL RULE. Everything else in this block is geometry.
+
+   The sweep is a background-position animation rather than a translated
+   pseudo-element: it needs no extra box, cannot escape a rounded corner,
+   and composites on one layer instead of forcing `overflow: hidden` onto
+   every parent that holds one. */
+.skel {
+  position: relative;
+  background-color: var(--skel-base);
+  background-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--skel-sheen) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  background-repeat: no-repeat;
+  background-position: 180% 0;
+  border-radius: 6px;
+  animation: skel-sweep var(--skel-speed) ease-in-out infinite;
+}
+
+@keyframes skel-sweep {
+  to { background-position: -80% 0; }
+}
+
+/* A SLOW PULSE INSTEAD OF A SWEEP, not stillness.
+
+   The loading mark on this site is slowed rather than stopped under this
+   setting, because a loading indicator that does not move says the page
+   has given up. The same reasoning applies here — but a gradient sweeping
+   across a large area is exactly the kind of movement the setting is
+   asking us to stop, so the motion changes KIND rather than just speed:
+   no travel, just a gentle change of tone, well under the flash
+   threshold. */
+@media (prefers-reduced-motion: reduce) {
+  .skel {
+    background-image: none;
+    animation: skel-breathe 2.8s ease-in-out infinite;
+  }
+  @keyframes skel-breathe {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0.62; }
+  }
+}
+
+/* ---- the line shapes ----
+   Text is stacked rules of varying length, because real text is. A block
+   of identical bars reads as a table, not a paragraph. */
+.skel-line { height: 0.72rem; border-radius: 999px; }
+.skel-line + .skel-line { margin-top: 0.5rem; }
+/* The last line of a paragraph is short — the single cue that says
+   "prose" rather than "fields". */
+.skel-line-last { width: 62%; }
+.skel-line-short { width: 40%; }
+.skel-line-mid   { width: 78%; }
+
+/* A heading: taller, tighter, and never full width. */
+.skel-head { height: 1.15rem; border-radius: 8px; width: 72%; }
+.skel-head-wide { width: 88%; }
+
+/* A pill — tags, dates, kickers. */
+.skel-pill { height: 0.68rem; width: 5.5rem; border-radius: 999px; }
+
+/* Fills whatever well it is dropped into — an image slot that already has
+   its own aspect-ratio from the card's own stylesheet. No dimensions of
+   its own on purpose: the well is what decides, exactly as it does for
+   the <img> this stands in for. */
+.skel-fill { width: 100%; height: 100%; display: block; border-radius: 0; }
+
+/* A round one, for avatars. */
+.skel-round { border-radius: 50%; }
+
+/* ---- per-surface shapes ----
+   Each mirrors the card it stands in for. Where a card's own rules give
+   the geometry, these add nothing but the contents. */
+
+/* Blog: the lead card and the grid cards (pages/blog/Blog.tsx). */
+.blg-card-skel .blg-card-body,
+.blg-lead-skel .blg-lead-body { display: flex; flex-direction: column; }
+.blg-card-skel .blg-card-body { padding: 1.35rem 1.4rem 1.5rem; gap: 0.1rem; }
+.skel-meta { display: flex; gap: 0.6rem; margin-top: 0.9rem; }
+/* The lead card is navy with white text, so its skeleton has to be pale
+   ON the navy rather than the page's grey — which would vanish into it. */
+.blg-lead-skel .skel {
+  --skel-base: rgba(255, 255, 255, 0.14);
+  --skel-sheen: rgba(255, 255, 255, 0.3);
+}
+.blg-lead-skel .blg-lead-shot .skel { --skel-base: rgba(255, 255, 255, 0.08); }
+
+/* Events (pages/happenings/Events.tsx): date rail, then body. */
+.evt-card-skel .evt-card-body { display: block; }
+.evt-card-skel .evt-card-when { gap: 0.55rem; }
+
+/* News (pages/happenings/News.tsx): the card's own grid, without the <a>. */
+.news-card-skel { display: grid; grid-template-columns: 260px 1fr; gap: clamp(1rem, 3vw, 2rem); align-items: start; }
+@media (max-width: 760px) {
+  .news-card-skel { grid-template-columns: 1fr; }
+}
+
+/* Staff (components/about/StaffGrid.tsx) and the home rail. */
+.stf-card-skel .stf-copy,
+.bstrip-card-skel .bstrip-body { display: flex; flex-direction: column; }
+
+/* Related reading (components/study-abroad/RelatedReading.tsx). */
+.rr-card-skel { display: grid; gap: 0.6rem; padding: 0.9rem 1rem; }
+
+/* Google reviews (components/layout/GoogleReviews.tsx). */
+.greview-skel .greview-head { align-items: center; }
+.greview-skel .greview-avatar { display: block; }
+
+/* The director's message (pages/about/Director.tsx). */
+.dir-skel { display: grid; gap: clamp(1.5rem, 4vw, 3rem); }
+.dir-skel-shot { aspect-ratio: 4 / 5; border-radius: 18px; max-width: 320px; }
+.dir-skel-body { max-width: 62ch; }
+
+/* Gallery (pages/about/Gallery.tsx). Deliberately NOT `.gal-tile`: that
+   class is what armReveals sweeps for, and arming a placeholder would
+   spend the one-per-visit reveal on a tile that is about to be thrown
+   away. */
+.gal-skel-grid {
+  display: grid; gap: 0.75rem;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+}
+.gal-skel-tile { aspect-ratio: 4 / 3; border-radius: 12px; }
+
+/* The admin dark theme does not use skeletons today — this task was public
+   pages only — but it exists, and the tokens above are defined on :root
+   AFTER the dark block, so the first person to put a .skel on a dashboard
+   would get a pale grey brick glowing on a near-black page and would have
+   to work out why. Four lines now is cheaper than that afternoon. */
+html[data-admin-theme="dark"] {
+  --skel-base: #232834;
+  --skel-sheen: rgba(255, 255, 255, 0.07);
 }

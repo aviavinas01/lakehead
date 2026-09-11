@@ -60,8 +60,11 @@ export type NewsInput = Partial<Omit<NewsItem, "_id" | "createdAt" | "updatedAt"
 
 /* ---- events ---- */
 
+/* `quiet` — see the note in api/people.ts. The public page draws its own
+   skeleton; the admin list below deliberately keeps the veil. */
 export const fetchEvents = async (): Promise<LakeheadEvent[]> =>
-  (await api.get<{ events: LakeheadEvent[] }>("/events")).data.events ?? [];
+  (await api.get<{ events: LakeheadEvent[] }>("/events", { quiet: true })).data.events ??
+  [];
 
 export const fetchAllEvents = async (): Promise<LakeheadEvent[]> =>
   (await api.get<{ events: LakeheadEvent[] }>("/events/admin/all")).data.events ?? [];
@@ -78,9 +81,14 @@ export const deleteEvent = async (id: string): Promise<void> => {
 
 /* ---- news ---- */
 
+/* `quiet` — see fetchEvents above. */
 export const fetchNews = async (limit?: number): Promise<NewsItem[]> =>
-  (await api.get<{ news: NewsItem[] }>("/news", { params: limit ? { limit } : undefined }))
-    .data.news ?? [];
+  (
+    await api.get<{ news: NewsItem[] }>("/news", {
+      params: limit ? { limit } : undefined,
+      quiet: true,
+    })
+  ).data.news ?? [];
 
 export const fetchAllNews = async (): Promise<NewsItem[]> =>
   (await api.get<{ news: NewsItem[] }>("/news/admin/all")).data.news ?? [];

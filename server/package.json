@@ -13,7 +13,11 @@
     "typecheck": "tsc --noEmit",
     "seed:admin": "tsx src/config/seedAdmin.ts",
     "seed:sample": "tsx src/config/seedSample.ts",
-    "mail:check": "tsx src/scripts/checkMail.ts"
+    "mail:check": "tsx src/scripts/checkMail.ts",
+    "check:errors": "tsx src/scripts/checkErrors.ts",
+    "check:lifecycle": "tsx src/scripts/checkLifecycle.ts",
+    "check:uploads": "tsx src/scripts/checkUploadSafety.ts",
+    "check": "npm run check:errors && npm run check:lifecycle && npm run check:uploads"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Arrow } from "../../components/shared/destinationBits";
+import { GallerySkeleton } from "../../components/shared/Skeletons";
 import { fetchGallery, type GalleryAlbum, type GalleryImage } from "../../api/gallery";
 import { PLACEHOLDER_ALBUMS } from "../../data/gallery";
 import { armReveals } from "../../lib/reveal";
@@ -370,6 +371,16 @@ export default function Gallery() {
           puts one for the headings. Two arms on one element would mean the
           first cleanup to run stripped the flag the other still needed. */}
       <div className="gal-albums" ref={albumsRef}>
+      {/* Deliberately OUTSIDE the mapped sections and using its own classes,
+          never `.gal-tile`: that class is what armReveals sweeps for, and
+          arming a placeholder would spend the one-per-visit reveal on a tile
+          that is about to be thrown away — leaving the real photograph
+          behind it permanently invisible. */}
+      {albums === null ? (
+        <section className="gal-album">
+          <GallerySkeleton />
+        </section>
+      ) : null}
       {(albums ?? []).map((album, ai) => (
         <section className="gal-album" key={album.id} data-tint={ai % 2 === 1 || undefined}>
           <div className="container">

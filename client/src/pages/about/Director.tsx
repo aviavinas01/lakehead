@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { fetchDirector } from "../../api/people";
 import { mediaSrc } from "../../api/media";
 import { getErrorMessage } from "../../api/client";
-import Loader from "../../components/shared/Loader";
+import { DirectorSkeleton } from "../../components/shared/Skeletons";
 import { Arrow } from "../../components/shared/destinationBits";
 import { renderArticle } from "../../lib/richText";
 import { directorHeading } from "../../lib/people";
@@ -93,11 +93,14 @@ export default function Director() {
     [director]
   );
 
+  /* Inside the page's own article element, not floating in place of it, so
+     the header and rules the reader already has stay put and only the
+     message itself is pending. */
   if (loading) {
     return (
-      <div className="loader-block">
-        <Loader />
-      </div>
+      <article className="dpage dpage-ruled dir">
+        <DirectorSkeleton />
+      </article>
     );
   }
 

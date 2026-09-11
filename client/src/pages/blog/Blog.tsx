@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import api, { getErrorMessage } from "../../api/client";
 import { mediaSrc } from "../../api/media";
-import Loader from "../../components/shared/Loader";
+import { BlogGridSkeleton, BlogLeadSkeleton } from "../../components/shared/Skeletons";
 import { Arrow } from "../../components/shared/destinationBits";
 import { POST_PAGES, postPageLabel } from "../../types/api";
 import type { Paginated, PostPage, PostSummary } from "../../types/api";
@@ -129,7 +129,10 @@ export default function Blog() {
     if (on) query.set("on", on);
 
     api
-      .get<Paginated<PostSummary>>(`/posts?${query}`)
+      /* `quiet` so the global spinner veil stays down: the skeleton below is
+         this page's loading state now, and a full-screen overlay on top of
+         it would be two indicators for one wait. See AppLoading. */
+      .get<Paginated<PostSummary>>(`/posts?${query}`, { quiet: true })
       .then((res) => {
         if (!cancelled) setData(res.data);
       })
@@ -170,8 +173,13 @@ export default function Blog() {
   };
 
   const items = data?.items ?? [];
-  /* The lead card only makes sense at the top of the unfiltered list. */
-  const showLead = page === 1 && !tag && !on && items.length > 0;
+  /* The lead card only makes sense at the top of the unfiltered list. Split
+     into "is this the slot for one" and "is there a post to put in it",
+     because the skeleton has to occupy the slot before it can know the
+     second half — and putting a lead-shaped placeholder where no lead will
+     land would reflow the page the moment it did know. */
+  const leadSlot = page === 1 && !tag && !on;
+  const showLead = leadSlot && items.length > 0;
   const lead = showLead ? items[0] : undefined;
   const rest = showLead ? items.slice(1) : items;
 
@@ -233,9 +241,10 @@ export default function Blog() {
           {error ? (
             <p className="blg-empty">{error}</p>
           ) : !data ? (
-            <div className="loader-block">
-              <Loader />
-            </div>
+            <>
+              {leadSlot ? <BlogLeadSkeleton /> : null}
+              <BlogGridSkeleton />
+            </>
           ) : items.length === 0 ? (
             <div className="blg-empty-card">
               <h2>

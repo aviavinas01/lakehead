@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { fetchStaff } from "../../api/people";
 import { mediaSrc } from "../../api/media";
 import { armReveals } from "../../lib/reveal";
+import { StaffGridSkeleton } from "../shared/Skeletons";
 import type { StaffMember } from "../../types/api";
 
 /**
@@ -42,7 +43,10 @@ import type { StaffMember } from "../../types/api";
  * ------------------------------------------------------------------
  */
 export default function StaffGrid() {
-  const [staff, setStaff] = useState<StaffMember[]>([]);
+  /* `null` while in flight, an array once answered — it used to start as
+     `[]`, which made "still loading" and "nobody is listed" the same value
+     and left this section no way to tell them apart. */
+  const [staff, setStaff] = useState<StaffMember[] | null>(null);
   const root = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -52,7 +56,10 @@ export default function StaffGrid() {
         if (!cancelled) setStaff(list);
       })
       .catch(() => {
-        /* No team section. The rest of the page is unaffected. */
+        /* No team section. The rest of the page is unaffected — but the
+           empty array has to be SET rather than left alone, or a failed
+           request would leave a skeleton shimmering forever. */
+        if (!cancelled) setStaff([]);
       });
     return () => {
       cancelled = true;
@@ -65,9 +72,10 @@ export default function StaffGrid() {
   useEffect(() => {
     if (!root.current) return;
     return armReveals(root.current, ".dpage-title, .dpage-section-lead");
-  }, [staff.length]);
+  }, [staff?.length]);
 
-  if (staff.length === 0) return null;
+  /* Answered, and nobody is listed. No section at all, exactly as before. */
+  if (staff !== null && staff.length === 0) return null;
 
   return (
     <section className="dpage-section stf" aria-labelledby="stf-h" ref={root}>
@@ -80,6 +88,9 @@ export default function StaffGrid() {
           — from the first conversation to the airport.
         </p>
 
+        {staff === null ? (
+          <StaffGridSkeleton />
+        ) : (
         <ul className="stf-grid">
           {staff.map((m) => (
             <li className="stf-card" key={m._id}>
@@ -110,6 +121,7 @@ export default function StaffGrid() {
             </li>
           ))}
         </ul>
+        )}
       </div>
     </section>
   );

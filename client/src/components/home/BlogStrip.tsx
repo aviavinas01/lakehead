@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import api from "../../api/client";
 import { mediaSrc } from "../../api/media";
 import { Arrow } from "../shared/destinationBits";
+import { BlogStripSkeleton } from "../shared/Skeletons";
 import type { Paginated, PostSummary } from "../../types/api";
 
 /**
@@ -34,7 +35,11 @@ import type { Paginated, PostSummary } from "../../types/api";
 const HOW_MANY = 5;
 
 export default function BlogStrip() {
-  const [posts, setPosts] = useState<PostSummary[]>([]);
+  /* `null` while the request is in flight; an array once it has answered.
+     It used to start as `[]`, which made "still loading" and "there are no
+     articles" the same value and left this band with no way to tell them
+     apart — so it could only ever render nothing and then pop in. */
+  const [posts, setPosts] = useState<PostSummary[] | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -47,14 +52,19 @@ export default function BlogStrip() {
         if (!cancelled) setPosts(res.data.items);
       })
       .catch(() => {
-        /* No band. The rest of the page is unaffected. */
+        /* No band. The rest of the page is unaffected — but the empty array
+           has to be SET rather than left alone, or a failed request would
+           leave the skeleton shimmering at a band that is never coming. */
+        if (!cancelled) setPosts([]);
       });
     return () => {
       cancelled = true;
     };
   }, []);
 
-  if (posts.length === 0) return null;
+  /* Answered, and the answer was none. Same as it has always been: no band
+     at all rather than a heading over an empty rail. */
+  if (posts !== null && posts.length === 0) return null;
 
   return (
     <section className="bstrip" aria-labelledby="bstrip-h">
@@ -71,6 +81,9 @@ export default function BlogStrip() {
           </Link>
         </div>
 
+        {posts === null ? (
+          <BlogStripSkeleton />
+        ) : (
         <ul className="bstrip-rail">
           {posts.map((p) => (
             <li key={p._id}>
@@ -116,6 +129,7 @@ export default function BlogStrip() {
             </li>
           ))}
         </ul>
+        )}
       </div>
     </section>
   );

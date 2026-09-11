@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Arrow } from "../../components/shared/destinationBits";
+import { NewsListSkeleton } from "../../components/shared/Skeletons";
 import { fetchNews, type NewsItem } from "../../api/happenings";
 import { mediaSrc } from "../../api/media";
 import { formatDay, hostOf } from "../../lib/datetime";
@@ -69,7 +70,7 @@ export default function News() {
       <section className="news-section">
         <div className="container">
           {items === null ? (
-            <p className="news-quiet">Loading…</p>
+            <NewsListSkeleton />
           ) : empty ? (
             <div className="news-empty">
               <h2>Nothing here at the moment</h2>

@@ -1,4 +1,8 @@
 import { useEffect, useState } from "react";
+import {
+  EventHeadSkeleton,
+  EventListSkeleton,
+} from "../../components/shared/Skeletons";
 import { Link } from "react-router-dom";
 import { Arrow } from "../../components/shared/destinationBits";
 import { EVENT_KINDS } from "../../data/events";
@@ -54,47 +58,68 @@ export default function Events() {
   }, []);
 
   /* Empty is the assumption until told otherwise, which is the right way
-     round here: it is by far the commoner answer, so the headline does not
-     flicker through "Coming up" on its way to the truth. */
-  const nothingOn = (events?.length ?? 0) === 0;
+  /* Three states, not two. This used to assume "nothing on" while the fetch
+     was in flight — the commoner answer, chosen so the headline would not
+     flicker through "Coming up" on its way to the truth. It was a real
+     trade and it still flickered whenever there WAS something on.
+
+     Now the waiting case is drawn rather than guessed, so neither headline
+     is asserted before it is known and there is no flip in either
+     direction. `nothingOn` therefore means what it says: the fetch has
+     answered, and the answer was none. */
+  const loading = events === null;
+  const nothingOn = !loading && events.length === 0;
 
   return (
     <article className="dpage dpage-ruled evt">
       <header className="evt-head">
         <div className="container">
           <p className="dpage-eyebrow-sm">Events</p>
-          {nothingOn ? (
-            <h1 className="evt-title">
-              <span className="evt-thin">Nothing on</span>
-              <span className="evt-fat">right now.</span>
-            </h1>
+          {loading ? (
+            <EventHeadSkeleton />
           ) : (
-            <h1 className="evt-title">
-              <span className="evt-thin">Coming up</span>
-              <span className="evt-fat">at Lakehead.</span>
-            </h1>
+            <>
+              {nothingOn ? (
+                <h1 className="evt-title">
+                  <span className="evt-thin">Nothing on</span>
+                  <span className="evt-fat">right now.</span>
+                </h1>
+              ) : (
+                <h1 className="evt-title">
+                  <span className="evt-thin">Coming up</span>
+                  <span className="evt-fat">at Lakehead.</span>
+                </h1>
+              )}
+              <p className="evt-lead">
+                {nothingOn ? (
+                  <>
+                    We run events in bursts — around intake deadlines, when a
+                    partner university sends someone to Nepal, and before each
+                    departure season. There is nothing scheduled at the moment,
+                    and rather than pad this page with something that
+                    isn&rsquo;t happening, here is what usually appears on it
+                    and how to hear when the next one is set.
+                  </>
+                ) : (
+                  <>
+                    Information sessions, university visits and workshops. All
+                    of them are free, and none of them require you to be a
+                    client.
+                  </>
+                )}
+              </p>
+            </>
           )}
-          <p className="evt-lead">
-            {nothingOn ? (
-              <>
-                We run events in bursts — around intake deadlines, when a
-                partner university sends someone to Nepal, and before each
-                departure season. There is nothing scheduled at the moment,
-                and rather than pad this page with something that isn&rsquo;t
-                happening, here is what usually appears on it and how to hear
-                when the next one is set.
-              </>
-            ) : (
-              <>
-                Information sessions, university visits and workshops. All of
-                them are free, and none of them require you to be a client.
-              </>
-            )}
-          </p>
         </div>
       </header>
 
-      {nothingOn ? (
+      {loading ? (
+        <section className="evt-list-section">
+          <div className="container">
+            <EventListSkeleton />
+          </div>
+        </section>
+      ) : nothingOn ? (
         <section className="evt-empty">
           <div className="container">
             <div className="evt-empty-card">

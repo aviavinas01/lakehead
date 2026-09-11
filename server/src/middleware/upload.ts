@@ -65,7 +65,9 @@ export function uploadsState(): {
   return { dir: UPLOADS_DIR, exists, writable, files };
 }
 
-const MAX_FILE_SIZE = 200 * 1024 * 1024; // 200 MB (videos)
+/** Exported so the error handler can say what the limit actually is rather
+    than refusing an upload without naming the number it broke. */
+export const MAX_FILE_SIZE = 200 * 1024 * 1024; // 200 MB (videos)
 
 /**
  * WHICH STORAGE MULTER USES, decided by whether Cloudinary is configured.
