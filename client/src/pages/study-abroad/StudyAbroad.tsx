@@ -257,9 +257,8 @@ export default function StudyAbroad() {
           countries come first (the cards above), then where our partners
           are within them (the slideshow), then the institutions themselves
           — so a student meets the list already knowing the destinations.
-          The list carries id="universities": the navbar, the footer, the
-          chat assistant and every old /university-partners address land on
-          it. */}
+          The list carries id="universities": the chat assistant and every old
+          /university-partners address land on it. */}
       <PartnerSlideshow />
       <PartnerUniversities />
 
