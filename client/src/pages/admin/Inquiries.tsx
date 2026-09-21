@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 import api from "../../api/client";
 import AdminNav from "./AdminNav";
+import MailState from "./MailState";
+import TestBookingsPanel from "./TestBookingsPanel";
 import type {
   Inquiry,
   InquirySource,
@@ -26,47 +29,17 @@ const SOURCE_LABELS: Record<InquirySource, string> = {
   unknown: "Website",
 };
 
-/**
- * Whether an email went out, for one of the two the server sends.
- *
- * Renders nothing for an inquiry taken before mail existed — those have no
- * record at all, and "not emailed" would be a false accusation rather than
- * information. The three real states each say something different: sent is
- * done, skipped means there was nothing to do (mail is not configured, or
- * there was no address to write to), and failed is the one that needs a
- * person, so it carries the reason with it.
- *
- * BOTH ARE SHOWN, and they are shown separately on purpose. The office copy
- * going out while the enquirer's bounces means a mistyped address; the
- * reverse means a problem with our own inbox. One combined badge would hide
- * whichever of the two failed.
- */
-function MailState({
-  record,
-  label,
-}: {
-  record: Inquiry["notified"];
-  label: string;
-}) {
-  if (!record) return null;
-  if (record.state === "sent") {
-    return <span className="inquiry-mail is-sent">✓ {label} emailed</span>;
-  }
-  if (record.state === "skipped") {
-    return (
-      <span className="inquiry-mail is-skipped" title={record.reason}>
-        {label} not emailed{record.reason ? ` — ${record.reason}` : ""}
-      </span>
-    );
-  }
-  return (
-    <span className="inquiry-mail is-failed" title={record.reason}>
-      ⚠ {label} email failed{record.reason ? ` — ${record.reason}` : ""}
-    </span>
-  );
-}
+/* MailState moved to its own file when the test-booking tab needed it too. */
 
-export default function Inquiries() {
+/**
+ * The enquiries list — every contact, consultation and call-back form.
+ *
+ * Unchanged from when it was the whole page: same filter, same cards, same
+ * actions. It became a panel when IELTS booking requests got a tab beside
+ * it, and its status filter moved from the page heading into its own
+ * toolbar, since it filters this tab and not the other one.
+ */
+function EnquiriesPanel() {
   const [data, setData] = useState<Paginated<Inquiry> | null>(null);
   const [filter, setFilter] = useState<"" | InquiryStatus>("");
   const [page, setPage] = useState(1);
@@ -87,11 +60,8 @@ export default function Inquiries() {
   };
 
   return (
-    <div className="adm">
-      <AdminNav />
-      <main className="adm-main">
-        <div className="adm-head">
-          <h1>Inquiries</h1>
+    <>
+        <div className="adm-toolbar">
           <select
             className="adm-select"
             value={filter}
@@ -154,6 +124,47 @@ export default function Inquiries() {
             )}
           </>
         )}
+    </>
+  );
+}
+
+const TABS = [
+  { to: "/admin/inquiries", label: "Enquiries" },
+  { to: "/admin/test-bookings", label: "Test bookings" },
+];
+
+/**
+ * Inquiries — two tabs, one per kind of thing the public sends us.
+ *
+ * Route-driven, the same as Media and Events & news: /admin/inquiries and
+ * /admin/test-bookings both render this, so each tab has its own address
+ * and survives a refresh. See App.tsx and the matching pill in AdminNav.
+ */
+export default function Inquiries() {
+  const { pathname } = useLocation();
+  const onBookings = pathname.startsWith("/admin/test-bookings");
+
+  return (
+    <div className="adm">
+      <AdminNav />
+      <main className="adm-main">
+        <div className="adm-head">
+          <h1>Inquiries</h1>
+        </div>
+
+        <nav className="adm-tabs">
+          {TABS.map((t) => (
+            <Link
+              key={t.to}
+              to={t.to}
+              className={(t.to === "/admin/test-bookings") === onBookings ? "is-on" : undefined}
+            >
+              {t.label}
+            </Link>
+          ))}
+        </nav>
+
+        {onBookings ? <TestBookingsPanel /> : <EnquiriesPanel />}
       </main>
     </div>
   );

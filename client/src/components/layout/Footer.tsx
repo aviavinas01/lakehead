@@ -65,7 +65,7 @@ const COLUMNS: { title: string; links: FooterLink[] }[] = [
       /* Matches the navbar: success stories are part of the reviews wall
          now, so there is no separate entry for them here either. */
       { label: "Testimonials & reviews", to: "/testimonials" },
-      { label: "University partners", to: "/university-partners" },
+      { label: "University partners", to: "/study-abroad#universities" },
       { label: "Gallery", to: "/gallery" },
       { label: "Events", to: "/events" },
       { label: "Blog & articles", to: "/blog" },

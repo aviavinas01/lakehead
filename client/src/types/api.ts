@@ -48,10 +48,15 @@ export const POST_PAGES = [
   { key: "study-in-europe", label: "Study in Europe", group: "Destinations" },
   { key: "test-preparation", label: "Test preparation", group: "Services" },
   { key: "visa-guidance", label: "Visa guidance", group: "Services" },
-  { key: "career-counselling", label: "Career counselling", group: "Services" },
+  /* RETIRED, like Japan above and for the same reason: the page and the
+     service are gone, but posts already placed here keep the key, and the
+     server must go on accepting it or those posts could not be saved. */
+  { key: "career-counselling", label: "Career counselling", group: "Services", retired: true },
   { key: "admission-guidance", label: "Admission guidance", group: "Services" },
   { key: "student-accommodation", label: "Student accommodation", group: "Services" },
-  { key: "university-partners", label: "University partners", group: "Services" },
+  /* RETIRED. Its content moved into the Study Abroad page, which has its
+     own placement above; there is no separate page left to place on. */
+  { key: "university-partners", label: "University partners", group: "Services", retired: true },
 ] as const;
 
 export type PostPage = (typeof POST_PAGES)[number]["key"];
@@ -93,7 +98,6 @@ export const SERVICES = [
   "study-abroad",
   "test-preparation",
   "visa-guidance",
-  "career-counselling",
   "other",
 ] as const;
 export type ServiceType = (typeof SERVICES)[number];

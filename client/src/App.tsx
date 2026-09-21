@@ -13,12 +13,12 @@ import ServiceDetail from "./pages/services/ServiceDetail";
 import TestPreparation from "./pages/services/TestPreparation";
 import TestDetail from "./pages/services/TestDetail";
 import VisaGuidance from "./pages/services/VisaGuidance";
-import CareerCounselling from "./pages/services/CareerCounselling";
 import StudentAccommodation from "./pages/services/StudentAccommodation";
 import AdmissionGuidance from "./pages/services/AdmissionGuidance";
 import Testimonials from "./pages/about/Testimonials";
-import UniversityPartners from "./pages/about/UniversityPartners";
-import UniversityDetail from "./pages/about/UniversityDetail";
+import UniversityDetail, {
+  LegacyUniversityRedirect,
+} from "./pages/study-abroad/UniversityDetail";
 import Gallery from "./pages/about/Gallery";
 import Events from "./pages/happenings/Events";
 import News from "./pages/happenings/News";
@@ -65,6 +65,9 @@ const PteScore = lazy(() => import("./pages/resources/calculators/PteScore"));
 const NebGpa = lazy(() => import("./pages/resources/calculators/NebGpa"));
 const SeeGpa = lazy(() => import("./pages/resources/calculators/SeeGpa"));
 const GpaToPercentage = lazy(() => import("./pages/resources/calculators/GpaToPercentage"));
+/* Lazy like the calculators: a form most visitors never open, so its code
+   stays out of the bundle every other page downloads. */
+const TestBookingForm = lazy(() => import("./pages/services/TestBookingForm"));
 const Login = lazy(() => import("./pages/admin/Login"));
 const Dashboard = lazy(() => import("./pages/admin/Dashboard"));
 const Posts = lazy(() => import("./pages/admin/Posts"));
@@ -107,11 +110,19 @@ export default function App() {
           <Route path="/services/test-preparation" element={<TestPreparation />} />
           <Route path="/services/test-preparation/:test" element={<TestDetail />} />
           <Route path="/services/visa-guidance" element={<VisaGuidance />} />
-          <Route path="/services/career-counselling" element={<CareerCounselling />} />
           <Route path="/services/student-accommodation" element={<StudentAccommodation />} />
           <Route path="/services/admission-guidance" element={<AdmissionGuidance />} />
+          {/* The two IELTS forms. Three segments, so it can never be taken
+              for a /services/:slug page; an unknown provider goes back to
+              the Test Booking page. */}
+          <Route path="/services/test-booking/:provider" element={<TestBookingForm />} />
           <Route path="/services/:slug" element={<ServiceDetail />} />
           <Route path="/study-abroad" element={<StudyAbroad />} />
+          {/* One page per partner, behind its logo in the list on
+              /study-abroad. The slug is written by hand in
+              data/universities.ts, and universityPath there is the one
+              place this address is built. */}
+          <Route path="/study-abroad/universities/:slug" element={<UniversityDetail />} />
           <Route path="/study-in-australia" element={<StudyInAustralia />} />
           <Route path="/study-in-canada" element={<StudyInCanada />} />
           <Route path="/study-in-uk" element={<StudyInUK />} />
@@ -123,15 +134,16 @@ export default function App() {
               the about cluster, not a section of its own. */}
           <Route path="/about/director" element={<Director />} />
           <Route path="/testimonials" element={<Testimonials />} />
-          <Route path="/university-partners" element={<UniversityPartners />} />
-          {/* One page per partner, behind its logo on the wall above.
-              The slug is built from the name by the server — see
-              universityService.freeSlug for why it is readable rather
-              than suffixed the way a post's is. */}
+          {/* THE UNIVERSITY PARTNERS PAGE IS GONE — its list and slideshow
+              moved into /study-abroad. Its old addresses are kept alive as
+              redirects so links in old emails, chats and search results
+              still land somewhere useful: the page goes to the list, and a
+              partner's page goes to the same partner at its new address. */}
           <Route
-            path="/university-partners/:slug"
-            element={<UniversityDetail />}
+            path="/university-partners"
+            element={<Navigate to="/study-abroad#universities" replace />}
           />
+          <Route path="/university-partners/:slug" element={<LegacyUniversityRedirect />} />
           <Route path="/gallery" element={<Gallery />} />
           <Route path="/events" element={<Events />} />
           <Route path="/news" element={<News />} />
@@ -190,7 +202,9 @@ export default function App() {
           {/* One section, two tabs — as with media and events above. */}
           <Route path="/admin/people" element={<People />} />
           <Route path="/admin/people/staff" element={<People />} />
+          {/* One section, two tabs — enquiries and IELTS booking requests. */}
           <Route path="/admin/inquiries" element={<Inquiries />} />
+          <Route path="/admin/test-bookings" element={<Inquiries />} />
         </Route>
         </Route>
 

@@ -38,9 +38,14 @@ export const POST_PAGES = [
   "study-in-europe",
   "test-preparation",
   "visa-guidance",
+  /* RETIRED — the page and the service are gone. Kept so posts already
+     placed here can still be saved; the admin no longer offers it (see
+     `retired` in client/src/types/api.ts). Remove once no post carries it. */
   "career-counselling",
   "admission-guidance",
   "student-accommodation",
+  /* RETIRED — the page's content moved into /study-abroad. Kept for the
+     same reason as the one above. */
   "university-partners",
 ] as const;
 

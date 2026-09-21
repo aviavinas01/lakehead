@@ -5,6 +5,7 @@ import { Check, Arrow, Shot } from "../../components/shared/destinationBits";
 import { SERVICES, findService } from "../../data/services";
 import HelpVideo from "../../components/shared/HelpVideo";
 import CallbackStrip from "../../components/shared/CallbackStrip";
+import TestBookingChoice from "../../components/services/TestBookingChoice";
 
 /**
  * One page, every service. The route is /services/:slug and everything on the
@@ -55,6 +56,12 @@ export default function ServiceDetail() {
           </div>
         </div>
       </header>
+
+      {/* The one service with something to DO on its page rather than only
+          read: choosing a provider and filling in its booking form. First,
+          straight under the hero, because it is what the visitor came for.
+          Every other service renders exactly as before. */}
+      {service.slug === "test-booking" ? <TestBookingChoice /> : null}
 
       <section className="dpage-section">
         <div className="container dpage-split">

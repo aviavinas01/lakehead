@@ -34,7 +34,8 @@ export interface UniversityLink {
 
 export interface University {
   /**
-   * The address of its page (/university-partners/<slug>) and its React key.
+   * The address of its page (/study-abroad/universities/<slug> — see
+   * universityPath) and its React key.
    *
    * WRITTEN OUT RATHER THAN DERIVED FROM THE NAME, so correcting a typo in a
    * name does not silently move a URL somebody has already linked to. Keep
@@ -80,6 +81,17 @@ export const UNIVERSITIES: University[] = [
 
 /** One institution, for its own page. Undefined is a real answer — the page
     it feeds renders a "we could not find that" rather than throwing. */
+/**
+ * Where a partner's own page lives. Written once, here, because the list on
+ * /study-abroad, the detail page's own links and the redirect from the old
+ * /university-partners addresses all have to agree on it.
+ */
+export const universityPath = (slug: string) => `/study-abroad/universities/${slug}`;
+
+/** The list of partners on the Study Abroad page — where every "back"
+    link and the old /university-partners address now land. */
+export const UNIVERSITIES_ANCHOR = "/study-abroad#universities";
+
 export const universityBySlug = (slug: string): University | undefined =>
   UNIVERSITIES.find((u) => u.slug === slug);
 

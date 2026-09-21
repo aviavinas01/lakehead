@@ -40,7 +40,7 @@ const STATS: StatItem[] = [
     detail: "Universities, colleges and pathway providers",
   },
   {
-    figure: "760,000+",
+    figure: "200,000+",
     label: "Students assisted",
     detail: "Counselling, applications, visas and departure",
   },

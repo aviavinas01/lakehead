@@ -31,6 +31,28 @@ export const inquiryLimiter = rateLimit({
 });
 
 /**
+ * The test-booking form — the one public endpoint that accepts a file.
+ *
+ * ITS OWN COUNTER, not inquiryLimiter's. Sharing an instance shares the
+ * count, so a student who sent an enquiry and then booked a test would be
+ * spending one allowance on two unrelated forms.
+ *
+ * TEN, not five. It is a longer form than any enquiry, and a refused
+ * submission counts against the limit just as an accepted one does — a
+ * student correcting a passport number and an exam date should not be locked
+ * out for an hour by it. It is also plausible that several students book
+ * from the office's own connection with a counsellor beside them, and they
+ * all arrive from one address.
+ */
+export const testBookingLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: "Too many booking requests from this connection. Please try again in an hour, or call us." },
+});
+
+/**
  * The chat assistant.
  *
  * Generous compared with the others, because a real conversation is a dozen

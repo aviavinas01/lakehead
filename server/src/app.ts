@@ -23,7 +23,44 @@ export const createApp = () => {
   app.use(express.json({ limit: "1mb" }));
   app.use(cookieParser());
 
-  app.use("/uploads", express.static(UPLOADS_DIR, { maxAge: "1d" }));
+  /**
+   * NOTHING UNDER A DOT-FOLDER IS EVER SERVED. Test-booking signatures live
+   * in UPLOADS_DIR/.signatures — inside the uploads folder only because that
+   * is where the persistent disk is mounted — and must never be reachable
+   * from here. See services/signatureStore.ts.
+   *
+   * TWO LAYERS, because one is easy to get wrong:
+   *
+   *   · This guard DECODES the path before looking, so `%2Esignatures`,
+   *     `%2esignatures` and a `..` segment are all caught — a plain prefix
+   *     match on "/.signatures" misses every one of those, and the static
+   *     server below would happily decode them and serve the file.
+   *   · `dotfiles: "ignore"` on the static server, set EXPLICITLY. Its
+   *     default looks similar but is not: the default hides a dotfile yet
+   *     still serves files INSIDE a dot-directory, which is exactly this
+   *     layout. "ignore" checks every segment of the path.
+   *
+   * Nothing legitimate is lost: uploaded filenames are generated, and never
+   * begin with a dot.
+   */
+  app.use("/uploads", (req, res, next) => {
+    let decoded: string;
+    try {
+      decoded = decodeURIComponent(req.path);
+    } catch {
+      res.status(400).end();
+      return;
+    }
+    if (decoded.split(/[\\/]+/).some((segment) => segment.startsWith("."))) {
+      res.status(404).end();
+      return;
+    }
+    next();
+  });
+  app.use(
+    "/uploads",
+    express.static(UPLOADS_DIR, { maxAge: "1d", dotfiles: "ignore" })
+  );
 
   /**
    * Health, and enough of it to end an argument.

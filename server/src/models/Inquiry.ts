@@ -4,7 +4,11 @@ export const SERVICES = [
   "study-abroad",
   "test-preparation",
   "visa-guidance",
-  "career-counselling",
+  /* "career-counselling" was here until the service was discontinued. Old
+     enquiries keep it and read back fine: the only writes to an existing
+     enquiry are status/notes updates and delivery records, and an update
+     validates only the fields it changes, so the retired value is never
+     re-checked. New ones cannot choose it — see the validator. */
   "other",
 ] as const;
 export type ServiceType = (typeof SERVICES)[number];

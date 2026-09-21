@@ -115,26 +115,6 @@ export const SERVICES: Service[] = [
       "Visa decisions are made by the government concerned. What we can do is make sure your application gives them nothing to query.",
   },
   {
-    slug: "career-counselling",
-    title: "Career Counselling",
-    /* Has a page of its own (pages/services/CareerCounselling.tsx) that outranks the
-       generic route, so only `title`, `summary` and `image` are read from
-       here — the fields below feed the hub card, not the page. */
-    summary: "Choosing a course with the ten years after it in view, not just the three.",
-    image: "/services/career.jpg",
-    intro:
-      "A degree is a means to something. Working out what that something is — and which courses and countries actually lead there — is worth doing before you commit several years and a great deal of money to a decision.",
-    includes: [
-      "Mapping your interests and strengths against real career paths",
-      "Which qualifications employers in your field actually recognise",
-      "How post-study work rights differ by destination, course and level",
-      "Industry and internship exposure built into the programmes you consider",
-      "Long-term planning, including further study and professional registration",
-    ],
-    closing:
-      "The right course is the one you can still justify in five years. That is the question we start from.",
-  },
-  {
     slug: "student-accommodation",
     title: "Student Accommodation",
     /* Has a page of its own (pages/services/StudentAccommodation.tsx) that outranks

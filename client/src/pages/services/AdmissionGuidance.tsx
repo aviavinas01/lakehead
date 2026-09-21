@@ -33,7 +33,6 @@ const STAGES = [
     title: "Identify course, country and university",
     text: "We help you settle the three decisions that determine everything else: which country suits you, which institution, and which course. If you are undecided about the course, we run an assessment to establish where your interests and abilities actually lie before you commit.",
     image: "/services/admission/identify.jpg",
-    link: { to: "/services/career-counselling", label: "About our aptitude testing" },
   },
   {
     title: "International test preparation",

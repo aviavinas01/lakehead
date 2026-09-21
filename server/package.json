@@ -17,7 +17,8 @@
     "check:errors": "tsx src/scripts/checkErrors.ts",
     "check:lifecycle": "tsx src/scripts/checkLifecycle.ts",
     "check:uploads": "tsx src/scripts/checkUploadSafety.ts",
-    "check": "npm run check:errors && npm run check:lifecycle && npm run check:uploads"
+    "check": "npm run check:errors && npm run check:lifecycle && npm run check:uploads && npm run check:bookings",
+    "check:bookings": "tsx src/scripts/checkTestBooking.ts"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

@@ -46,7 +46,7 @@ import HelpVideo from "../../components/shared/HelpVideo";
    describe; the rest are descriptions and are safe to reword.
 
    NOTE FOR WHOEVER CONFIRMS THESE: they contradict the home page. That
-   strip claims 1,100+ institution partners and 760,000+ students assisted
+   strip claims 1,100+ institution partners and 200,000+ students assisted
    against the 180+ and 12,000+ below. Both sets cannot be right, and these
    are the first claims a competitor will check. */
 const FIGURES: StatItem[] = [

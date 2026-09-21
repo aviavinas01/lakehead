@@ -5,6 +5,8 @@ import { PlaneIcon } from "../../components/home/HeroOrbit";
 import { Arrow, Shot } from "../../components/shared/destinationBits";
 import { useYouTubeFeed } from "../../hooks/useYouTubeFeed";
 import RollingFigure from "../../components/study-abroad/RollingFigure";
+import PartnerSlideshow from "../../components/study-abroad/PartnerSlideshow";
+import PartnerUniversities from "../../components/study-abroad/PartnerUniversities";
 import HelpVideo from "../../components/shared/HelpVideo";
 import TikTokStrip from "../../components/shared/TikTokStrip";
 import ContactForm from "../../components/shared/ContactForm";
@@ -38,7 +40,7 @@ import ContactForm from "../../components/shared/ContactForm";
  */
 const CREDENTIALS = [
   { figure: "1,100+", label: "Institution partners", note: "Universities and colleges we place students with" },
-  { figure: "760,000+", label: "Students assisted", note: "Across our counselling and preparation services" },
+  { figure: "200,000+", label: "Students assisted", note: "Across our counselling and preparation services" },
   { figure: "200,000+", label: "Courses offered", note: "Undergraduate through to doctoral study" },
   { figure: "6", label: "Destinations covered", note: "Each with a dedicated team who know it properly" },
 ];
@@ -61,7 +63,7 @@ const DESTINATIONS = [
 ];
 
 const SUPPORT = [
-  { title: "Course & career counselling", text: "Programmes that fit your academic background and the career you are actually working toward." },
+  { title: "Course counselling", text: "Programmes that fit your academic background and the career you are actually working toward." },
   { title: "University selection", text: "Institutions compared on course, budget, location and entry requirements — not on rankings alone." },
   { title: "Application assistance", text: "Preparing and submitting your application, with the documents each institution actually asks for." },
   { title: "Test preparation", text: "IELTS, PTE and TOEFL preparation, timed so a poor first result is still recoverable." },
@@ -249,6 +251,17 @@ export default function StudyAbroad() {
           </div>
         </div>
       </section>
+
+      {/* ---- the partners ----
+          Moved here from the University Partners page, which is gone. The
+          countries come first (the cards above), then where our partners
+          are within them (the slideshow), then the institutions themselves
+          — so a student meets the list already knowing the destinations.
+          The list carries id="universities": the navbar, the footer, the
+          chat assistant and every old /university-partners address land on
+          it. */}
+      <PartnerSlideshow />
+      <PartnerUniversities />
 
       <section className="dpage-section">
         <div className="container">

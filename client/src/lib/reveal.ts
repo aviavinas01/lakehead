@@ -112,8 +112,7 @@ export function armReveals(root: HTMLElement, selector = "[data-reveal]"): () =>
 
 /**
  * Observer settings for the pages that still use an IntersectionObserver —
- * About, Visa Guidance, Career Counselling, Student Accommodation and
- * Admission Guidance.
+ * About, Visa Guidance, Student Accommodation and Admission Guidance.
  *
  * The root is extended far upward so that anything already scrolled past
  * counts as intersecting and reveals on the first callback, which is what

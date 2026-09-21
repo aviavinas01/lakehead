@@ -100,7 +100,7 @@ export const FAQS: Faq[] = [
       "It helps, and employers are fairly specific about why. What they tend to value is not the stamp on the degree but what you had to do to get it — working across cultures, making yourself understood in a second language, adapting when things do not go to plan. Those show up on a CV as international experience and in an interview as composure. It is not a guarantee of a job; very little is. It is a genuine advantage.",
     followUp:
       "Worth knowing that post-study work rights differ a lot by country — ask me about those if that is part of the plan.",
-    link: { label: "Career counselling", to: "/services/career-counselling" },
+    link: { label: "Choosing the right course", to: "/services/admission-guidance" },
     topic: "Getting started",
   },
   {
@@ -148,7 +148,7 @@ export const FAQS: Faq[] = [
       "Start with an honest look at three things: your academic record as it actually is, what you want to be doing in five years, and what your family can fund. A shortlist built from those tends to be shorter and much better than one built from rankings. That is the conversation a first counselling session is for — we will tell you where you are competitive and where you are not.",
     followUp:
       "If it helps, tell me your subject and roughly your grades, and I will tell you which destinations are worth a look.",
-    link: { label: "How we counsel", to: "/services/career-counselling" },
+    link: { label: "How we help you choose", to: "/services/admission-guidance" },
     topic: "Choosing a course",
   },
   {
@@ -775,7 +775,7 @@ export const FAQS: Faq[] = [
     ],
     answer:
       "We hold direct agreements with institutions across every destination we work in, and the full list is on the site. A partnership means our applications go through a named admissions channel rather than a public form, which usually means a faster decision — it does not mean an offer is more likely. If the university you want is not a partner, we will still apply.",
-    link: { label: "See the partner list", to: "/university-partners" },
+    link: { label: "See the partner list", to: "/study-abroad#universities" },
     topic: "About Lakehead",
   },
 ];

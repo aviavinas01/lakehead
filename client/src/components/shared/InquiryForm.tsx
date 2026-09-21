@@ -98,7 +98,6 @@ export default function InquiryForm({
           <option value="study-abroad">Study abroad counselling</option>
           <option value="test-preparation">Test preparation</option>
           <option value="visa-guidance">Visa guidance</option>
-          <option value="career-counselling">Career counselling</option>
           <option value="other">Other</option>
         </select>
       </label>

@@ -4022,176 +4022,11 @@ a.greview-author:hover { text-decoration: underline; }
 }
 
 /* ============================================================
-   Career Counselling (pages/services/CareerCounselling.tsx).
-   The typography does more work here than anywhere else on the
-   site, deliberately — this is the page for students who have
-   not decided anything, and it should read as an invitation.
-   Only one typeface is loaded, so the play comes from weight,
-   size, colour and stroke rather than from mixing families.
-   ============================================================ */
-
-/* ---- hero headline: three treatments, one line ---- */
-.cc-title { display: grid; gap: 0.1em; margin-bottom: 1.4rem; }
-.cc-title span { display: block; line-height: 1.02; }
-.cc-thin {
-  font-weight: 300; font-size: clamp(1.8rem, 3.2vw, 2.9rem);
-  letter-spacing: -0.01em; color: rgba(255, 255, 255, 0.86);
-}
-.cc-fat {
-  font-weight: 800; font-size: clamp(3rem, 6.4vw, 5.4rem);
-  letter-spacing: -0.045em; color: #fff;
-}
-.cc-accent {
-  font-weight: 800; font-size: clamp(2.2rem, 4.2vw, 3.6rem);
-  letter-spacing: -0.03em; color: var(--color-hero-red);
-  /* Nudged in so the three lines step across rather than stacking flush —
-     the eye follows the indent down instead of reading a block. */
-  padding-left: clamp(0.5rem, 4vw, 3.5rem);
-}
-
-/* Section headings on this page mix a filled word, an outlined word and an
-   accent word, so they need the tracking the outline treatment wants. */
-.cc-h2 { letter-spacing: -0.02em; max-width: 26ch; }
-.cc-h2 .h-outline { letter-spacing: 0; }
-
-/* ---- the five steps ---- */
-.cc-steps { margin-top: 3.5rem; display: grid; gap: clamp(3rem, 6vw, 5rem); }
-.cc-step {
-  position: relative;
-  display: grid; grid-template-columns: 0.85fr 1fr;
-  gap: clamp(2rem, 4vw, 3.5rem); align-items: center;
-  opacity: 0; transform: translateY(34px);
-  transition:
-    opacity 0.7s ease,
-    transform 0.7s cubic-bezier(0.22, 0.9, 0.28, 1);
-}
-.cc-step.is-in { opacity: 1; transform: none; }
-/* Staggered rather than aligned: each step sits a little further in than the
-   last, then comes back out. Keeps a long column from marching.
-
-   Counted on a repeating four-step cycle rather than on fixed positions, so
-   the rhythm holds however many steps the page ends up with — adding one to
-   the array in the component needs nothing here. */
-.cc-step:nth-child(4n + 2),
-.cc-step:nth-child(4n + 4) { margin-left: clamp(0rem, 4vw, 3.5rem); }
-.cc-step:nth-child(4n + 3) { margin-left: clamp(0rem, 7vw, 6rem); }
-
-.cc-shot {
-  margin: 0; border-radius: 22px; overflow: hidden; aspect-ratio: 5 / 4;
-  box-shadow: 0 20px 46px rgba(23, 39, 92, 0.15);
-}
-.cc-shot img, .cc-shot .dpage-shot-empty {
-  width: 100%; height: 100%; object-fit: cover;
-}
-
-/* The numeral sits behind the image, half off its corner — big enough to be
-   a graphic rather than a label, and outlined so it never fights the copy. */
-.cc-step-n {
-  position: absolute; left: -0.35em; top: -0.5em; z-index: -1;
-  font-family: var(--font-display); font-weight: 800;
-  font-size: clamp(5rem, 11vw, 9.5rem); line-height: 1;
-  letter-spacing: 0; color: transparent;
-  -webkit-text-stroke: 2px rgba(23, 39, 92, 0.14);
-}
-.cc-kicker {
-  color: var(--color-hero-red); font-size: 0.78rem; font-weight: 700;
-  letter-spacing: 0.16em; text-transform: uppercase; margin-bottom: 0.7rem;
-}
-.cc-body h3 {
-  color: var(--color-hero-ink);
-  font-size: clamp(1.5rem, 2.6vw, 2.1rem); letter-spacing: -0.025em;
-  line-height: 1.15; margin-bottom: 0.85rem;
-}
-.cc-body p { color: var(--color-muted); font-size: 1.02rem; line-height: 1.75; }
-
-/* ---- the nine reasons ----
-   Titles only, so the numeral carries the weight and the phrase sits under
-   it. Auto-fit rather than a fixed count: nine into three at desktop, two at
-   tablet, one on a phone, without a breakpoint for each. */
-.cc-why {
-  list-style: none; margin: 2.5rem 0 0; padding: 0;
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 1.75rem 2rem;
-}
-.cc-why li {
-  padding-top: 1.1rem; border-top: 2px solid var(--color-border);
-  transition: border-color 0.25s ease;
-}
-.cc-why li:hover { border-top-color: var(--color-hero-red); }
-.cc-why-n {
-  display: block; font-family: var(--font-display); font-weight: 800;
-  font-size: 2.1rem; line-height: 1; letter-spacing: 0;
-  color: transparent; -webkit-text-stroke: 1.5px var(--color-hero-red);
-  margin-bottom: 0.5rem;
-}
-.cc-why h3 {
-  color: var(--color-hero-ink); font-size: 1.05rem;
-  line-height: 1.35; margin: 0;
-}
-
-/* ---- the testing process ---- */
-.cc-process {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-  gap: 1.5rem; margin: 2.5rem 0 3.5rem;
-}
-/* A hairline all the way round instead of a red bar along the bottom. The
-   step's own numeral is already in the accent colour, and one accent per
-   card is plenty. */
-.cc-process-item {
-  background: #fff; border: 1px solid var(--color-border);
-  border-radius: 12px; padding: 1.6rem 1.5rem;
-}
-.cc-process-n {
-  display: block; font-family: var(--font-display); font-weight: 800;
-  font-size: 1.5rem; line-height: 1; color: var(--color-hero-red);
-  margin-bottom: 0.6rem;
-}
-.cc-process-item h3 {
-  color: var(--color-hero-ink); font-size: 1.1rem; margin-bottom: 0.4rem;
-}
-.cc-process-item p { color: var(--color-muted); font-size: 0.94rem; margin: 0; }
-.cc-report { align-items: start; }
-
-/* ---- the pull quote ---- */
-.cc-quote {
-  background: var(--color-hero-ink); color: #fff;
-  padding: clamp(3.5rem, 8vw, 6rem) 0; text-align: center;
-}
-.cc-quote p {
-  font-family: var(--font-display); font-weight: 800;
-  font-size: clamp(1.9rem, 5vw, 3.6rem); line-height: 1.12;
-  letter-spacing: -0.035em; max-width: 22ch;
-  margin: 0 auto 1rem;
-}
-/* No italic is loaded for this family, so emphasis is drawn rather than
-   slanted — an underline the width of the words, in the accent colour. */
-.cc-quote em {
-  font-style: normal; color: var(--color-hero-red);
-  box-shadow: inset 0 -0.14em 0 rgba(185, 56, 21, 0.35);
-}
-.cc-quote span {
-  display: block; color: rgba(255, 255, 255, 0.68);
-  font-size: 1rem; letter-spacing: 0.02em;
-}
-
-@media (max-width: 860px) {
-  .cc-step {
-    grid-template-columns: 1fr; gap: 1.5rem;
-    /* The stagger is a wide-screen device; stacked, it would just look like
-       inconsistent margins. */
-    margin-left: 0 !important;
-  }
-  .cc-step-n { font-size: 4.5rem; left: -0.1em; top: -0.35em; }
-  .cc-title { gap: 0.15em; }
-  .cc-accent { padding-left: 0; }
-}
-
-/* ============================================================
    Student Accommodation (pages/services/StudentAccommodation.tsx).
    Four housing cards that reveal on scroll, then two numbered
    columns. Deliberately a different shape from the visa page's
-   alternating rows and the career page's staggered steps — the
-   service pages share components, not layouts.
+   alternating rows — the service pages share components, not
+   layouts.
    ============================================================ */
 
 .acc-grid {
@@ -5912,7 +5747,10 @@ a.rev-score:hover { background: rgba(255, 255, 255, 0.08); }
 }
 
 /* ============================================================
-   University Partners (pages/about/UniversityPartners.tsx).
+   Partner universities — the slideshow and the searchable list on
+   /study-abroad (components/study-abroad/PartnerSlideshow.tsx and
+   PartnerUniversities.tsx). They were the University Partners page until
+   it was folded into Study Abroad; the class names kept their prefix.
 
    The `unip-` prefix, not `uni-`: the home page's rotating logo
    grid already owns `.uni-*` and the two must not touch.
@@ -5924,23 +5762,11 @@ a.rev-score:hover { background: rgba(255, 255, 255, 0.08); }
    rather than as a second attempt at a headline.
    ============================================================ */
 
-/* ---- hero headline ---- */
-.unip-title { display: grid; gap: 0.1em; margin-bottom: 1.35rem; }
-.unip-title span { display: block; line-height: 1.03; }
-.unip-thin {
-  font-weight: 300; font-size: clamp(1.3rem, 2.4vw, 2.1rem);
-  letter-spacing: -0.01em; color: rgba(255, 255, 255, 0.82);
-}
-.unip-fat {
-  font-weight: 800; font-size: clamp(2.4rem, 5.6vw, 4.6rem);
-  letter-spacing: -0.045em; color: #fff;
-}
-.unip-accent {
-  font-weight: 700; font-size: clamp(1.5rem, 2.9vw, 2.5rem);
-  letter-spacing: -0.025em; color: var(--color-hero-red);
-  padding-left: clamp(0.5rem, 4vw, 3.5rem);
-}
 .unip-h2 { letter-spacing: -0.025em; max-width: 22ch; }
+/* The partner list's section on /study-abroad. Every link to the old
+   University Partners page lands here by its #universities anchor, so it
+   stops below the sticky header rather than underneath it. */
+.sa-unis { scroll-margin-top: 7rem; }
 .unip-h2 .h-outline { letter-spacing: 0; }
 
 /* ---- the slideshow ---- */
@@ -6055,48 +5881,6 @@ a.rev-score:hover { background: rgba(255, 255, 255, 0.08); }
   .unip-slide-copy { animation: none; }
   .unip-dot-fill { animation: none; }
   .unip-dots button.is-on { background: #fff; }
-}
-
-/* ---- what a partnership buys you ----
-   FOUR ACROSS, HEADINGS ONLY. This was two columns of number-heading-
-   paragraph in a 1.15fr column beside a callout; the paragraphs are gone
-   (see the note on WHAT_IT_MEANS) and the callout has moved down to the
-   wall, so the four claims now run as one row the width of the page.
-
-   The rule over each one is the whole treatment — no card, no panel, no
-   background. With the body text gone there is very little ink in this
-   section and boxing it would have added more furniture than content. */
-.unip-means {
-  margin-top: 2.25rem;
-  display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem 2.25rem;
-}
-.unip-mean {
-  padding-top: 1.1rem; border-top: 2px solid var(--color-border);
-  transition: border-top-color 0.25s ease;
-}
-.unip-mean:hover { border-top-color: var(--color-hero-red); }
-.unip-mean-n {
-  display: block; font-family: var(--font-display); font-weight: 800;
-  font-size: 2rem; line-height: 1; letter-spacing: 0;
-  color: transparent; -webkit-text-stroke: 1.5px var(--color-hero-red);
-  margin-bottom: 0.5rem;
-}
-/* No bottom margin now that nothing follows it — the heading IS the item,
-   and the old 0.45rem was spacing for a paragraph that no longer exists. */
-.unip-mean h3 {
-  color: var(--color-hero-ink); font-size: 1.08rem;
-  line-height: 1.3; margin-bottom: 0;
-  text-wrap: balance;
-}
-
-/* Two up before one up: four headings squeezed into a phone's width break
-   to one word a line, and a single column of four is a lot of scrolling for
-   four short claims. */
-@media (max-width: 1024px) {
-  .unip-means { grid-template-columns: repeat(2, 1fr); }
-}
-@media (max-width: 480px) {
-  .unip-means { grid-template-columns: 1fr; gap: 1.5rem; }
 }
 
 /* ---- "not on the list?", under the wall ----
@@ -6245,8 +6029,6 @@ a.unip-card:focus-visible {
 }
 
 @media (max-width: 860px) {
-  .unip-accent { padding-left: 0; }
-  .unip-means { grid-template-columns: 1fr; }
   .unip-stage { min-height: clamp(460px, 70vh, 640px); }
   .unip-controls { margin-top: 1.75rem; }
   .unip-dots button { width: 30px; }
@@ -7509,9 +7291,6 @@ a.unip-card:focus-visible {
   .who-thin  { font-size: clamp(1.05rem, 4.4vw, 2.3rem); }
   .rev-fat   { font-size: clamp(2.4rem, 12vw, 6.5rem); }
   .rev-thin  { font-size: clamp(1.15rem, 5vw, 2.6rem); }
-  .unip-fat  { font-size: clamp(1.85rem, 8.5vw, 4.6rem); }
-  .unip-accent { font-size: clamp(1.15rem, 5vw, 2.5rem); }
-  .unip-thin { font-size: clamp(1.05rem, 4.4vw, 2.1rem); }
   .ctc-fat   { font-size: clamp(2rem, 9.5vw, 6rem); }
   .ctc-thin  { font-size: clamp(1.1rem, 4.8vw, 2.5rem); }
   .evt-fat   { font-size: clamp(2rem, 9.5vw, 6rem); }
@@ -7525,7 +7304,7 @@ a.unip-card:focus-visible {
 
   /* The stepped indents are a wide-screen device. At this width they only
      eat the measure the words need. */
-  .who-accent, .unip-accent, .gal-fat-2, .gal-accent { padding-left: 0; }
+  .who-accent, .gal-fat-2, .gal-accent { padding-left: 0; }
 
   /* ---- decoration only ----
      None of these carry a word. Each is a drawn ornament that either
@@ -7538,7 +7317,7 @@ a.unip-card:focus-visible {
   .footer-icef { height: 88px; }
   .rev-spotlight blockquote::before { display: none; } /* hung quote mark */
   .usa-h2::after { display: none; }        /* the section hairline */
-  .unip-mean-n, .evt-kind-n, .who-principle-n { font-size: 1.5rem; }
+  .evt-kind-n, .who-principle-n { font-size: 1.5rem; }
 
   /* ---- the gallery ribbon ----
      Fourteen thumbnails across a phone is texture, not photographs. Fewer
@@ -7579,7 +7358,7 @@ a.unip-card:focus-visible {
      lets it break rather than push the page sideways. Headings only — body
      copy at this size wraps fine and breaking it would read as a typo. */
   h1, h2, h3,
-  .who-fat, .rev-fat, .unip-fat, .ctc-fat, .evt-fat, .blg-fat, .gal-fat,
+  .who-fat, .rev-fat, .ctc-fat, .evt-fat, .blg-fat, .gal-fat,
   .unip-slide-name, .usa-h2 {
     overflow-wrap: break-word; hyphens: auto;
   }
@@ -9994,8 +9773,8 @@ a.unip-card:focus-visible {
 
 /* ============================================================
    UNIVERSITY PARTNERS — the search row on the wall
-   (pages/about/UniversityPartners.tsx), and one institution's own
-   page (pages/about/UniversityDetail.tsx)      .uni-
+   (components/study-abroad/PartnerUniversities.tsx), and one
+   institution's own page (pages/study-abroad/UniversityDetail.tsx)      .uni-
 
    The wall itself, its chips and its slideshow are the .unip-
    block further up; only what changed is here.
@@ -10824,3 +10603,336 @@ html[data-admin-theme="dark"] {
   --skel-base: #232834;
   --skel-sheen: rgba(255, 255, 255, 0.07);
 }
+
+/* ============================================================
+   IELTS TEST BOOKING — the provider choice on /services/test-booking,
+   the two forms, and the admin tab that lists what they send.
+   See components/services/TestBookingChoice.tsx,
+   pages/services/TestBookingForm.tsx and
+   pages/admin/TestBookingsPanel.tsx.
+
+   WRITTEN FOR A PHONE FIRST. Most candidates will fill this in on
+   one, holding their passport in the other hand. So: one field to a
+   line, targets at least 48px tall, and inputs at 16px — any smaller
+   and iOS zooms the whole page in on every tap and leaves it there.
+   The wide layout is the addition, not the other way round.
+   ============================================================ */
+
+/* ---- the choice ---- */
+.tbk-choice-lead {
+  color: var(--color-muted); max-width: 62ch; line-height: 1.7;
+  margin: 0 0 1.75rem;
+}
+.tbk-options {
+  display: grid; gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+}
+.tbk-option {
+  display: flex; flex-direction: column; overflow: hidden;
+  border-radius: 18px; border: 1px solid var(--color-border);
+  background: #fff; color: inherit;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+/* The provider's photograph. A fixed shape, so the two cards line up
+   whatever the files turn out to be — and the site's pale placeholder fills
+   exactly the same box until they are added (see data/testBooking.ts). */
+.tbk-option-shot { display: block; aspect-ratio: 16 / 9; overflow: hidden; }
+.tbk-option-shot img, .tbk-option-shot .dpage-shot-empty {
+  display: block; width: 100%; height: 100%; min-height: 0; object-fit: cover;
+}
+.tbk-option-body {
+  display: grid; gap: 0.4rem; align-content: start; flex: 1;
+  padding: 1.35rem 1.5rem 1.5rem;
+}
+.tbk-option:hover {
+  border-color: var(--color-hero-ink);
+  box-shadow: 0 14px 34px -18px rgba(23, 39, 92, 0.35);
+}
+.tbk-option:focus-visible { outline: 2px solid var(--color-hero-red); outline-offset: 3px; }
+.tbk-option-kicker {
+  color: var(--color-hero-red); font-size: 0.74rem; font-weight: 700;
+  letter-spacing: 0.14em; text-transform: uppercase;
+}
+.tbk-option-name {
+  font-family: var(--font-display); font-weight: 800; letter-spacing: -0.02em;
+  font-size: clamp(1.4rem, 2.6vw, 1.8rem); color: var(--color-hero-ink);
+}
+.tbk-option-meta { color: var(--color-muted); font-size: 0.92rem; }
+.tbk-option-go {
+  display: inline-flex; align-items: center; gap: 0.45rem; margin-top: 0.6rem;
+  color: var(--color-hero-red); font-weight: 700; font-size: 0.95rem;
+}
+.tbk-option-go svg { transition: transform 0.2s ease; }
+.tbk-option:hover .tbk-option-go svg { transform: translateX(3px); }
+
+/* ---- the form page ---- */
+/* The page opens with the same photographic hero as every other page, but
+   shorter than theirs: the form is what the visitor came for, and a
+   full-height picture would push the first field off a phone's screen. */
+.tbk-hero { min-height: clamp(400px, 56vh, 560px); }
+/* Room above the form now the hero ends flush with it, and a landing point
+   for the hero's "Fill in the form" link that clears the sticky header. */
+.tbk-body {
+  padding: clamp(2rem, 5vw, 3.25rem) 0 var(--section-y);
+  scroll-margin-top: 6rem;
+}
+
+/* Fields, then the declaration, then the button — in that order on a phone,
+   so the filled-in sentence is the last thing read before sending. On a
+   wide screen the declaration moves beside the fields and stays in view. */
+.tbk-form {
+  display: grid; gap: 1.5rem;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: "fields" "preview" "actions";
+}
+.tbk-fields { grid-area: fields; display: grid; gap: 1.25rem; }
+.tbk-preview { grid-area: preview; }
+.tbk-actions { grid-area: actions; display: grid; gap: 0.85rem; }
+@media (min-width: 900px) {
+  .tbk-form {
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    grid-template-areas: "fields preview" "actions preview";
+    column-gap: clamp(2rem, 4vw, 3.5rem); align-items: start;
+  }
+  /* Below the sticky header, so the sentence is readable while scrolling
+     through the fields that fill it in. */
+  .tbk-preview { position: sticky; top: 7.5rem; }
+}
+
+.tbk-field {
+  position: relative; display: grid; gap: 0.4rem; min-width: 0;
+  margin: 0; padding: 0; border: 0;
+}
+.tbk-field > label, .tbk-label, .tbk-radios legend {
+  font-weight: 600; font-size: 0.95rem; color: var(--color-hero-ink);
+}
+.tbk-optional { color: var(--color-muted); font-weight: 400; }
+.tbk-field input:not([type="radio"]):not([type="checkbox"]):not([type="file"]) {
+  width: 100%; min-height: 48px; padding: 0.8rem 0.95rem;
+  border: 1px solid var(--color-border); border-radius: 12px; background: #fff;
+  font: inherit; font-size: 1rem; color: var(--color-text);
+}
+.tbk-field input[name="passportNumber"] { letter-spacing: 0.06em; }
+/* iOS draws a date input centred and ignores width without these. */
+.tbk-field input[type="date"] { -webkit-appearance: none; appearance: none; text-align: left; }
+.tbk-field input[type="date"]::-webkit-date-and-time-value { text-align: left; }
+.tbk-field input:focus-visible {
+  outline: 2px solid var(--color-hero-ink); outline-offset: 1px; border-color: transparent;
+}
+.tbk-field input[aria-invalid="true"] { border-color: var(--color-danger); background: #fff8f7; }
+.tbk-hint { margin: 0; color: var(--color-muted); font-size: 0.84rem; line-height: 1.5; }
+.tbk-error { margin: 0; color: var(--color-danger); font-size: 0.86rem; font-weight: 600; line-height: 1.5; }
+
+/* Exam date and city side by side once there is room for both. */
+.tbk-row { display: grid; gap: 1.25rem; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 560px) {
+  .tbk-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* The module — two big cards rather than two tiny circles. */
+.tbk-radios { grid-template-columns: minmax(0, 1fr); gap: 0.6rem; }
+.tbk-radios legend { padding: 0; margin-bottom: 0.4rem; }
+.tbk-radios .tbk-error { grid-column: 1 / -1; }
+@media (min-width: 560px) {
+  .tbk-radios { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+.tbk-radio {
+  display: flex; align-items: center; gap: 0.75rem; min-height: 56px;
+  padding: 0.85rem 1rem; border-radius: 12px; cursor: pointer;
+  border: 1px solid var(--color-border); background: #fff;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+.tbk-radio:has(input:checked) {
+  border-color: var(--color-hero-ink); background: #f4f7fb;
+  box-shadow: inset 0 0 0 1px var(--color-hero-ink);
+}
+.tbk-radio:has(input:focus-visible) { outline: 2px solid var(--color-hero-red); outline-offset: 2px; }
+.tbk-radio input { width: 1.15rem; height: 1.15rem; margin: 0; flex: none; accent-color: var(--color-hero-ink); }
+.tbk-radio span { display: grid; gap: 0.1rem; }
+.tbk-radio strong { color: var(--color-hero-ink); font-size: 0.98rem; }
+.tbk-radio em { font-style: normal; color: var(--color-muted); font-size: 0.82rem; }
+
+/* The signature. The real file input is hidden but still in the tab order;
+   its label is the visible button and shows the focus ring for it. */
+.tbk-file-input {
+  position: absolute; width: 1px; height: 1px; opacity: 0;
+  overflow: hidden; clip-path: inset(50%);
+}
+.tbk-file-btn {
+  justify-self: start; display: inline-flex; align-items: center; min-height: 48px;
+  padding: 0.75rem 1.2rem; border-radius: 12px; cursor: pointer;
+  border: 1.5px dashed var(--color-hero-ink); background: #f8fafc;
+  color: var(--color-hero-ink); font-weight: 600;
+}
+.tbk-file-btn:hover { background: #eef2fb; }
+.tbk-file-input:focus-visible + .tbk-file-btn { outline: 2px solid var(--color-hero-red); outline-offset: 2px; }
+.tbk-file-input[aria-invalid="true"] + .tbk-file-btn { border-color: var(--color-danger); }
+.tbk-sig {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 1rem;
+  padding: 0.75rem; border: 1px solid var(--color-border); border-radius: 12px; background: #fff;
+}
+.tbk-sig img {
+  width: 160px; max-width: 100%; height: 72px; object-fit: contain;
+  background: #fff; border: 1px solid var(--color-border); border-radius: 6px;
+}
+.tbk-sig-meta { display: grid; gap: 0.15rem; min-width: 0; font-size: 0.84rem; color: var(--color-muted); }
+.tbk-sig-meta span:first-child { color: var(--color-text); font-weight: 600; overflow-wrap: anywhere; }
+.tbk-sig-remove {
+  justify-self: start; margin-top: 0.25rem; padding: 0; border: 0; background: none;
+  color: var(--color-danger); font: inherit; font-size: 0.84rem; font-weight: 600;
+  cursor: pointer; text-decoration: underline; text-underline-offset: 3px;
+}
+
+/* ---- the declaration, as it fills in ---- */
+.tbk-preview {
+  padding: clamp(1.25rem, 3vw, 1.75rem); border-radius: 18px;
+  border: 1px solid var(--color-border); background: #fff;
+  box-shadow: 0 18px 44px -30px rgba(23, 39, 92, 0.4);
+}
+.tbk-preview-kicker {
+  margin: 0 0 0.75rem; color: var(--color-hero-red); font-size: 0.74rem;
+  font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+}
+/* Line-height of 2, the way the paper form is spaced for handwriting —
+   and so the underlined answers never touch the line above. */
+.tbk-preview-text { margin: 0; line-height: 2; font-size: 1rem; color: var(--color-text); }
+.tbk-preview-text strong {
+  color: var(--color-hero-ink); padding: 0 0.1rem; overflow-wrap: anywhere;
+  border-bottom: 1.5px solid var(--color-hero-ink);
+}
+/* An unfilled blank, dotted like the paper. */
+.tbk-blank {
+  display: inline-block; width: 6.5rem; max-width: 40%; height: 1em;
+  vertical-align: -0.1em; border-bottom: 1.5px dotted #b9bdcc;
+}
+.tbk-blank-wide { width: 100%; max-width: none; height: 2.2rem; }
+.tbk-preview-sign {
+  display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+  gap: 1rem; margin-top: 1.5rem; align-items: end;
+}
+.tbk-preview-sig, .tbk-preview-date { display: grid; gap: 0.35rem; min-width: 0; }
+.tbk-preview-sig img {
+  max-width: 100%; height: 56px; object-fit: contain; object-position: left bottom;
+  border-bottom: 1.5px solid var(--color-hero-ink);
+}
+.tbk-preview-sig span, .tbk-preview-date span { font-size: 0.76rem; color: var(--color-muted); }
+.tbk-preview-date strong {
+  color: var(--color-hero-ink); font-size: 0.92rem;
+  padding-bottom: 0.2rem; border-bottom: 1.5px solid var(--color-hero-ink);
+}
+
+/* ---- confirm and send ---- */
+.tbk-confirm {
+  display: flex; align-items: flex-start; gap: 0.75rem; padding: 1rem;
+  border-radius: 12px; background: #f4f7fb; cursor: pointer;
+  font-size: 0.92rem; line-height: 1.55; color: var(--color-text);
+}
+.tbk-confirm input { width: 1.2rem; height: 1.2rem; margin: 0.15rem 0 0; flex: none; accent-color: var(--color-hero-ink); }
+/* Full width on a phone — the easiest thing on the screen to hit. */
+.tbk-submit {
+  min-height: 52px; padding: 0.9rem 1.6rem; border: 0; border-radius: 12px;
+  background: var(--color-hero-red); color: #fff; cursor: pointer;
+  font: inherit; font-weight: 700; font-size: 1rem;
+  transition: background-color 0.15s ease;
+}
+.tbk-submit:hover:not(:disabled) { background: #9e2f11; }
+.tbk-submit:disabled { opacity: 0.65; cursor: progress; }
+.tbk-submit:focus-visible { outline: 2px solid var(--color-hero-ink); outline-offset: 3px; }
+@media (min-width: 560px) {
+  .tbk-submit { justify-self: start; }
+}
+.tbk-form-error { padding: 0.75rem 1rem; background: #fff5f3; border-radius: 10px; }
+.tbk-small { margin: 0; color: var(--color-muted); font-size: 0.8rem; line-height: 1.5; }
+
+/* ---- sent ---- */
+.tbk-done {
+  max-width: 640px; margin: 0 auto; display: grid; gap: 1rem; justify-items: center;
+  text-align: center; border-radius: 20px; border: 1px solid var(--color-border); background: #fff;
+  padding: clamp(1.75rem, 5vw, 3rem) clamp(1.25rem, 4vw, 2.5rem);
+}
+.tbk-done-mark {
+  width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center;
+  background: rgba(30, 126, 52, 0.1); color: var(--color-success);
+  font-size: 1.6rem; font-weight: 700;
+}
+.tbk-done h2 { margin: 0; color: var(--color-hero-ink); font-size: clamp(1.5rem, 3vw, 2rem); }
+/* Focused programmatically on arrival, for screen readers — not a control,
+   so no focus ring. */
+.tbk-done h2:focus { outline: none; }
+.tbk-done > p { margin: 0; color: var(--color-muted); line-height: 1.7; }
+.tbk-done > .tbk-note {
+  text-align: left; font-size: 0.9rem; color: var(--color-text);
+  padding: 0.9rem 1rem; border-radius: 8px;
+  background: #fff7ed; border-left: 3px solid var(--color-hero-red);
+}
+.tbk-done-summary { width: 100%; margin: 0.25rem 0 0; text-align: left; border-top: 1px solid var(--color-border); }
+.tbk-done-summary div {
+  display: flex; justify-content: space-between; gap: 1rem;
+  padding: 0.7rem 0; border-bottom: 1px solid var(--color-border);
+}
+.tbk-done-summary dt { color: var(--color-muted); font-size: 0.88rem; }
+.tbk-done-summary dd { margin: 0; color: var(--color-hero-ink); font-weight: 600; text-align: right; }
+.tbk-done-actions {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 0.75rem 1.25rem;
+}
+.tbk-link { display: inline-flex; align-items: center; gap: 0.4rem; color: var(--color-hero-red); font-weight: 700; }
+
+@media (prefers-reduced-motion: reduce) {
+  .tbk-option, .tbk-option-go svg, .tbk-radio, .tbk-submit { transition: none; }
+  .tbk-option:hover .tbk-option-go svg { transform: none; }
+}
+
+/* ---- the admin tab (pages/admin/TestBookingsPanel.tsx) ----
+   Every colour is a token, so the admin dark theme carries it — except the
+   signature's own ground, which stays white on purpose: it is dark ink on
+   paper, and a transparent PNG of one on a dark card would disappear. */
+.adm-toolbar { display: flex; flex-wrap: wrap; gap: 0.6rem; margin: 1rem 0 0.25rem; }
+.adm-main .tbk-adm-card .inquiry-head { flex-wrap: wrap; }
+.adm-main .tbk-adm-provider {
+  padding: 0.2rem 0.55rem; border-radius: 999px; border: 1px solid var(--color-border);
+  font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--color-muted);
+}
+.adm-main .tbk-adm-body { display: grid; gap: 1rem; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 900px) {
+  .adm-main .tbk-adm-body { grid-template-columns: minmax(0, 1fr) 240px; align-items: start; }
+}
+.adm-main .tbk-adm-details {
+  margin: 0; display: grid; gap: 0.75rem 1.25rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr));
+}
+.adm-main .tbk-adm-details div { min-width: 0; }
+.adm-main .tbk-adm-details dt,
+.adm-main .tbk-adm-sigtitle {
+  margin: 0 0 0.2rem; font-size: 0.72rem; font-weight: 600;
+  letter-spacing: 0.05em; text-transform: uppercase; color: var(--color-muted);
+}
+.adm-main .tbk-adm-details dd { margin: 0; font-size: 0.95rem; color: var(--color-text); overflow-wrap: anywhere; }
+.adm-main .tbk-adm-details a {
+  color: var(--color-hero-ink); text-decoration: underline; text-underline-offset: 3px;
+}
+.adm-main .tbk-adm-passport { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
+.adm-main .tbk-adm-passport code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 1rem; font-weight: 700; letter-spacing: 0.06em;
+  color: var(--color-hero-ink); background: var(--color-surface);
+  padding: 0.15rem 0.45rem; border-radius: 6px;
+}
+.adm-main .tbk-copy {
+  padding: 0.2rem 0.6rem; border-radius: 999px; cursor: pointer;
+  border: 1px solid var(--color-border); background: var(--color-bg);
+  font: inherit; font-size: 0.76rem; font-weight: 600; color: var(--color-hero-ink);
+}
+.adm-main .tbk-copy:hover { border-color: var(--color-hero-ink); }
+.adm-main .tbk-adm-sigwrap { display: grid; gap: 0.4rem; }
+.adm-main .tbk-adm-sig { display: grid; gap: 0.35rem; font-size: 0.78rem; color: var(--color-muted); }
+.adm-main .tbk-adm-sig img {
+  width: 100%; max-height: 120px; object-fit: contain; padding: 0.4rem;
+  background: #fff; border: 1px solid var(--color-border); border-radius: 10px;
+}
+.adm-main .tbk-adm-sig:hover span { color: var(--color-hero-ink); text-decoration: underline; }
+.adm-main .tbk-adm-sig-missing {
+  margin: 0; padding: 0.75rem; font-size: 0.82rem; color: var(--color-muted);
+  border: 1px dashed var(--color-border); border-radius: 10px;
+}
+.adm-main .tbk-adm-error { color: var(--color-danger); }

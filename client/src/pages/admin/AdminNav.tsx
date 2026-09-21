@@ -46,7 +46,8 @@ const LINKS: NavItem[] = [
     label: "Events & news",
     match: ["/admin/events", "/admin/news"],
   },
-  { to: "/admin/inquiries", label: "Inquiries" },
+  /* Lit for both tabs — enquiries and IELTS booking requests. */
+  { to: "/admin/inquiries", label: "Inquiries", match: ["/admin/inquiries", "/admin/test-bookings"] },
 ];
 
 /** The signed-in account's initial, for the corner disc. */

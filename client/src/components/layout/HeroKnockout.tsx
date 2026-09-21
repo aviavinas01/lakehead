@@ -51,11 +51,15 @@ import { ZOOM } from "../../lib/parallax";
  * ------------------------------------------------------------------
  */
 
-/* Where the effect belongs: the study-abroad landing page and the six
-   per-country pages. The service pages are left alone — Career Counselling
-   in particular has a headline built from three deliberately different
-   treatments, and knocking it out would flatten all of them into one. */
-const APPLIES_TO = /^\/study-(abroad|in-)/;
+/* Where the effect belongs: the study-abroad landing page and the
+   per-country pages, and nothing else. The service pages are left alone.
+
+   /study-abroad ITSELF, not everything under it: the partner universities'
+   own pages live at /study-abroad/universities/<slug>, and they have no
+   photographic hero to cut a headline out of. A prefix match would have
+   sent this looking for one on every visit and given up three seconds
+   later. */
+const APPLIES_TO = /^\/study-(abroad\/?$|in-)/;
 
 export default function HeroKnockout() {
   const { pathname } = useLocation();

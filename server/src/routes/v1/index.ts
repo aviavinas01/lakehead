@@ -13,12 +13,16 @@ import peopleRoutes from "./people.routes.js";
 import assistantRoutes from "./assistant.routes.js";
 import clientErrorRoutes from "./clientError.routes.js";
 import gateRoutes from "./gate.routes.js";
+import testBookingRoutes from "./testBooking.routes.js";
 
 const v1 = Router();
 
 v1.use("/auth", authRoutes);
 v1.use("/posts", postRoutes);
 v1.use("/inquiries", inquiryRoutes);
+/* IELTS booking requests — the IDP and British Council forms. Their own
+   collection, shown beside enquiries in the admin. See models/TestBooking. */
+v1.use("/test-bookings", testBookingRoutes);
 /* No /users. The site has exactly one account, created from ADMIN_EMAIL and
    ADMIN_PASSWORD at boot — see config/seedAdmin.ts. Removing the routes
    rather than guarding them is the point: a session that is somehow taken

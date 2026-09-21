@@ -16,7 +16,11 @@ export const createInquirySchema = z.object({
     name: z.string().trim().min(2).max(100),
     email: z.string().email().optional(),
     phone: z.string().trim().max(20).optional(),
-    service: z.enum(SERVICES).default("other"),
+    /* `.catch`, not `.default`: a browser still running an older copy of
+       the site can send a topic that has since been removed (career
+       counselling was one). That enquiry is still an enquiry — it is
+       filed as "other" rather than refused, which would lose it. */
+    service: z.enum(SERVICES).catch("other"),
     message: z.string().trim().max(2000).optional(),
     /* Which form sent this. Defaulted rather than required so that a browser
        still running a build from before this field existed keeps working —

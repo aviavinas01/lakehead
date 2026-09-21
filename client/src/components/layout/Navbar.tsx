@@ -89,7 +89,8 @@ const links: NavItem[] = [
            video stories it meant are now cards on the reviews wall, so the
            entry below is the only one that leads to them. */
         { label: "Testimonials & Reviews", to: "/testimonials" },
-        { label: "University Partners", to: "/university-partners" },
+        /* The list lives on Study Abroad now; this goes straight to it. */
+        { label: "University Partners", to: "/study-abroad#universities" },
         { label: "Gallery", to: "/gallery" },
         { label: "Contact Us", to: "/contact" },
       ],

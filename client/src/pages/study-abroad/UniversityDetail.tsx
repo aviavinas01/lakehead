@@ -1,11 +1,21 @@
 import { useEffect } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, Navigate, useParams } from "react-router-dom";
 import { Arrow } from "../../components/shared/destinationBits";
-import { DESTINATIONS, universityBySlug } from "../../data/universities";
+import {
+  DESTINATIONS,
+  UNIVERSITIES_ANCHOR,
+  universityBySlug,
+  universityPath,
+} from "../../data/universities";
 import CallbackStrip from "../../components/shared/CallbackStrip";
 
 /**
- * One partner institution — /university-partners/<slug>.
+ * One partner institution — /study-abroad/universities/<slug>.
+ *
+ * UNDER STUDY ABROAD because that is where the list of partners lives now.
+ * It used to be /university-partners/<slug>, beneath a University Partners
+ * page that has since been folded into /study-abroad; the old addresses
+ * still work — see LegacyUniversityRedirect at the bottom of this file.
  *
  * ------------------------------------------------------------------
  * ONE LAYOUT, EVERY UNIVERSITY, and that is the requirement rather than a
@@ -47,7 +57,7 @@ export default function UniversityDetail() {
     const previous = document.title;
     document.title = uni
       ? `${uni.name} | Lakehead Education`
-      : "University Partners | Lakehead Education";
+      : "Partner universities | Lakehead Education";
     return () => {
       document.title = previous;
     };
@@ -59,10 +69,10 @@ export default function UniversityDetail() {
         <div className="container uni-missing">
           <h1>We could not find that university</h1>
           <p>
-            It may have been taken off the partners page, or the address may
-            be wrong. The full list is one click away.
+            It may have been taken off our list of partners, or the address
+            may be wrong. The full list is one click away.
           </p>
-          <Link className="uni-back" to="/university-partners">
+          <Link className="uni-back" to={UNIVERSITIES_ANCHOR}>
             All partner institutions <Arrow />
           </Link>
         </div>
@@ -86,7 +96,7 @@ export default function UniversityDetail() {
       <header className="uni-head">
         <div className="container uni-head-inner">
           <p className="uni-crumb">
-            <Link to="/university-partners">University Partners</Link>
+            <Link to={UNIVERSITIES_ANCHOR}>Partner universities</Link>
           </p>
 
           <div className="uni-id">
@@ -189,8 +199,8 @@ export default function UniversityDetail() {
         </section>
       ) : null}
 
-      {/* The honest part, and the same one the partners page makes: a
-          partnership is a working relationship, not a recommendation. */}
+      {/* The honest part: a partnership is a working relationship, not a
+          recommendation. */}
       <section className="dpage-section">
         <div className="container uni-partnership">
           <h2 className="dpage-title uni-h2">
@@ -204,7 +214,7 @@ export default function UniversityDetail() {
             likely — nothing does but your file.
           </p>
           <p className="dpage-note">
-            Every institution on our partners page pays a commission, which is
+            Every institution on our list of partners pays a commission, which is
             exactly why we say so here. Your shortlist is built from your
             profile first, and the partner list is checked afterwards.
             {guide ? (
@@ -216,7 +226,7 @@ export default function UniversityDetail() {
               </>
             ) : null}
           </p>
-          <Link className="uni-back" to="/university-partners">
+          <Link className="uni-back" to={UNIVERSITIES_ANCHOR}>
             All partner institutions <Arrow />
           </Link>
         </div>
@@ -225,4 +235,16 @@ export default function UniversityDetail() {
       <CallbackStrip service="study-abroad" />
     </article>
   );
+}
+
+/**
+ * /university-partners/<slug> — the address these pages had before the
+ * University Partners page was folded into /study-abroad. Sent on to the new
+ * one, `replace`d so the old address does not sit in the history as a
+ * back-button trap. Links in old emails, shared chats and search results
+ * keep working this way.
+ */
+export function LegacyUniversityRedirect() {
+  const { slug = "" } = useParams();
+  return <Navigate to={universityPath(slug)} replace />;
 }
