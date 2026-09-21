@@ -1,0 +1,32 @@
+# ---- lakehead probe: static-site rules --------------------------------
+# PASTE THESE AT THE BOTTOM of the existing .htaccess in the subdomain's
+# document root. Do NOT remove the "CLOUDLINUX PASSENGER CONFIGURATION"
+# block above them — that block is what connects /api to the Node app.
+
+# No directory listings, ever.
+Options -Indexes
+
+# Apache normally answers /about (when an "about" folder exists) with a
+# redirect to /about/ and then a 403. The real site has folders named like
+# its pages (about, services, testimonials), so that behaviour would break
+# those pages. Off, so the rules below decide instead.
+DirectorySlash Off
+
+RewriteEngine On
+
+# /uploads also belongs to the Node app, but cPanel attaches the app to one
+# path only. Hand /uploads/... over to /api/uploads/... inside Apache — the
+# visitor's address does not change.
+RewriteRule ^uploads/(.*)$ /api/uploads/$1 [L]
+
+# /api belongs to the Node app. Never rewrite it.
+RewriteRule ^api(/|$) - [L]
+
+# A real file is served exactly as it is.
+RewriteCond %{REQUEST_FILENAME} -f
+RewriteRule ^ - [L]
+
+# Everything else — including a path that happens to be a folder — is the
+# single-page site, which works out the page itself.
+RewriteRule ^ index.html [L]
+# ---- end lakehead probe rules -----------------------------------------

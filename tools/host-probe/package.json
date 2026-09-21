@@ -1,0 +1,11 @@
+{
+  "name": "lakehead-host-probe",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Throwaway diagnostics for the cPanel host. Delete after use.",
+  "type": "module",
+  "engines": { "node": "22.x" },
+  "dependencies": {
+    "pg": "8.23.0"
+  }
+}

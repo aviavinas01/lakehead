@@ -1,0 +1,1 @@
+A real file inside a real folder called "about" — served as-is by Apache.

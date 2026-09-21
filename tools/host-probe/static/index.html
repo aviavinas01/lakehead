@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex" />
+  <title>Lakehead host probe</title>
+  <style>
+    body { font: 16px/1.6 system-ui, sans-serif; max-width: 760px; margin: 2rem auto; padding: 0 1rem; color: #26262e; }
+    h1 { color: #17275c; font-size: 1.5rem; }
+    .ok { padding: .75rem 1rem; background: #e8f5ec; border-left: 3px solid #1e7e34; border-radius: 6px; }
+    code { background: #f1f2f5; padding: .1rem .35rem; border-radius: 4px; }
+    input { font: inherit; padding: .5rem .7rem; width: 100%; max-width: 420px; border: 1px solid #ccc; border-radius: 6px; }
+    button { font: inherit; padding: .55rem 1.1rem; margin-top: .6rem; border: 0; border-radius: 6px; background: #17275c; color: #fff; cursor: pointer; }
+    pre { background: #0f172a; color: #e2e8f0; padding: 1rem; border-radius: 8px; overflow-x: auto; font-size: .82rem; white-space: pre-wrap; word-break: break-all; }
+    li { margin: .3rem 0; }
+  </style>
+</head>
+<body>
+  <h1>Lakehead host probe</h1>
+
+  <p class="ok">✓ Apache served this page. You are looking at
+    <code id="where"></code>.</p>
+
+  <p>Check each of these, then send me what you saw:</p>
+  <ol>
+    <li><a href="/about">/about</a> — should show <strong>this same page</strong>, not an error.
+      (A folder called <code>about</code> exists here; the site must still win.)</li>
+    <li><a href="/about/test.txt">/about/test.txt</a> — should show one line of text (a real file).</li>
+    <li><a href="/somewhere/deep/that/does-not-exist">/somewhere/deep/…</a> — should show this page too.</li>
+    <li><a href="/uploads/probe-check">/uploads/probe-check</a> — should show a line starting
+      <strong>"OK - the Node app answered"</strong>. Note the path it says it received.</li>
+  </ol>
+
+  <p><label for="k">Probe key (the <code>PROBE_KEY</code> you set in cPanel):</label><br />
+    <input id="k" type="password" autocomplete="off" />
+    <br /><button id="go" type="button">Run the report</button></p>
+
+  <pre id="out">The report from the Node app will appear here.</pre>
+
+  <script>
+    document.getElementById("where").textContent = location.pathname;
+    document.getElementById("go").addEventListener("click", async () => {
+      const out = document.getElementById("out");
+      const key = document.getElementById("k").value.trim();
+      out.textContent = "Asking the Node app at /api/report …";
+      try {
+        const res = await fetch("/api/report?key=" + encodeURIComponent(key), { cache: "no-store" });
+        const text = await res.text();
+        out.textContent = res.ok
+          ? text
+          : "HTTP " + res.status + " — " + (res.status === 404
+              ? "wrong key, or /api is not reaching the Node app."
+              : text);
+      } catch (e) {
+        out.textContent = "Request failed: " + e.message;
+      }
+    });
+  </script>
+</body>
+</html>
