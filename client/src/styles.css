@@ -454,33 +454,23 @@ html[data-scrolling] .dpage-table-scroll { pointer-events: auto; }
    The photo comes from the admin album titled "Home Hero".
    ============================================================ */
 /* `clip` behaves like `hidden` but never creates a scroll container, and the
-   margin lets the circle bloom past the section edges on hover instead of
-   being sliced flat. Browsers without `clip` keep the old `hidden`. */
+   margin keeps the flag badges' drop shadows from being sliced flat where
+   the ring comes close to the section edge. Browsers without `clip` keep
+   the old `hidden`. */
 .hero {
-  /* The containing block for .hero-media — without this the film measures
-     itself against an ancestor further up and lands a navbar's height out. */
   position: relative;
   background: var(--color-bg);
   overflow: hidden;
   overflow: clip;
   overflow-clip-margin: 120px;
 }
-/* The film is the whole first screen, so the section it lives in has to be
-   one. The header is sticky and therefore in the flow above this, hence
-   subtracting it — the two together come to exactly one viewport, and the
-   film reaches up over the header from inside. Desktop only: below the
-   stacking breakpoint the film never opens (see the override further down),
-   so a forced full-height hero there would only push the copy around. */
-@media (min-width: 861px) {
-  .hero { min-height: calc(100svh - var(--navbar-h, 87px)); }
-  .hero-inner { min-height: inherit; }
-}
+/* Copy on the left, the orbit on the right — the layout from before the film
+   went full-bleed. Its height is its content's: nothing in it needs the
+   section to fill a screen any more, which the full-bleed film did. Below
+   860px it stacks, copy first — see the rule in that breakpoint. */
 .hero-inner {
   position: relative; z-index: 2;
-  /* One column since the orbit came out of the hero. The copy is capped
-     rather than filling the width, so the right of the film stays picture
-     instead of becoming a margin. */
-  display: grid; grid-template-columns: minmax(0, 40rem); align-items: center;
+  display: grid; grid-template-columns: 1.05fr 1fr; align-items: center; gap: 3rem;
   padding-top: 3.5rem; padding-bottom: 3.5rem;
 }
 .hero-eyebrow {
@@ -511,91 +501,32 @@ html[data-scrolling] .dpage-table-scroll { pointer-events: auto; }
   position: relative; width: var(--orbit-size); height: var(--orbit-size);
   margin-inline: auto; z-index: 1;
 }
-/* Everything visible lives in the stage, and the stage grows by transform
-   alone — the wrap keeps its box, so the hero grid never reflows and the
-   headline beside it never shifts. Inert to the pointer so the enlarged
-   circle cannot swallow clicks meant for the buttons underneath it. */
+/* Everything visible lives in the stage. Inert to the pointer, so neither
+   the ring nor the disc ever takes a click — only the flag links do, and
+   they claim it back for themselves alone (see .orbit-badge-link). */
 .hero-orbit-stage { position: absolute; inset: 0; pointer-events: none; }
-/* The pointer target, and the reason the bloom is not sticky: it stays the
-   size of the resting circle no matter how far the stage has grown, so
-   stepping off the small circle always settles it. */
-.hero-orbit-hit {
-  position: absolute; inset: 14%; border-radius: 50%; z-index: 2;
-}
 .hero-orbit-ring {
   position: absolute; inset: 7%; border: 1.5px dashed #d4d7e5; border-radius: 50%;
   transition: opacity 0.6s ease;
 }
-/* The hero's film: the background of the section, full width, reaching up
-   behind the header and down to where the figures below begin.
+/* The disc the film plays in — the resting circle from before the film went
+   full-bleed: same inset from the ring, same shadow. It never grows, so it
+   is a plain child of the stage clipped by its own radius; nothing measures
+   it and nothing is parked on top of it.
 
-   The 2.5rem is the stats strip's own top padding, so the film stops exactly
-   where the numbers start. Both overhangs sit inside .hero's 120px clip
-   margin, which is what lets them paint outside the section at all.
-
-   There is no second state. This used to animate between a circle in an
-   orbit of badges and a full-bleed film - on hover, and later on scroll -
-   with its resting geometry measured at runtime and published as CSS
-   variables. All of that is gone, along with the measuring pass it needed
-   on every resize. */
-.hero-media {
-  position: absolute; z-index: 0;
-  /* Clipped so the rounded corners below actually cut the video. */
-  overflow: hidden;
-  /* Reaches up behind the header again, as it always did. The bar is opaque
-     white on this page — the home hero does not get the see-through
-     treatment the destination pages do — so this overhang is never seen; it
-     simply means the film has no top edge of its own to notice. */
-  top: calc(-1 * var(--navbar-h, 87px));
-  /* The thinnest margin that still reads as a margin. Enough to say the clip
-     is a panel set on the page rather than the page itself, and no more.
-     Inset rather than a border: a border would be drawn INSIDE this box and
-     the video, which covers the box, would paint straight over it. */
-  --hero-gutter: clamp(2px, 0.22vw, 4px);
-  left: var(--hero-gutter);
-  width: calc(100% - 2 * var(--hero-gutter));
-  /* BOTTOM ONLY. The top is square because the top is not there — it is
-     behind an opaque header, so a radius on it would be drawn where nobody
-     can see it. The foot is the edge that meets white page, and the two
-     outer corners of it sit clear of the call-back strip that straddles the
-     middle of that edge. */
-  border-radius: 0 0 14px 14px;
-  /* Down to the hero's own lower edge and no further, plus the header's
-     height it reaches up by. It once overhung the foot by 2.5rem so it ran
-     into the figures below with no white between them; those are meant to
-     have room to breathe now. */
-  height: calc(100% + var(--navbar-h, 87px));
+   Tinted underneath, so a slow or missing clip leaves a deliberate circle
+   rather than a hole in the middle of the ring. The copy beside it is back
+   to navy on white — there is no film behind the words to need a scrim. */
+.hero-orbit-media {
+  position: absolute; inset: 16.5%;
+  border-radius: 50%; overflow: hidden;
+  background: var(--color-surface);
+  box-shadow: 0 24px 60px rgba(23, 39, 92, 0.18);
 }
-.hero-media img, .hero-media video { width: 100%; height: 100%; object-fit: cover; }
+.hero-orbit-media img, .hero-orbit-media video {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+}
 .hero-photo-placeholder { width: 100%; height: 100%; background: linear-gradient(135deg, #e9eaf5, #c7cae3); }
-/* We cannot know how bright a frame the clip is on, so the text brings its
-   own ground with it. Weighted to the left, where the copy sits. */
-.hero-media::after {
-  content: ""; position: absolute; inset: 0;
-  background: linear-gradient(
-    100deg,
-    rgba(9, 16, 38, 0.93) 0%,
-    rgba(9, 16, 38, 0.84) 36%,
-    rgba(9, 16, 38, 0.5) 68%,
-    rgba(9, 16, 38, 0.3) 100%
-  );
-}
-/* ---- the copy, which always sits on the film ---- */
-/* The accent keeps its red: it is display-sized and reads well on the scrim,
-   so the headline is white with one coloured phrase rather than flat white. */
-.hero h1 { color: #fff; }
-.hero-eyebrow { color: rgba(255, 255, 255, 0.88); }
-.hero-lead { color: rgba(255, 255, 255, 0.9); }
-.hero .btn-outline {
-  background: transparent; color: #fff;
-  border: 1.5px solid rgba(255, 255, 255, 0.8);
-}
-.hero .btn-outline:hover {
-  background: #fff; border-color: #fff; color: var(--color-hero-ink);
-}
-.hero h1, .hero-eyebrow, .hero-lead, .hero .btn-outline {
-  transition: color 0.55s ease, background-color 0.55s ease, border-color 0.55s ease;
-}
 
 .hero-orbit {
   position: absolute; inset: 0;
@@ -635,11 +566,11 @@ html[data-scrolling] .dpage-table-scroll { pointer-events: auto; }
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
-/* Below a real pointer with room to spare there is nothing to open: the hit
-   target is switched off, so the video simply stays in its circle and the
-   section behaves exactly as it always did. */
-@media not all and (hover: hover) and (pointer: fine) and (min-width: 1024px) {
-  .hero-orbit-hit { display: none; }
+/* Slowed right down rather than stopped, exactly as the same ring is in
+   .omk: badges frozen mid-revolution read as a mistake, a ring barely moving
+   reads as still. It also leaves the flag links easy to click. */
+@media (prefers-reduced-motion: reduce) {
+  .hero-orbit-wrap { --orbit-duration: 600s; }
 }
 
 /* ============================================================
@@ -9312,24 +9243,26 @@ a.unip-card:focus-visible {
 }
 .omk-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
-/* THE ONLY CLICKABLE THING IN THE CIRCLE. `.omk` keeps pointer-events:none
-   so the ring never intercepts a click meant for the pinned step behind it;
-   the badges take it back for themselves alone. See OrbitMark.tsx. */
-.omk .orbit-badge-link {
+/* THE ONLY CLICKABLE THING IN EITHER CIRCLE. Both rings keep
+   pointer-events:none on everything else — the hero's stage, and .omk — so
+   neither intercepts a click meant for what is beside or behind it; the
+   badges take it back for themselves alone. Unscoped because the markup is
+   shared: see OrbitItems in HeroOrbit.tsx. */
+.orbit-badge-link {
   pointer-events: auto; cursor: pointer;
   transition: box-shadow 0.25s ease, outline-color 0.2s ease;
   outline: 2px solid transparent; outline-offset: 3px;
 }
-.omk .orbit-badge-link:hover {
+.orbit-badge-link:hover {
   box-shadow: 0 10px 26px rgba(23, 39, 92, 0.32);
 }
-/* Visible focus, because these are keyboard-reachable once the panel is in
-   play and their content is a picture with no text to underline. */
-.omk .orbit-badge-link:focus-visible {
+/* Visible focus, because these are keyboard-reachable and their content is
+   a picture with no text to underline. */
+.orbit-badge-link:focus-visible {
   outline-color: var(--color-hero-red);
 }
 @media (prefers-reduced-motion: reduce) {
-  .omk .orbit-badge-link { transition: none; }
+  .orbit-badge-link { transition: none; }
 }
 
 .omk-spin {

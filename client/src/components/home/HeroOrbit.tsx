@@ -1,28 +1,33 @@
-import type { CSSProperties, ReactNode, RefObject } from "react";
+import type { CSSProperties, ReactNode } from "react";
+import { Link } from "react-router-dom";
 
 /**
- * Circular hero visual: a round photo or video with flag badges and planes
- * that revolve slowly around its circumference, all at the same pace.
- * The clip that fills the circle is NOT rendered here — see below.
+ * Circular hero visual: the hero's film playing inside a disc, with flag
+ * badges and planes revolving slowly round it, all at the same pace.
  *
- * Resting on the circle opens that video out until it is the background of
- * the entire hero, and stepping off closes it again. The video has to be a
- * child of the SECTION for that — an element cannot escape its own
- * containing block — so Home.tsx owns the media layer and this component
- * contributes two things to it:
+ * ------------------------------------------------------------------
+ * THE FILM LIVES INSIDE THE CIRCLE AND STAYS THERE. It has been two other
+ * things: a circle that opened out to fill the whole hero on hover (later on
+ * scroll), and then a full-bleed background with no circle at all. Both are
+ * gone. The opening version needed Home to measure an empty marker here on
+ * every resize and park an absolutely positioned layer on top of it, because
+ * an element that grows past its parent cannot live inside that parent.
  *
- *  - `.hero-photo-slot`, an empty marker sitting exactly where the resting
- *    circle belongs. Home measures it and parks the media layer on top.
- *  - `.hero-orbit-hit`, the pointer target, which stays the size of that
- *    resting circle so the opened video can never trap the cursor: step off
- *    the small circle and it closes however far it has grown.
+ * A circle that never grows has no such problem, so the media is simply a
+ * child of the disc — `children` — clipped by its own `border-radius`.
+ * Nothing is measured, nothing is published as a CSS variable, and there is
+ * no open or closed state for anything else on the page to follow.
  *
- * Open/closed state is owned by Home, because the section changes with it —
- * the headline and body copy turn white as the video comes up behind them.
+ * Home still decides WHAT goes in the disc (film, photograph, or a tinted
+ * placeholder), because that choice depends on the visitor's connection and
+ * motion settings, which are Home's business rather than the ring's.
+ * ------------------------------------------------------------------
  *
- * The stylesheet gates all of this to screens with a real pointer and room
- * to spare, so it is a desktop flourish; on a phone the circle just sits
- * there as before.
+ * THE FLAGS ARE LINKS; EVERYTHING ELSE IS DECORATION. Each one opens that
+ * country's guide. This used to be true only of the copy of this ring in the
+ * journey section (OrbitMark); that circle has come out, and the links came
+ * here rather than disappearing with it. See OrbitItems below for the three
+ * things that had to change together to make that safe.
  */
 
 const FlagUS = () => (
@@ -329,61 +334,94 @@ export const ORBIT_ENTRIES: OrbitEntry[] = [
   ...DESTINATIONS.map((_, i): OrbitEntry => ({ angle: at(i + 0.5), kind: "plane" })),
 ];
 
-export default function HeroOrbit({
-  open,
-  slotRef,
-}: {
-  /**
-   * True while the video is opened out across the whole section. Driven by
-   * how far the page has scrolled, not by the pointer — the orbit used to
-   * open and close the film on pointerenter/leave, and those handlers are
-   * gone with it. See the note in pages/Home.tsx.
-   */
-  open: boolean;
-  /** Home measures this to park the media layer on the resting circle */
-  slotRef: RefObject<HTMLDivElement>;
-}) {
+/**
+ * The revolving badges — flags and the planes between them — for any ring
+ * that draws this circle.
+ *
+ * ONE RENDERER, not a loop in each ring. The entries were already shared
+ * (ORBIT_ENTRIES) so the two rings could not drift apart; the markup around
+ * each entry is shared now too, because it is where the link, its label and
+ * its accessibility live, and two copies of that would drift just as surely.
+ *
+ * Three things had to change together for the flags to be safely clickable:
+ *
+ *   · The ring's stage KEEPS `pointer-events: none` and the badges alone get
+ *     it back (see `.orbit-badge-link`). The ring, the disc and the planes
+ *     stay inert, so the circle never swallows a click meant for something
+ *     beside or beneath it.
+ *
+ *   · `aria-hidden` sits on the decorative parts, never on a wrapper above a
+ *     link. A focusable link inside an aria-hidden subtree is the worst of
+ *     both worlds — reachable by keyboard, invisible to the screen reader
+ *     announcing it.
+ *
+ *   · Each link carries the country's name as its accessible label and its
+ *     tooltip, because its visible content is a flag with no text in it.
+ *
+ * A flag with no destination falls back to the plain badge, so adding one to
+ * ORBIT_ENTRIES before its guide exists degrades rather than 404s.
+ */
+export function OrbitItems() {
   return (
-    <div
-      className={`hero-orbit-wrap${open ? " is-open" : ""}`}
-      aria-hidden="true"
-    >
-      <div className="hero-orbit-stage">
-        <div className="hero-orbit-ring" />
-        {/* Empty on purpose. The video that fills this circle is rendered by
-            Home as a child of the section, because an element cannot escape
-            its own containing block and this one has to open out to the full
-            width of the hero. All this marks is where it sits at rest. */}
-        <div className="hero-photo-slot" ref={slotRef} />
-        <div className="hero-orbit">
-          {ORBIT_ENTRIES.map((e) =>
-            e.kind === "flag" ? (
-              <span
-                key={e.angle}
-                className="orbit-item"
-                style={{ "--angle": `${e.angle}deg` } as CSSProperties}
+    <>
+      {ORBIT_ENTRIES.map((e) =>
+        e.kind === "flag" ? (
+          <span
+            key={e.angle}
+            className="orbit-item"
+            style={{ "--angle": `${e.angle}deg` } as CSSProperties}
+          >
+            {e.to ? (
+              <Link
+                to={e.to}
+                className={`orbit-badge orbit-badge-link${e.small ? " orbit-badge-sm" : ""}`}
+                aria-label={e.label}
+                title={e.label}
               >
-                <span
-                  className={`orbit-badge${e.small ? " orbit-badge-sm" : ""}`}
-                >
-                  {e.node}
-                </span>
-              </span>
+                {e.node}
+              </Link>
             ) : (
               <span
-                key={e.angle}
-                className="orbit-item orbit-plane"
-                style={{ "--angle": `${e.angle}deg` } as CSSProperties}
+                className={`orbit-badge${e.small ? " orbit-badge-sm" : ""}`}
+                aria-hidden="true"
               >
-                <PlaneIcon />
+                {e.node}
               </span>
-            ),
-          )}
+            )}
+          </span>
+        ) : (
+          <span
+            key={e.angle}
+            className="orbit-item orbit-plane"
+            style={{ "--angle": `${e.angle}deg` } as CSSProperties}
+            aria-hidden="true"
+          >
+            <PlaneIcon />
+          </span>
+        )
+      )}
+    </>
+  );
+}
+
+export default function HeroOrbit({
+  children,
+}: {
+  /** What plays in the disc — Home's choice of film, photograph or
+      placeholder. Clipped to the circle by the disc itself. */
+  children: ReactNode;
+}) {
+  return (
+    <div className="hero-orbit-wrap">
+      <div className="hero-orbit-stage">
+        <div className="hero-orbit-ring" aria-hidden="true" />
+        <div className="hero-orbit-media" aria-hidden="true">
+          {children}
+        </div>
+        <div className="hero-orbit">
+          <OrbitItems />
         </div>
       </div>
-      <div
-        className="hero-orbit-hit"
-      />
     </div>
   );
 }

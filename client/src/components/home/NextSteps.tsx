@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { Link } from "react-router-dom";
-import OrbitMark from "./OrbitMark";
 import { JOURNEY, JOURNEY_CLOSER, type JourneyStep } from "../../data/journey";
 
 /**
@@ -39,7 +38,7 @@ import { JOURNEY, JOURNEY_CLOSER, type JourneyStep } from "../../data/journey";
  * wrong.
  */
 
-/** The closing panel after the last step — the orbiting mark. */
+/** The closing panel after the last step. Blank for now — see the panel. */
 const CONSULT = JOURNEY.length;
 /** Panels: one per step, plus the form. */
 const PANEL_COUNT = JOURNEY.length + 1;
@@ -72,11 +71,12 @@ const VH_PER_PANEL = 0.55;
  * it arrived slid the form away under the hands of anyone who had started
  * filling it in, so it was pinned for most of a screen while they typed.
  *
- * The panel is now the orbiting mark, which is decoration — there is nothing
- * to fill in and nothing to be interrupted. Held that long it just read as
- * the page refusing to move: most of a screen of scrolling that changed
- * nothing on it. What is left is enough for the circle to land and be seen
- * to have landed before the section lets go.
+ * The panel then became the orbiting mark, and is blank for now — either
+ * way there is nothing to fill in and nothing to be interrupted. Held that
+ * long it just read as the page refusing to move: most of a screen of
+ * scrolling that changed nothing on it. What is left is enough for the
+ * closing line to land and be seen to have landed before the section lets
+ * go.
  *
  * If a form ever returns to the last panel, this has to go back up with it.
  */
@@ -295,14 +295,24 @@ export default function NextSteps() {
               the form to fit the queue would have been the queue deciding
               how usable the form is. Opaque, so it covers the cards as it
               comes up over them. */}
+          {/* BLANK FOR NOW, ON PURPOSE. This held the orbiting circle until
+              the circle went back into the hero, and showing it twice on one
+              page would make neither the one that matters.
+
+              The panel itself stays, empty, and that is not an oversight: it
+              is what the closing line on the left ("Ready when you are")
+              rises in step with, what covers the last photograph as it goes,
+              and what PANEL_COUNT and the scroll room are computed from.
+              Removing it would shorten the band and leave that line rising
+              over a photograph that never gets covered. Whatever goes here
+              next drops into this element — OrbitMark still works, and
+              putting it back is `<OrbitMark />` in here. */}
           <div
             className="nsx-consult"
             style={{ "--i": CONSULT } as CSSProperties}
             data-on={onCloser || undefined}
             {...inertWhenHidden(onCloser)}
-          >
-            <OrbitMark />
-          </div>
+          />
         </div>
 
         <div className="container nsx-inner">
@@ -372,7 +382,8 @@ export default function NextSteps() {
             </Link>
           </article>
         ))}
-        <OrbitMark />
+        {/* The phone layout's copy of the step-5 circle, removed with it —
+            the circle is in the hero now. */}
       </div>
     </section>
   );

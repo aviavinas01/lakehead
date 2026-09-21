@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../api/client";
 import { mediaSrc } from "../api/media";
-import { PlaneIcon } from "../components/home/HeroOrbit";
+import HeroOrbit, { PlaneIcon } from "../components/home/HeroOrbit";
 import NextSteps from "../components/home/NextSteps";
 import StatsStrip from "../components/home/StatsStrip";
 import LegacyBand from "../components/home/LegacyBand";
@@ -87,8 +87,16 @@ const HELP_CARDS: {
 function affordsVideo(): boolean {
   if (typeof window === "undefined") return false;
 
-  /* Below this the film is cropped so hard it stops being the shot that was
-     framed, quite apart from what it costs to fetch. */
+  /* Phones and small tablets get the photograph, for what the clip costs to
+     fetch: hero.mp4 is about 12 MB, which is a lot of somebody's mobile data
+     to spend on a decorative circle.
+
+     This gate was added when the film was full-bleed, and its FIRST reason
+     then was cropping — a wide shot squeezed into a tall screen stops being
+     the shot that was framed. That no longer applies: the film now plays in
+     a circle, which is the same crop at every width. Cost is the whole
+     reason now, so if the clip is ever re-encoded down to a couple of
+     megabytes, this line is worth revisiting. */
   if (window.matchMedia("(max-width: 900px)").matches) return false;
 
   const conn = (
@@ -109,16 +117,11 @@ export default function Home() {
   const helpGrid = useRef<HTMLDivElement>(null);
 
   /* ---- the hero's film ----------------------------------------------
-     The clip is simply the background of the hero, full width, reaching up
-     behind the header. Nothing opens, nothing closes, nothing is measured.
-
-     It used to travel between a circle in an orbit of badges and a
-     full-bleed film — first on hover, later on scroll — which meant a
-     measuring pass on every resize, a set of published CSS variables, a
-     body class, and a section whose appearance depended on where the page
-     happened to be. The only thing that behaviour is still doing is
-     changing the header, and the header already knows how to do that by
-     itself on every other full-bleed page (see `overHero` in Navbar.tsx).
+     The clip plays inside the circle on the right of the hero, with the
+     flags revolving round it. Nothing opens, nothing closes, nothing is
+     measured — see HeroOrbit for the two versions before this one (a circle
+     that opened out on hover or scroll, then a full-bleed background) and
+     why neither came back.
 
      A missing file falls back to the next option rather than a broken
      image: video → photo → a neutral gradient. */
@@ -180,35 +183,6 @@ export default function Home() {
   return (
     <>
       <section className="hero">
-        {/* The section's background, and nothing more than that. */}
-        <div className="hero-media" aria-hidden="true">
-          {showVideo ? (
-            <video
-              src={HERO_VIDEO}
-              poster={showPhoto ? heroImage : undefined}
-              autoPlay
-              muted
-              loop
-              playsInline
-              preload="metadata"
-              onError={() => setVideoBroken(true)}
-            />
-          ) : showPhoto ? (
-            <img
-              src={heroImage}
-              alt=""
-              /* The one image on the site that is certainly on screen before
-                 anything is scrolled, and the page's largest paint. Nothing
-                 about it should be deferred. */
-              loading="eager"
-              {...({ fetchpriority: "high" } as Record<string, string>)}
-              decoding="async"
-              onError={() => setImageBroken(true)}
-            />
-          ) : (
-            <div className="hero-photo-placeholder" />
-          )}
-        </div>
         <div className="container hero-inner">
           <div className="hero-copy">
             <p className="hero-eyebrow">
@@ -227,19 +201,51 @@ export default function Home() {
               <Link to="/contact" className="btn btn-outline">Talk to Us →</Link>
             </div>
           </div>
+
+          {/* The film plays inside the circle, and stays there. */}
+          <HeroOrbit>
+            {showVideo ? (
+              <video
+                src={HERO_VIDEO}
+                poster={showPhoto ? heroImage : undefined}
+                autoPlay
+                muted
+                loop
+                playsInline
+                preload="metadata"
+                onError={() => setVideoBroken(true)}
+              />
+            ) : showPhoto ? (
+              <img
+                src={heroImage}
+                alt=""
+                /* On screen before anything is scrolled, and one of the
+                   page's largest paints. Nothing about it should be
+                   deferred. */
+                loading="eager"
+                {...({ fetchpriority: "high" } as Record<string, string>)}
+                decoding="async"
+                onError={() => setImageBroken(true)}
+              />
+            ) : (
+              <div className="hero-photo-placeholder" />
+            )}
+          </HeroOrbit>
         </div>
       </section>
 
-      {/* Straddles the bottom edge of the film — 40% of the band on the
-          video, the rest on the white below. It has to be a sibling of the
-          hero rather than a child: .hero clips its overflow, so a band
-          reaching below from inside would be cut off at the section edge.
+      {/* In the flow below the hero, NOT pulled up over it. The `overlap`
+          lift existed to straddle the bottom edge of the full-bleed film —
+          40% of the band on the video, so the film showed through it. With
+          the film back in the circle there is no edge to straddle: the lift
+          would just drop a card onto white, over the bottom of the orbit and
+          the flag links revolving through it.
 
           TWO ASKS ON THIS PAGE, ON PURPOSE. This one wants a name and a
           number and takes ten seconds; the form above the footer wants the
           whole story. They are for different readers at different points,
           not a duplicate. */}
-      <CallbackStrip service="study-abroad" overlap />
+      <CallbackStrip service="study-abroad" />
 
       {/* Who we are. It sits between the film and the figures deliberately:
           the film says what we do, this says who is doing it, and only then

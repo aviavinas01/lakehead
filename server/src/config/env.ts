@@ -4,7 +4,22 @@ import { z } from "zod";
 dotenv.config();
 
 const envSchema = z.object({
-  PORT: z.coerce.number().default(5000),
+  /**
+   * TOLERANT OF A NON-NUMERIC VALUE ON PURPOSE, and that is not laziness.
+   *
+   * Under Phusion Passenger — which is what cPanel's "Setup Node.js App"
+   * runs behind — the port is not ours to choose. Passenger patches
+   * `Server.listen()` and binds its own socket, ignoring whatever we pass,
+   * and it may hand us a `PORT` that is a socket path rather than a number.
+   *
+   * Without the `.catch()`, `z.coerce.number()` turns that into NaN, `z
+   * .number()` rejects NaN, and the whole env parse throws — so the app
+   * dies at boot with a Zod error about PORT, on a platform where the port
+   * is the one thing that does not matter. That is a long evening for
+   * somebody. The fallback costs nothing: where the value IS meaningful it
+   * is used, and where it is not it is ignored anyway.
+   */
+  PORT: z.coerce.number().default(5000).catch(5000),
   /**
    * Where uploaded media is written and served from.
    *
